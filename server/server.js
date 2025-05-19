@@ -1,18 +1,42 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import cors from 'cors';
+import cookieParser from "cookie-parser";
+import authRouter from './routes/auth/authRoutes.js';
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log('MongoDB connected'))
+.catch(error => console.log(error));
 
 const app = express();
+app.use(express.json());
 
-const corsOptions = {
-    origin: ["http://localhost:5173"]
-}
+const PORT = process.env.PORT || 5000;
 
-app.use(cors(corsOptions));
+app.use(
+    cors({
+        origin : 'http://localhost:5173',
+        methods : ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders : [
+            "content-type",
+            'Authorization',
+            'Cache-Control',
+            'Expires',
+            'Pragma',
+        ],
+        credentials : true,
+    })
+);
 
-app.get('/api', (req, res) => {
-    res.json({ message: 'Hello from the server!' });
-})
+app.use(cookieParser());
+app.use(express.json());
 
-app.listen(8080, () => {
-    console.log('Server is running on http://localhost:8080');
+app.use("/api/auth", authRouter);
+
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 })
