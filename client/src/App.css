@@ -5,6 +5,11 @@
   text-align: center;
 } */
 
+html, body {
+  overflow: hidden;
+}
+
+
 .leaflet-static-icon {
   transform: scale(1) !important;
 }
