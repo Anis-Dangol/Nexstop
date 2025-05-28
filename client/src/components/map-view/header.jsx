@@ -1,12 +1,5 @@
-import {
-  AlignJustify,
-  LogOut,
-  UserCog,
-} from "lucide-react";
-import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
+import { AlignJustify, LogOut, UserCog } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -45,11 +38,6 @@ function HeaderRightContent() {
         >
           <DropdownMenuLabel>Logged in as {user?.userName}</DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-[#070f18]" />
-          <DropdownMenuItem onClick={() => navigate("/shop/account")}>
-            <UserCog className="mr-2 h-4 w-4" />
-            Account
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-[#070f18]" />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
@@ -66,8 +54,8 @@ export function MappingHeader({ setOpen }) {
   console.log(user, "useruseruser");
 
   return (
-    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 pb-3">
-      <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6">
+    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 ">
+      <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6 pt-5">
         <Button onClick={() => setOpen(true)} className="lg:hidden sm:block">
           <AlignJustify />
           <span className="sr-only">Toggle Menu</span>

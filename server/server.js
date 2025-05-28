@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import authRouter from './routes/auth/authRoutes.js';
+import routeSuggestion  from "./routes/bus/routeSuggestion.js";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -35,7 +36,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
-
+app.use("/api", routeSuggestion);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
