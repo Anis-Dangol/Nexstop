@@ -12,7 +12,7 @@
     "start": "BALKHU",
     "end": "KALANKI",
     "stops": [
-      { "name": "1", "latitude": 27.684381, "longitude": 85.30128 },
+      { "name": "Balkhu", "latitude": 27.684381, "longitude": 85.30128 },
       {
         "name": "2",
         "latitude": 27.684497441693317,
@@ -124,7 +124,7 @@
         "longitude": 85.28298554286165
       },
       {
-        "name": "24",
+        "name": "Kalanki",
         "latitude": 27.691953225018278,
         "longitude": 85.2821574589219
       }

@@ -1,5 +1,5 @@
 // components/layout/ClientSideBar.jsx
-import { Fragment } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { ChartNoAxesCombined } from "lucide-react";
 
@@ -10,11 +10,47 @@ function ClientMenuItems({
   setStart,
   end,
   setEnd,
+  history,
+  setHistory,
 }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onRouteSubmit(start, end); // Call the parent handler
+  const handleSubmit = (e, customStart, customEnd) => {
+    if (e) e.preventDefault();
+    // Use custom values if provided (for history click), else use current state
+    const s = customStart !== undefined ? customStart : start;
+    const d = customEnd !== undefined ? customEnd : end;
+    const trimmedStart = s.trim();
+    const trimmedEnd = d.trim();
+    if (!trimmedStart || !trimmedEnd) return;
+    onRouteSubmit(trimmedStart, trimmedEnd);
+    const newEntry = `${trimmedStart} → ${trimmedEnd}`;
+    if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
+      setHistory([newEntry, ...history]);
+      localStorage.setItem(
+        "routeHistory",
+        JSON.stringify([newEntry, ...history])
+      );
+    }
     setOpen(false);
+  };
+
+  // On mount, load history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("routeHistory");
+    if (saved) setHistory(JSON.parse(saved));
+    // eslint-disable-next-line
+  }, []);
+
+  // When history changes, save to localStorage
+  useEffect(() => {
+    localStorage.setItem("routeHistory", JSON.stringify(history));
+  }, [history]);
+
+  const handleHistoryClick = (item) => {
+    const [s, d] = item.split(" → ");
+    setStart(s);
+    setEnd(d);
+    // Automatically search
+    handleSubmit(null, s, d);
   };
 
   return (
@@ -39,6 +75,23 @@ function ClientMenuItems({
           Get Route
         </button>
       </form>
+      {/* History List */}
+      {history.length > 0 && (
+        <div className="mt-4">
+          <div className="font-bold mb-2">History</div>
+          <ul className="space-y-1">
+            {history.map((item, idx) => (
+              <li
+                key={idx}
+                className="text-sm bg-gray-100 rounded px-2 py-1 cursor-pointer hover:bg-blue-200"
+                onClick={() => handleHistoryClick(item)}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </nav>
   );
 }
@@ -52,6 +105,8 @@ export default function ClientSideBar({
   end,
   setEnd,
 }) {
+  // Add history state here
+  const [history, setHistory] = useState([]);
   return (
     <Fragment>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -70,6 +125,8 @@ export default function ClientSideBar({
               setStart={setStart}
               end={end}
               setEnd={setEnd}
+              history={history}
+              setHistory={setHistory}
             />
           </div>
         </SheetContent>
