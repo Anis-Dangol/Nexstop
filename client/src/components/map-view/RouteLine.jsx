@@ -18,7 +18,7 @@ export default function RouteLine({ route, userLocation }) {
   const endName = route[route.length - 1]?.name || "Destination";
 
   return (
-    <Polyline positions={positions} color="blue">
+    <Polyline positions={positions} color="blue" weight={6}>
       <Popup>{`${startName} to ${endName}`}</Popup>
     </Polyline>
   );

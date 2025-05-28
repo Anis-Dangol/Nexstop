@@ -27,14 +27,15 @@ export default function MapContainerWrapper({ route }) {
     );
   }, []);
 
-  const center = userLocation || [27.686262, 85.303635];
+  const center =  [27.686262, 85.303635];
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative h-screen w-screen mt-15">
       <MapContainer
         center={center}
         zoom={13}
         scrollWheelZoom
+        zoomControl={false}
         className="h-screen w-full z-0"
       >
         <TileLayer
@@ -46,7 +47,7 @@ export default function MapContainerWrapper({ route }) {
         <BusStopMarkers busStops={busStops} show={zoom >= 11} />
         {/* Render the route if available, passing userLocation */}
         {route && route.length > 0 && (
-          <RouteLine route={route} userLocation={userLocation} />
+          <RouteLine route={route} userLocation={center} />
         )}
       </MapContainer>
     </div>
