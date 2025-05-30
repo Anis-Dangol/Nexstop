@@ -14,13 +14,19 @@
   { "name": "sanepa bus stop", "latitude": 27.68440917, "longitude": 85.30189796 },
   { "name": "kusunti bus stop", "latitude": 27.66532992, "longitude": 85.31313763 },
   { "name": "lagankhel", "latitude": 27.66729327, "longitude": 85.32316176 },
+<<<<<<< HEAD
+=======
 
+>>>>>>> d1c23ca639ee87bd3fb0720ee49cd26e47e69677
   { "name": "balkhu pari", "latitude": 27.68522556, "longitude": 85.29816674 },
   { "name": "kalimati bus stop", "latitude": 27.69827038, "longitude": 85.29937482 },
   { "name": "teku", "latitude": 27.69630007, "longitude": 85.30699268 },
   { "name": "tripureswor", "latitude": 27.69398864, "longitude": 85.31314353 },
   { "name": "ratnapark", "latitude": 27.70076884, "longitude": 85.31336937 },
+<<<<<<< HEAD
+=======
 
+>>>>>>> d1c23ca639ee87bd3fb0720ee49cd26e47e69677
   { "name": "kalanki bus stop", "latitude": 27.69392732, "longitude": 85.28149749 },
   { "name": "soltimod", "latitude": 27.69668225, "longitude": 85.29354349 },
   { "name": "tripureswor bus stand", "latitude": 27.69398864, "longitude": 85.31314353 },
@@ -28,6 +34,11 @@
   { "name": "thapathali bus stop", "latitude": 27.69123837, "longitude": 85.31767815 },
   { "name": "maitighar", "latitude": 27.69382044, "longitude": 85.32134249 },
   { "name": "new baneswor bus stop", "latitude": 27.68859267, "longitude": 85.33472112 },
+<<<<<<< HEAD
+  { "name": "mahalaxmisthan", "latitude": 27.66141998, "longitude": 85.31822766 },
+  { "name": "thasikhelchowk", "latitude": 27.66284467, "longitude": 85.31642726 },
+  { "name": "ekantakuna bus station", "latitude": 27.66665422, "longitude": 85.30821982 }
+=======
 
   { "name": "mahalaxmisthan", "latitude": 27.66141998, "longitude": 85.31822766 },
   { "name": "thasikhelchowk", "latitude": 27.66284467, "longitude": 85.31642726 },
@@ -44,4 +55,5 @@
   { "name": "banasthali chok", "latitude": 27.7249497, "longitude": 85.29784799 },
   { "name": "balju chok", "latitude": 27.72725645, "longitude": 85.30473753 },
   { "name": "macha pokhari", "latitude": 27.73531861, "longitude": 85.30583029 }
+>>>>>>> d1c23ca639ee87bd3fb0720ee49cd26e47e69677
 ]
