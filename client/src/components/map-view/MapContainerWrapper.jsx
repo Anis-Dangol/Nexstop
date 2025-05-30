@@ -1,5 +1,3 @@
-// Main Map wrapper
-
 // components/map-view/MapContainerWrapper.jsx
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
@@ -7,8 +5,9 @@ import "leaflet/dist/leaflet.css";
 import UserLocationMarker from "./UserLocationMarker";
 import BusStopMarkers from "./BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
+import RouteLine from "./RouteLine";
 
-export default function MapContainerWrapper() {
+export default function MapContainerWrapper({ route }) {
   const [userLocation, setUserLocation] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [zoom, setZoom] = useState(13);
@@ -32,15 +31,23 @@ export default function MapContainerWrapper() {
 
   return (
     <div className="relative h-screen w-screen">
-      <MapContainer center={center} zoom={13} scrollWheelZoom className="h-screen w-full z-0">
+      <MapContainer
+        center={center}
+        zoom={13}
+        scrollWheelZoom
+        className="h-screen w-full z-0"
+      >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
         />
-
         <ZoomLevelTracker onZoomChange={setZoom} />
         <UserLocationMarker position={center} />
-        <BusStopMarkers busStops={busStops} show={zoom >= 11} /> {/* Show bus stops only if zoom level is 15 or higher */}
+        <BusStopMarkers busStops={busStops} show={zoom >= 11} />
+        {/* Render the route if available, passing userLocation */}
+        {route && route.length > 0 && (
+          <RouteLine route={route} userLocation={userLocation} />
+        )}
       </MapContainer>
     </div>
   );
