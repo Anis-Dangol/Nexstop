@@ -129,5 +129,57 @@
         "longitude": 85.2821574589219
       }
     ]
+  },
+  {
+   
+    "start": "mahalaxmi chok",
+    "end": "sanepa",
+    "stops": [
+      { "name": "mahalaxmi chok", "latitude": 27.66139332, "longitude": 85.31821974 },
+      { "name": "thasikhel chok", "latitude": 27.66285736, "longitude": 85.31645277 },
+      { "name": "kusunti bus stop", "latitude": 27.66425023, "longitude": 85.314392 },
+      { "name": "ekantakunna bus stop", "latitude": 27.66788817, "longitude": 85.3068109 },
+      { "name": "sanepa bus stop", "latitude": 27.68418164, "longitude": 85.30168469 }
+    ]
+  },
+  {
+    
+    "start": "mahalaxmi chok",
+    "end": "TU gate",
+    "stops": [
+      { "name": "mahalaxmi chok", "latitude": 27.66139332, "longitude": 85.31821974 },
+      { "name": "thasikhel chok", "latitude": 27.66285736, "longitude": 85.31645277 },
+      { "name": "kusunti bus stop", "latitude": 27.66425023, "longitude": 85.314392 },
+      { "name": "ekantakunna bus stop", "latitude": 27.66788817, "longitude": 85.3068109 },
+      { "name": "sanepa bus stop", "latitude": 27.68418164, "longitude": 85.30168469 },
+      { "name": "balkhu wari", "latitude": 27.68425502, "longitude": 85.29731729 },
+      { "name": "kumari club", "latitude": 27.6821261, "longitude": 85.29843589 },
+      { "name": "TU gate", "latitude": 27.67886137, "longitude": 85.29716181 }
+    ]
+  },
+  {
+    
+    "start": "sanepa",
+    "end": "kalanki",
+    "stops": [
+      { "name": "sanepa bus stop", "latitude": 27.68418164, "longitude": 85.30168469 },
+      { "name": "balkhu stop", "latitude": 27.68483792, "longitude": 85.2966863 },
+      { "name": "sita petrol pump stop", "latitude": 27.68826239, "longitude": 85.28666049 },
+      { "name": "kalanki bus stop", "latitude": 27.69398086, "longitude": 85.28148487 }
+    ]
+  },
+  {
+    
+    "start": "sanepa",
+    "end": "ratnapark",
+    "stops": [
+      { "name": "sanepa bus stop", "latitude": 27.68418164, "longitude": 85.30168469 },
+      { "name": "balkhu stop", "latitude": 27.68483792, "longitude": 85.2966863 },
+      { "name": "balkhu pari", "latitude": 27.68522556, "longitude": 85.29816674 },
+      { "name": "kalimati bus stop", "latitude": 27.69827038, "longitude": 85.29937482 },
+      { "name": "teku", "latitude": 27.69630007, "longitude": 85.30699268 },
+      { "name": "tripureswor", "latitude": 27.69398864, "longitude": 85.31314353 },
+      { "name": "ratnapark", "latitude": 27.70076884, "longitude": 85.31336937 }
+    ]
   }
 ]
