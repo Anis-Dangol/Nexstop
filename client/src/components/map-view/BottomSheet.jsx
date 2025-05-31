@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue, useAnimation } from "framer-motion";
-import { HandCoins, Bookmark, BusFront } from "lucide-react";
 
 const BottomSheet = ({ isOpen, onClose, children }) => {
   const y = useMotionValue(0);

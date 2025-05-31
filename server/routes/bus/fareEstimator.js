@@ -66,8 +66,8 @@ router.post("/estimate-fare", (req, res) => {
         route: `${route.start} → ${route.end}`,
         from: start,
         to: end,
-        totalDistance: totalDistance.toFixed(2) + " km",
-        fare: `₹${fare}`,
+        totalDistance: totalDistance.toFixed(2),
+        fare: `${fare}`,
       });
     }
   }

@@ -34,11 +34,10 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(express.json());
 
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
-app.use("/api", fareEstimator);
+app.use("/api/bus", fareEstimator);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

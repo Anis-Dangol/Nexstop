@@ -1,3 +1,4 @@
+// MapContainerWrapper.jsx
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -8,13 +9,29 @@ import RouteLine from "./RouteLine";
 import BottomSheet from "./BottomSheet";
 import { ListPlus, HandCoins, BusFront, Bookmark } from "lucide-react";
 
-export default function MapContainerWrapper({ route }) {
+export default function MapContainerWrapper({ route, setRoute, triggerOpenBottomSheet }) {
   const [userLocation, setUserLocation] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [zoom, setZoom] = useState(13);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("fare");
+  const [fareData, setFareData] = useState(null);
 
+  // Effect: Open BottomSheet when triggered externally
+  useEffect(() => {
+    if (triggerOpenBottomSheet) {
+      openBottomSheet("fare");
+    }
+  }, [triggerOpenBottomSheet]);
+
+  // Effect: Open BottomSheet when route changes (if a route exists)
+  useEffect(() => {
+    if (route && route.length > 1) {
+      openBottomSheet("fare");
+    }
+  }, [route]);
+
+  // Load bus stops and user location
   useEffect(() => {
     fetch("/busstops.json")
       .then((res) => res.json())
@@ -30,11 +47,30 @@ export default function MapContainerWrapper({ route }) {
     );
   }, []);
 
-  const center = [27.686262, 85.303635];
+  // Fetch fare data only when route changes, not on every open/close
+  useEffect(() => {
+    if (route && route.length > 1) {
+      const start = route[0].name;
+      const end = route[route.length - 1].name;
+      fetch("http://localhost:5000/api/bus/estimate-fare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ start, end }),
+      })
+        .then((res) => res.json())
+        .then((data) => setFareData(data))
+        .catch(() => setFareData(null));
+    } else {
+      setFareData(null); // Clear fareData if route is cleared
+    }
+  }, [route]);
 
-  const handleGetRoutes = () => {
+  const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
+    setActiveTab(tab);
   };
+
+  const center = [27.686262, 85.303635];
 
   return (
     <div className="relative h-screen w-screen">
@@ -46,9 +82,7 @@ export default function MapContainerWrapper({ route }) {
         className="h-screen w-full z-0"
         attributionControl={false}
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomLevelTracker onZoomChange={setZoom} />
         <UserLocationMarker position={center} />
         <BusStopMarkers busStops={busStops} show={zoom >= 11} />
@@ -59,32 +93,41 @@ export default function MapContainerWrapper({ route }) {
 
       {/* GET ROUTES BUTTON */}
       <button
-        onClick={handleGetRoutes}
-        className="fixed bottom-5 right-4 bg-white  px-4 py-2 rounded-full shadow-lg"
+        onClick={() => openBottomSheet("fare")}
+        className="fixed bottom-5 right-4 bg-white px-4 py-2 rounded-full shadow-lg"
       >
-      <ListPlus size={24} className="text-gray-600" />
+        <ListPlus size={24} className="text-gray-600" />
       </button>
 
       {/* Bottom Sheet */}
-      <BottomSheet isOpen={isBottomSheetOpen} onClose={() => setIsBottomSheetOpen(false)}>
+      <BottomSheet
+        isOpen={isBottomSheetOpen}
+        onClose={() => setIsBottomSheetOpen(false)}
+      >
         <div>
           <div className="flex justify-around items-center border-t border-gray-200 py-2 mb-4">
             <button
-              className={`flex flex-col items-center focus:outline-none ${activeTab === "fare" ? "text-blue-600" : "text-gray-600"}`}
+              className={`flex flex-col items-center focus:outline-none ${
+                activeTab === "fare" ? "text-blue-600" : "text-gray-600"
+              }`}
               onClick={() => setActiveTab("fare")}
             >
               <HandCoins size={24} />
               <span className="text-xs mt-1">Fare</span>
             </button>
             <button
-              className={`flex flex-col items-center focus:outline-none ${activeTab === "bus" ? "text-blue-600" : "text-gray-600"}`}
+              className={`flex flex-col items-center focus:outline-none ${
+                activeTab === "bus" ? "text-blue-600" : "text-gray-600"
+              }`}
               onClick={() => setActiveTab("bus")}
             >
               <BusFront size={24} />
               <span className="text-xs mt-1">Buses</span>
             </button>
             <button
-              className={`flex flex-col items-center focus:outline-none ${activeTab === "favorites" ? "text-blue-600" : "text-gray-600"}`}
+              className={`flex flex-col items-center focus:outline-none ${
+                activeTab === "favorites" ? "text-blue-600" : "text-gray-600"
+              }`}
               onClick={() => setActiveTab("favorites")}
             >
               <Bookmark size={24} />
@@ -94,9 +137,14 @@ export default function MapContainerWrapper({ route }) {
           {activeTab === "fare" && (
             <div>
               <h2 className="text-lg font-bold">Fare Estimation</h2>
-              {/* Insert fare and distance data here */}
-              <p>Fare: ₹20</p>
-              <p>Distance: 3.2 km</p>
+              {fareData ? (
+                <>
+                  <p>Fare: ₹ {fareData.fare}</p>
+                  <p>Distance: {fareData.totalDistance} km</p>
+                </>
+              ) : (
+                <p className="text-gray-500">No fare data available.</p>
+              )}
             </div>
           )}
           {activeTab === "bus" && (
