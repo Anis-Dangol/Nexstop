@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from "cookie-parser";
 import authRouter from './routes/auth/authRoutes.js';
 import routeSuggestion  from "./routes/bus/routeSuggestion.js";
+import fareEstimator from "./routes/bus/fareEstimator.js";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -37,6 +38,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
+app.use("/api", fareEstimator);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
