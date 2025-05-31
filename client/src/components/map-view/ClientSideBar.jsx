@@ -53,6 +53,12 @@ function ClientMenuItems({
     handleSubmit(null, s, d);
   };
 
+  const handleDeleteHistory = (idx) => {
+    const newHistory = history.filter((_, i) => i !== idx);
+    setHistory(newHistory);
+    localStorage.setItem("routeHistory", JSON.stringify(newHistory));
+  };
+
   return (
     <nav className="mt-8 flex-col flex gap-4">
       {/* Route Search Form */}
@@ -83,10 +89,24 @@ function ClientMenuItems({
             {history.map((item, idx) => (
               <li
                 key={idx}
-                className="text-sm bg-gray-100 rounded px-2 py-1 cursor-pointer hover:bg-blue-200"
-                onClick={() => handleHistoryClick(item)}
+                className="flex items-center text-sm bg-gray-100 rounded px-2 py-1 cursor-pointer hover:bg-blue-200"
               >
-                {item}
+                <span
+                  className="flex-1"
+                  onClick={() => handleHistoryClick(item)}
+                >
+                  {item}
+                </span>
+                <button
+                  className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteHistory(idx);
+                  }}
+                  title="Delete"
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
