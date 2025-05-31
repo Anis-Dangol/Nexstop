@@ -40,7 +40,7 @@ app.use(cookieParser());
 // ✅ now use routes after 'app' is declared
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
-app.use("/api", fareEstimator); // ✅ now it's in the right place
+app.use("/api/bus", fareEstimator);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
