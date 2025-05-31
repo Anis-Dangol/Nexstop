@@ -2,6 +2,7 @@
 import { Fragment, useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { ChartNoAxesCombined } from "lucide-react";
+import { Button } from "../ui/button"; // Import the Button component
 
 function ClientMenuItems({
   setOpen,
@@ -71,9 +72,10 @@ function ClientMenuItems({
           onChange={(e) => setEnd(e.target.value)}
           className="p-2 border rounded"
         />
-        <button type="submit" className="bg-blue-600 text-white p-2 rounded">
+        {/* Replace custom button with Button component */}
+        <Button type="submit" variant="default" className="w-full">
           Get Route
-        </button>
+        </Button>
       </form>
       {/* History List */}
       {history.length > 0 && (
