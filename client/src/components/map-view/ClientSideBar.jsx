@@ -4,6 +4,57 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { ChartNoAxesCombined } from "lucide-react";
 import { Button } from "../ui/button"; // Import the Button component
 
+export default function ClientSideBar({
+  open,
+  setOpen,
+  onRouteSubmit,
+  start,
+  setStart,
+  end,
+  setEnd,
+}) {
+  // Add history state here
+  const [history, setHistory] = useState([]);
+
+  // On mount, load history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("routeHistory");
+    if (saved) setHistory(JSON.parse(saved));
+  }, []);
+
+  // When history changes, save to localStorage
+  useEffect(() => {
+    localStorage.setItem("routeHistory", JSON.stringify(history));
+  }, [history]);
+
+  return (
+    <Fragment>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-64">
+          <div className="flex flex-col h-full">
+            <SheetHeader className="border-b">
+              <SheetTitle className="flex gap-2 mt-2 mb-5">
+                <ChartNoAxesCombined size={30} />
+                <h1 className="text-2xl font-extrabold">Nexstop</h1>
+              </SheetTitle>
+            </SheetHeader>
+            <ClientMenuItems
+              setOpen={setOpen}
+              onRouteSubmit={onRouteSubmit}
+              start={start}
+              setStart={setStart}
+              end={end}
+              setEnd={setEnd}
+              history={history}
+              setHistory={setHistory}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </Fragment>
+  );
+}
+
 function ClientMenuItems({
   setOpen,
   onRouteSubmit,
@@ -69,25 +120,9 @@ function ClientMenuItems({
     const newEntry = `${trimmedStart} → ${trimmedEnd}`;
     if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
       setHistory([newEntry, ...history]);
-      localStorage.setItem(
-        "routeHistory",
-        JSON.stringify([newEntry, ...history])
-      );
     }
     setOpen(false);
   };
-
-  // On mount, load history from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("routeHistory");
-    if (saved) setHistory(JSON.parse(saved));
-    // eslint-disable-next-line
-  }, []);
-
-  // When history changes, save to localStorage
-  useEffect(() => {
-    localStorage.setItem("routeHistory", JSON.stringify(history));
-  }, [history]);
 
   const handleHistoryClick = (item) => {
     const [s, d] = item.split(" → ");
@@ -95,6 +130,11 @@ function ClientMenuItems({
     setEnd(d);
     // Automatically search
     handleSubmit(null, s, d);
+  };
+
+  const handleDeleteHistory = (idx) => {
+    const newHistory = history.filter((_, i) => i !== idx);
+    setHistory(newHistory);
   };
 
   return (
@@ -164,54 +204,29 @@ function ClientMenuItems({
             {history.map((item, idx) => (
               <li
                 key={idx}
-                className="text-sm bg-gray-100 rounded px-2 py-1 cursor-pointer hover:bg-blue-200"
-                onClick={() => handleHistoryClick(item)}
+                className="flex items-center text-sm bg-gray-100 rounded px-2 py-1 cursor-pointer hover:bg-blue-200"
               >
-                {item}
+                <span
+                  className="flex-1"
+                  onClick={() => handleHistoryClick(item)}
+                >
+                  {item}
+                </span>
+                <button
+                  className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteHistory(idx);
+                  }}
+                  title="Delete"
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
         </div>
       )}
     </nav>
-  );
-}
-
-export default function ClientSideBar({
-  open,
-  setOpen,
-  onRouteSubmit,
-  start,
-  setStart,
-  end,
-  setEnd,
-}) {
-  // Add history state here
-  const [history, setHistory] = useState([]);
-  return (
-    <Fragment>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64">
-          <div className="flex flex-col h-full">
-            <SheetHeader className="border-b">
-              <SheetTitle className="flex gap-2 mt-2 mb-5">
-                <ChartNoAxesCombined size={30} />
-                <h1 className="text-2xl font-extrabold">Nexstop</h1>
-              </SheetTitle>
-            </SheetHeader>
-            <ClientMenuItems
-              setOpen={setOpen}
-              onRouteSubmit={onRouteSubmit}
-              start={start}
-              setStart={setStart}
-              end={end}
-              setEnd={setEnd}
-              history={history}
-              setHistory={setHistory}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </Fragment>
   );
 }

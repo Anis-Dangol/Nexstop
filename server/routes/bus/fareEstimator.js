@@ -46,14 +46,28 @@ router.post("/estimate-fare", (req, res) => {
         );
       }
 
-      const fare = Math.ceil(totalDistance * farePerKm); // Round fare up
+    //   const fare = Math.ceil(totalDistance * farePerKm); // Round fare up
+      let fare;
+      if (totalDistance < 1) {
+        fare = 5;
+      } else if (totalDistance < 5) {
+        fare = 20;
+      } else if (totalDistance < 10) {
+        fare = 25;
+      } else if (totalDistance < 15) {
+        fare = 30;
+      } else if (totalDistance < 20) {
+        fare = 33;
+      } else {
+        fare = 38;
+      }
 
       return res.json({
         route: `${route.start} → ${route.end}`,
         from: start,
         to: end,
-        totalDistance: totalDistance.toFixed(2) + " km",
-        fare: `₹${fare}`,
+        totalDistance: totalDistance.toFixed(2),
+        fare: `${fare}`,
       });
     }
   }
