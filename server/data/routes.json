@@ -4,7 +4,7 @@
     "end": "Gongabu",
     "stops": [
       { "name": "Ratnapark", "latitude": 27.704, "longitude": 85.308 },
-      { "name": "Kalanki", "latitude": 27.694, "longitude": 85.284 },
+      { "name": "kalanki bus stop", "latitude": 27.694, "longitude": 85.284 },
       { "name": "Gongabu", "latitude": 27.723, "longitude": 85.314 }
     ]
   },
@@ -104,27 +104,79 @@
   },
   {
     "start": "Panga Dobato",
-    "end": "Nagaudobato",
+    "end": "Nagau dobato",
     "stops": [
-      { "name": "Panga Dobato", "latitude": 27.674558949503297, "longitude": 85.28040244651368 },
-      { "name": "", "latitude": 27.674765159700762, "longitude": 85.28041998987405 },
-      { "name": "", "latitude": 27.674664355781097, "longitude": 85.27992986795412 },
-      { "name": "", "latitude": 27.67464038658099, "longitude": 85.27944719951287 },
-      { "name": "", "latitude": 27.674700309574984, "longitude": 85.27832849140866 },
-      { "name": "Nagaudobato", "latitude": 27.674894024083027, "longitude": 85.27780795176608 }
+      {
+        "name": "Panga Dobato",
+        "latitude": 27.674558949503297,
+        "longitude": 85.28040244651368
+      },
+      {
+        "name": "",
+        "latitude": 27.674765159700762,
+        "longitude": 85.28041998987405
+      },
+      {
+        "name": "",
+        "latitude": 27.674664355781097,
+        "longitude": 85.27992986795412
+      },
+      {
+        "name": "",
+        "latitude": 27.67464038658099,
+        "longitude": 85.27944719951287
+      },
+      {
+        "name": "",
+        "latitude": 27.674700309574984,
+        "longitude": 85.27832849140866
+      },
+      {
+        "name": "Nagau dobato",
+        "latitude": 27.674894024083027,
+        "longitude": 85.27780795176608
+      }
     ]
   },
   {
-    "start": "Nagaudobato",
+    "start": "Nagau dobato",
     "end": "Khasibazar Kirtipur",
     "stops": [
-      { "name": "Nagaudobato", "latitude": 27.674919537903698, "longitude": 85.2774252000388 },
-      { "name": "", "latitude": 27.67512975673259, "longitude": 85.2771019938583 },
-      { "name": "", "latitude": 27.67573006499066, "longitude": 85.27667768629655 },
-      { "name": "", "latitude": 27.676405188753698, "longitude": 85.27620403972564 },
-      { "name": "", "latitude": 27.676984433639056, "longitude": 85.27599202647089 },
-      { "name": "", "latitude": 27.67717618298867, "longitude": 85.27582512244318 },
-      { "name": "Khasibazar Kirtipur", "latitude": 27.677649068307524, "longitude": 85.27505803704099 }
+      {
+        "name": "Nagau dobato",
+        "latitude": 27.674919537903698,
+        "longitude": 85.2774252000388
+      },
+      {
+        "name": "",
+        "latitude": 27.67512975673259,
+        "longitude": 85.2771019938583
+      },
+      {
+        "name": "",
+        "latitude": 27.67573006499066,
+        "longitude": 85.27667768629655
+      },
+      {
+        "name": "",
+        "latitude": 27.676405188753698,
+        "longitude": 85.27620403972564
+      },
+      {
+        "name": "",
+        "latitude": 27.676984433639056,
+        "longitude": 85.27599202647089
+      },
+      {
+        "name": "",
+        "latitude": 27.67717618298867,
+        "longitude": 85.27582512244318
+      },
+      {
+        "name": "Khasibazar Kirtipur",
+        "latitude": 27.677649068307524,
+        "longitude": 85.27505803704099
+      }
     ]
   },
   {
@@ -152,121 +204,369 @@
     ]
   },
   {
-    "start": "DevdhokaKirtipurHospital",
-    "end": "GaShi,BelowKirtiprHospital",
+    "start": "Devdhoka Kirtipur Hospital",
+    "end": "GaShi,BelowKirtipurHospital",
     "stops": [
-      { "name": "DevdhokaKirtipurHospital", "latitude": 27.682753349141706, "longitude": 85.27291549387078 },
-      { "name": "", "latitude": 27.681879145688953, "longitude": 85.27445613945879 },
-      { "name": "", "latitude": 27.68154659952796, "longitude": 85.27506305409636 },
-      { "name": "GaShi,BelowKirtiprHospital", "latitude": 27.681233178015137, "longitude": 85.27554409081701 }
+      {
+        "name": "Devdhoka Kirtipur Hospital",
+        "latitude": 27.682753349141706,
+        "longitude": 85.27291549387078
+      },
+      {
+        "name": "",
+        "latitude": 27.681879145688953,
+        "longitude": 85.27445613945879
+      },
+      {
+        "name": "",
+        "latitude": 27.68154659952796,
+        "longitude": 85.27506305409636
+      },
+      {
+        "name": "GaShi,BelowKirtipurHospital",
+        "latitude": 27.681233178015137,
+        "longitude": 85.27554409081701
+      }
     ]
   },
   {
-    "start": "GaShi,BelowKirtiprHospital",
-    "end": "KirtipurGate",
+    "start": "GaShi,BelowKirtipurHospital",
+    "end": "Kirtipur Gate",
     "stops": [
-      { "name": "GaShi,BelowKirtiprHospital", "latitude": 27.681233178015137, "longitude": 85.27554409081701 },
-      { "name": "", "latitude": 27.680195016179752, "longitude": 85.27703357152545 },
-      { "name": "", "latitude": 27.678456416535603, "longitude": 85.27968513368647 },
-      { "name": "", "latitude": 27.677052948360675, "longitude": 85.28090851668627 },
-      { "name": "", "latitude": 27.677124207633362, "longitude": 85.28147379225172 },
-      { "name": "KirtipurGate", "latitude": 27.677078715450286, "longitude": 85.28181497007428 }
+      {
+        "name": "GaShi,BelowKirtipurHospital",
+        "latitude": 27.681233178015137,
+        "longitude": 85.27554409081701
+      },
+      {
+        "name": "",
+        "latitude": 27.680195016179752,
+        "longitude": 85.27703357152545
+      },
+      {
+        "name": "",
+        "latitude": 27.678456416535603,
+        "longitude": 85.27968513368647
+      },
+      {
+        "name": "",
+        "latitude": 27.677052948360675,
+        "longitude": 85.28090851668627
+      },
+      {
+        "name": "",
+        "latitude": 27.677124207633362,
+        "longitude": 85.28147379225172
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.677078715450286,
+        "longitude": 85.28181497007428
+      }
     ]
   },
   {
-    "start": "KirtipurGate",
-    "end": "NayabatoLaboratorySchool",
+    "start": "Kirtipur Gate",
+    "end": "Nayabato Laboratory School",
     "stops": [
-      { "name": "KirtipurGate", "latitude": 27.677078715450286, "longitude": 85.28181497007428 },
-      { "name": "", "latitude": 27.676986767063404, "longitude": 85.28276303832878 },
-      { "name": "", "latitude": 27.676769262089035, "longitude": 85.28315856136268 },
-      { "name": "", "latitude": 27.676726890937783, "longitude": 85.28330209798611 },
-      { "name": "", "latitude": 27.67670429298476, "longitude": 85.28350942860872 },
-      { "name": "", "latitude": 27.676082847430283, "longitude": 85.2843929760839 },
-      { "name": "", "latitude": 27.675910536904595, "longitude": 85.2848586725593 },
-      { "name": "", "latitude": 27.67586251588908, "longitude": 85.28540092192186 },
-      { "name": "", "latitude": 27.675870990187295, "longitude": 85.28632593551755 },
-      { "name": "", "latitude": 27.675678905927587, "longitude": 85.28793354534882 },
-      { "name": "", "latitude": 27.67529473639922, "longitude": 85.28963046682509 },
-      { "name": "", "latitude": 27.67526931336848, "longitude": 85.29004193836843 },
-      { "name": "", "latitude": 27.675393603686054, "longitude": 85.29040875412677 },
-      { "name": "", "latitude": 27.675930644022955, "longitude": 85.29110884183801 },
-      { "name": "", "latitude": 27.676547736464048, "longitude": 85.29154709213894 },
-      { "name": "", "latitude": 27.67672238463646, "longitude": 85.29188454484998 },
-      { "name": "", "latitude": 27.676765076369282, "longitude": 85.29224829258752 },
-      { "name": "", "latitude": 27.67664476326447, "longitude": 85.29329571077136 },
-      { "name": "", "latitude": 27.676516687878074, "longitude": 85.29350607089478 },
-      { "name": "", "latitude": 27.676400255578354, "longitude": 85.29365069347962 },
-      { "name": "", "latitude": 27.67610917428607, "longitude": 85.29390926113132 },
-      { "name": "NayabatoLaboratorySchool", "latitude": 27.676355862308395, "longitude": 85.29414855081032 }
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.677078715450286,
+        "longitude": 85.28181497007428
+      },
+      {
+        "name": "",
+        "latitude": 27.676986767063404,
+        "longitude": 85.28276303832878
+      },
+      {
+        "name": "",
+        "latitude": 27.676769262089035,
+        "longitude": 85.28315856136268
+      },
+      {
+        "name": "",
+        "latitude": 27.676726890937783,
+        "longitude": 85.28330209798611
+      },
+      {
+        "name": "",
+        "latitude": 27.67670429298476,
+        "longitude": 85.28350942860872
+      },
+      {
+        "name": "",
+        "latitude": 27.676082847430283,
+        "longitude": 85.2843929760839
+      },
+      {
+        "name": "",
+        "latitude": 27.675910536904595,
+        "longitude": 85.2848586725593
+      },
+      {
+        "name": "",
+        "latitude": 27.67586251588908,
+        "longitude": 85.28540092192186
+      },
+      {
+        "name": "",
+        "latitude": 27.675870990187295,
+        "longitude": 85.28632593551755
+      },
+      {
+        "name": "",
+        "latitude": 27.675678905927587,
+        "longitude": 85.28793354534882
+      },
+      {
+        "name": "",
+        "latitude": 27.67529473639922,
+        "longitude": 85.28963046682509
+      },
+      {
+        "name": "",
+        "latitude": 27.67526931336848,
+        "longitude": 85.29004193836843
+      },
+      {
+        "name": "",
+        "latitude": 27.675393603686054,
+        "longitude": 85.29040875412677
+      },
+      {
+        "name": "",
+        "latitude": 27.675930644022955,
+        "longitude": 85.29110884183801
+      },
+      {
+        "name": "",
+        "latitude": 27.676547736464048,
+        "longitude": 85.29154709213894
+      },
+      {
+        "name": "",
+        "latitude": 27.67672238463646,
+        "longitude": 85.29188454484998
+      },
+      {
+        "name": "",
+        "latitude": 27.676765076369282,
+        "longitude": 85.29224829258752
+      },
+      {
+        "name": "",
+        "latitude": 27.67664476326447,
+        "longitude": 85.29329571077136
+      },
+      {
+        "name": "",
+        "latitude": 27.676516687878074,
+        "longitude": 85.29350607089478
+      },
+      {
+        "name": "",
+        "latitude": 27.676400255578354,
+        "longitude": 85.29365069347962
+      },
+      {
+        "name": "",
+        "latitude": 27.67610917428607,
+        "longitude": 85.29390926113132
+      },
+      {
+        "name": "Nayabato Laboratory School",
+        "latitude": 27.676355862308395,
+        "longitude": 85.29414855081032
+      }
     ]
   },
   {
-    "start": "NayabatoLaboratorySchool",
+    "start": "Nayabato Laboratory School",
     "end": "TU Gate",
     "stops": [
-      { "name": "NayabatoLaboratorySchool", "latitude": 27.676355862308395, "longitude": 85.29414855081032 },
-      { "name": "", "latitude": 27.677742881413494, "longitude": 85.29644541701802 },
-      { "name": "TU Gate", "latitude": 27.67887087166123, "longitude": 85.29716525226138 }
+      {
+        "name": "Nayabato Laboratory School",
+        "latitude": 27.676355862308395,
+        "longitude": 85.29414855081032
+      },
+      {
+        "name": "",
+        "latitude": 27.677742881413494,
+        "longitude": 85.29644541701802
+      },
+      {
+        "name": "TU Gate",
+        "latitude": 27.67887087166123,
+        "longitude": 85.29716525226138
+      }
     ]
   },
   {
     "start": "TU Gate",
-    "end": "KumariClubBalkhu",
-    "stops": [
-      { "name": "TU Gate", "latitude": 27.67887087166123, "longitude": 85.29716525226138 },
-      { "name": "", "latitude": 27.67999157759855, "longitude": 85.29795588373594 },
-      { "name": "", "latitude": 27.680843509101194, "longitude": 85.29825968391772 },
-      { "name": "KumariClubBalkhu", "latitude": 27.682258116075317, "longitude": 85.29842007623783 }
-    ]
-  },
-  {
-    "start": "KumariClubBalkhu",
-    "end": "BalkhuWari",
-    "stops": [
-      { "name": "KumariClubBalkhu", "latitude": 27.682258116075317, "longitude": 85.29842007623783 },
-      { "name": "", "latitude": 27.682535235391686, "longitude": 85.29855872739276 },
-      { "name": "", "latitude": 27.682831817325184, "longitude": 85.29844230326701 },
-      { "name": "", "latitude": 27.683278101002678, "longitude": 85.29805156477511 },
-      { "name": "BalkhuWari", "latitude": 27.684381584066557, "longitude": 85.29733281071985 }
-    ]
-  },
-  {
-    "start": "BalkhuWari",
-    "end": "BalkhuPari",
-    "stops": [
-      { "name": "BalkhuWari", "latitude": 27.682258116075317, "longitude": 85.29842007623783 },
-      { "name": "", "latitude": 27.68468529606217, "longitude": 85.29726206129789 },
-      { "name": "", "latitude": 27.68502197219564, "longitude": 85.297290895044 },
-      { "name": "", "latitude": 27.68491253273453, "longitude": 85.2982103229795 },
-      { "name": "BalkhuPari", "latitude": 27.685320605244392, "longitude": 85.29821766196875 }
-    ]
-  },
-  {
-    "start": "BalkhuPari",
-    "end": "KalimatiBusStop",
-    "stops": [
-      { "name": "BalkhuPari", "latitude": 27.685320605244392, "longitude": 85.29821766196875 },
-      { "name": "", "latitude": 27.68770251414204, "longitude": 85.29811897399654 },
-      { "name": "", "latitude": 27.68815596036662, "longitude": 85.29831242802162 },
-      { "name": "", "latitude": 27.688733681731094, "longitude": 85.29880933936647 },
-      { "name": "", "latitude": 27.689566669943332, "longitude": 85.29936694216603 },
-      { "name": "", "latitude": 27.69013949150073, "longitude": 85.29938694314508 },
-      { "name": "", "latitude": 27.69074955955536, "longitude": 85.29920831982363 },
-      { "name": "", "latitude": 27.692444175119437, "longitude": 85.29844279136017 },
-      { "name": "", "latitude": 27.69289606815362, "longitude": 85.29839175612999 },
-      { "name": "", "latitude": 27.69349482357205, "longitude": 85.29841727374762 },
-      { "name": "", "latitude": 27.696341691114522, "longitude": 85.2987872791797 },
-      { "name": "", "latitude": 27.698124010053828, "longitude": 85.2993481604763 },
-      { "name": "KalimatiBusStop", "latitude": 27.69846038770305, "longitude": 85.29944453743092 }
-    ]
-  },
-  {
-    "start": "BALKHU",
-    "end": "KALANKI",
+    "end": "KumariClub Balkhu",
     "stops": [
       {
-        "name": "Balkhu",
+        "name": "TU Gate",
+        "latitude": 27.67887087166123,
+        "longitude": 85.29716525226138
+      },
+      {
+        "name": "",
+        "latitude": 27.67999157759855,
+        "longitude": 85.29795588373594
+      },
+      {
+        "name": "",
+        "latitude": 27.680843509101194,
+        "longitude": 85.29825968391772
+      },
+      {
+        "name": "KumariClub Balkhu",
+        "latitude": 27.682258116075317,
+        "longitude": 85.29842007623783
+      }
+    ]
+  },
+  {
+    "start": "KumariClub Balkhu",
+    "end": "Balkhu Wari",
+    "stops": [
+      {
+        "name": "KumariClub Balkhu",
+        "latitude": 27.682258116075317,
+        "longitude": 85.29842007623783
+      },
+      {
+        "name": "",
+        "latitude": 27.682535235391686,
+        "longitude": 85.29855872739276
+      },
+      {
+        "name": "",
+        "latitude": 27.682831817325184,
+        "longitude": 85.29844230326701
+      },
+      {
+        "name": "",
+        "latitude": 27.683278101002678,
+        "longitude": 85.29805156477511
+      },
+      {
+        "name": "Balkhu Wari",
+        "latitude": 27.684381584066557,
+        "longitude": 85.29733281071985
+      }
+    ]
+  },
+  {
+    "start": "Balkhu Wari",
+    "end": "Balkhu Pari",
+    "stops": [
+      {
+        "name": "Balkhu Wari",
+        "latitude": 27.682258116075317,
+        "longitude": 85.29842007623783
+      },
+      {
+        "name": "",
+        "latitude": 27.68468529606217,
+        "longitude": 85.29726206129789
+      },
+      {
+        "name": "",
+        "latitude": 27.68502197219564,
+        "longitude": 85.297290895044
+      },
+      {
+        "name": "",
+        "latitude": 27.68491253273453,
+        "longitude": 85.2982103229795
+      },
+      {
+        "name": "BalkhuPari",
+        "latitude": 27.685320605244392,
+        "longitude": 85.29821766196875
+      }
+    ]
+  },
+  {
+    "start": "Balkhu Pari",
+    "end": "Kalimati BusStop",
+    "stops": [
+      {
+        "name": "Balkhu Pari",
+        "latitude": 27.685320605244392,
+        "longitude": 85.29821766196875
+      },
+      {
+        "name": "",
+        "latitude": 27.68770251414204,
+        "longitude": 85.29811897399654
+      },
+      {
+        "name": "",
+        "latitude": 27.68815596036662,
+        "longitude": 85.29831242802162
+      },
+      {
+        "name": "",
+        "latitude": 27.688733681731094,
+        "longitude": 85.29880933936647
+      },
+      {
+        "name": "",
+        "latitude": 27.689566669943332,
+        "longitude": 85.29936694216603
+      },
+      {
+        "name": "",
+        "latitude": 27.69013949150073,
+        "longitude": 85.29938694314508
+      },
+      {
+        "name": "",
+        "latitude": 27.69074955955536,
+        "longitude": 85.29920831982363
+      },
+      {
+        "name": "",
+        "latitude": 27.692444175119437,
+        "longitude": 85.29844279136017
+      },
+      {
+        "name": "",
+        "latitude": 27.69289606815362,
+        "longitude": 85.29839175612999
+      },
+      {
+        "name": "",
+        "latitude": 27.69349482357205,
+        "longitude": 85.29841727374762
+      },
+      {
+        "name": "",
+        "latitude": 27.696341691114522,
+        "longitude": 85.2987872791797
+      },
+      {
+        "name": "",
+        "latitude": 27.698124010053828,
+        "longitude": 85.2993481604763
+      },
+      {
+        "name": "Kalimati BusStop",
+        "latitude": 27.69846038770305,
+        "longitude": 85.29944453743092
+      }
+    ]
+  },
+  {
+    "start": "sanepa bus stop",
+    "end": "kalanki bus stop",
+    "stops": [
+      {
+        "name": "sanepa bus stop",
         "latitude": 27.684381,
         "longitude": 85.30128
       },
@@ -391,7 +691,7 @@
         "longitude": 85.28164245367759
       },
       {
-        "name": "Kalanki",
+        "name": "kalanki bus stop",
         "latitude": 27.69392732,
         "longitude": 85.28149749
       }
