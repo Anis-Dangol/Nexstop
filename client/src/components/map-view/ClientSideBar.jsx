@@ -2,6 +2,7 @@
 import { Fragment, useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { ChartNoAxesCombined } from "lucide-react";
+import { Button } from "../ui/button"; // Import the Button component
 
 export default function ClientSideBar({
   open,
@@ -64,6 +65,49 @@ function ClientMenuItems({
   history,
   setHistory,
 }) {
+  const [busStops, setBusStops] = useState([]);
+  const [startSuggestions, setStartSuggestions] = useState([]);
+  const [endSuggestions, setEndSuggestions] = useState([]);
+
+  // Fetch bus stops data on mount
+  useEffect(() => {
+    fetch("/busstops.json")
+      .then((response) => response.json())
+      .then((data) => setBusStops(data))
+      .catch((error) => console.error("Failed to fetch bus stops:", error));
+  }, []);
+
+  const handleStartChange = (e) => {
+    const value = e.target.value;
+    setStart(value);
+    setStartSuggestions(
+      busStops.filter((stop) =>
+        stop.name.toLowerCase().includes(value.toLowerCase())
+      )
+    );
+  };
+
+  const handleEndChange = (e) => {
+    const value = e.target.value;
+    setEnd(value);
+    setEndSuggestions(
+      busStops.filter((stop) =>
+        stop.name.toLowerCase().includes(value.toLowerCase())
+      )
+    );
+  };
+
+  const handleSuggestionClick = (type, suggestion) => {
+    if (type === "start") {
+      setStart(suggestion);
+      setStartSuggestions([]); // Clear suggestions
+    }
+    if (type === "end") {
+      setEnd(suggestion);
+      setEndSuggestions([]); // Clear suggestions
+    }
+  };
+
   const handleSubmit = (e, customStart, customEnd) => {
     if (e) e.preventDefault();
     // Use custom values if provided (for history click), else use current state
@@ -97,23 +141,60 @@ function ClientMenuItems({
     <nav className="mt-8 flex-col flex gap-4">
       {/* Route Search Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <input
-          type="text"
-          placeholder="Start location"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <input
-          type="text"
-          placeholder="Destination"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <button type="submit" className="bg-blue-600 text-white p-2 rounded">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Start location"
+            value={start}
+            onChange={handleStartChange}
+            onBlur={() => setTimeout(() => setStartSuggestions([]), 200)} // Delay clearing suggestions
+            className="p-2 border rounded"
+          />
+          {startSuggestions.length > 0 && (
+            <ul
+              className="absolute bg-white border rounded w-full mt-1 max-h-40 overflow-y-auto z-10"
+              style={{ top: "100%" }} // Ensure it appears below the input field
+            >
+              {startSuggestions.map((suggestion, idx) => (
+                <li
+                  key={idx}
+                  className="p-2 cursor-pointer hover:bg-gray-200"
+                  onClick={() =>
+                    handleSuggestionClick("start", suggestion.name)
+                  }
+                >
+                  {suggestion.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Destination"
+            value={end}
+            onChange={handleEndChange}
+            onBlur={() => setTimeout(() => setEndSuggestions([]), 200)} // Delay clearing suggestions
+            className="p-2 border rounded"
+          />
+          {endSuggestions.length > 0 && (
+            <ul className="absolute bg-white border rounded w-full mt-1 max-h-40 overflow-y-auto">
+              {endSuggestions.map((suggestion, idx) => (
+                <li
+                  key={idx}
+                  className="p-2 cursor-pointer hover:bg-gray-200"
+                  onClick={() => handleSuggestionClick("end", suggestion.name)}
+                >
+                  {suggestion.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Button type="submit" variant="default" className="w-full">
           Get Route
-        </button>
+        </Button>
       </form>
       {/* History List */}
       {history.length > 0 && (
