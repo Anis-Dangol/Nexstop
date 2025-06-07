@@ -4,7 +4,7 @@
     "end": "Gongabu",
     "stops": [
       { "name": "Ratnapark", "latitude": 27.704, "longitude": 85.308 },
-      { "name": "kalanki bus stop", "latitude": 27.694, "longitude": 85.284 },
+      { "name": "Kalanki", "latitude": 27.694, "longitude": 85.284 },
       { "name": "Gongabu", "latitude": 27.723, "longitude": 85.314 }
     ]
   },
@@ -12,138 +12,76 @@
     "start": "Kirtipur Gate",
     "end": "Panga Dobato",
     "stops": [
-      {
-        "name": "Kirtipur Gate",
-        "latitude": 27.677078715450286,
-        "longitude": 85.28181497007428
-      },
-      {
-        "name": "",
-        "latitude": 27.67708363978664,
-        "longitude": 85.2816225993165
-      },
-      {
-        "name": "",
-        "latitude": 27.67712558494806,
-        "longitude": 85.28140494743607
-      },
-      {
-        "name": "",
-        "latitude": 27.677045689388844,
-        "longitude": 85.28089634123096
-      },
-      {
-        "name": "",
-        "latitude": 27.675055995281735,
-        "longitude": 85.28123437058635
-      },
-      {
-        "name": "",
-        "latitude": 27.67493603987272,
-        "longitude": 85.28110696565703
-      },
-      {
-        "name": "",
-        "latitude": 27.674888532743495,
-        "longitude": 85.28095273863802
-      },
-      {
-        "name": "",
-        "latitude": 27.674821407485023,
-        "longitude": 85.28056396931919
-      },
-      {
-        "name": "",
-        "latitude": 27.674765159700762,
-        "longitude": 85.28041998987405
-      },
-      {
-        "name": "Panga Dobato",
-        "latitude": 27.674558949503297,
-        "longitude": 85.28040244651368
-      }
+      { "name": "Kirtipur Gate", "latitude": 27.677078715450286, "longitude": 85.28181497007428 },
+      { "name": "", "latitude": 27.67708363978664, "longitude": 85.2816225993165 },
+      { "name": "", "latitude": 27.67712558494806, "longitude": 85.28140494743607 },
+      { "name": "", "latitude": 27.677045689388844, "longitude": 85.28089634123096 },
+      { "name": "", "latitude": 27.675055995281735, "longitude": 85.28123437058635 },
+      { "name": "", "latitude": 27.67493603987272, "longitude": 85.28110696565703 },
+      { "name": "", "latitude": 27.674888532743495, "longitude": 85.28095273863802 },
+      { "name": "", "latitude": 27.674821407485023, "longitude": 85.28056396931919 },
+      { "name": "", "latitude": 27.674765159700762, "longitude": 85.28041998987405 },
+      { "name": "Panga Dobato", "latitude": 27.674558949503297, "longitude": 85.28040244651368 }
     ]
   },
   {
-    "start": "Panga Dobato",
-    "end": "Nagau dobato",
+    "start": "sanepa",
+    "end": "ratnapark (route 1)",
     "stops": [
-      {
-        "name": "Panga Dobato",
-        "latitude": 27.674558949503297,
-        "longitude": 85.28040244651368
-      },
-      {
-        "name": "",
-        "latitude": 27.674765159700762,
-        "longitude": 85.28041998987405
-      },
-      {
-        "name": "",
-        "latitude": 27.674664355781097,
-        "longitude": 85.27992986795412
-      },
-      {
-        "name": "",
-        "latitude": 27.67464038658099,
-        "longitude": 85.27944719951287
-      },
-      {
-        "name": "",
-        "latitude": 27.674700309574984,
-        "longitude": 85.27832849140866
-      },
-      {
-        "name": "Nagau dobato",
-        "latitude": 27.674894024083027,
-        "longitude": 85.27780795176608
-      }
+      { "name": "", "latitude": 27.68418164, "longitude": 85.30168469 },
+      { "name": "", "latitude": 27.68445426, "longitude": 85.29995568 },
+      { "name": "", "latitude": 27.68491797, "longitude": 85.29618243 },
+      { "name": "", "latitude": 27.68514936, "longitude": 85.29406748 },
+      { "name": "", "latitude": 27.68558261, "longitude": 85.29304929 },
+      { "name": "", "latitude": 27.68738583, "longitude": 85.290722 },
+      { "name": "", "latitude": 27.68776637, "longitude": 85.28990217 },
+      { "name": "", "latitude": 27.68795372, "longitude": 85.28900299 },
+      { "name": "", "latitude": 27.68850404, "longitude": 85.2852542 },
+      { "name": "", "latitude": 27.68882604, "longitude": 85.28454676 },
+      { "name": "", "latitude": 27.68926512, "longitude": 85.28409056 },
+      { "name": "", "latitude": 27.6895026, "longitude": 85.2839404 },
+      { "name": "", "latitude": 27.68960362, "longitude": 85.28373613 },
+      { "name": "", "latitude": 27.69218077, "longitude": 85.28198905 },
+      { "name": "", "latitude": 27.69265871, "longitude": 85.28172963 },
+      { "name": "", "latitude": 27.69317063, "longitude": 85.28155959 },
+      { "name": "ratnapark", "latitude": 27.69394351, "longitude": 85.28147268 }
     ]
   },
   {
-    "start": "Nagau dobato",
-    "end": "Khasibazar Kirtipur",
+    "start": "sanepa",
+    "end": "ratnapark (route 2)",
     "stops": [
-      {
-        "name": "Nagau dobato",
-        "latitude": 27.674919537903698,
-        "longitude": 85.2774252000388
-      },
-      {
-        "name": "",
-        "latitude": 27.67512975673259,
-        "longitude": 85.2771019938583
-      },
-      {
-        "name": "",
-        "latitude": 27.67573006499066,
-        "longitude": 85.27667768629655
-      },
-      {
-        "name": "",
-        "latitude": 27.676405188753698,
-        "longitude": 85.27620403972564
-      },
-      {
-        "name": "",
-        "latitude": 27.676984433639056,
-        "longitude": 85.27599202647089
-      },
-      {
-        "name": "",
-        "latitude": 27.67717618298867,
-        "longitude": 85.27582512244318
-      },
-      {
-        "name": "Khasibazar Kirtipur",
-        "latitude": 27.677649068307524,
-        "longitude": 85.27505803704099
-      }
+      { "name": "", "latitude": 27.68418164, "longitude": 85.30168469 },
+      { "name": "", "latitude": 27.68445426, "longitude": 85.29995568 },
+      { "name": "", "latitude": 27.68475107, "longitude": 85.2971556 },
+      { "name": "", "latitude": 27.68503648, "longitude": 85.29725857 },
+      { "name": "", "latitude": 27.68494531, "longitude": 85.29821657 },
+      { "name": "", "latitude": 27.68751007, "longitude": 85.29808674 },
+      { "name": "", "latitude": 27.68803332, "longitude": 85.29821209 },
+      { "name": "", "latitude": 27.68862396, "longitude": 85.29874033 },
+      { "name": "", "latitude": 27.68949603, "longitude": 85.29932229 },
+      { "name": "", "latitude": 27.68996774, "longitude": 85.29942973 },
+      { "name": "", "latitude": 27.69042756, "longitude": 85.29931334 },
+      { "name": "", "latitude": 27.69254031, "longitude": 85.29841354 },
+      { "name": "", "latitude": 27.69313885, "longitude": 85.29837325 },
+      { "name": "", "latitude": 27.69643042, "longitude": 85.29877982 },
+      { "name": "", "latitude": 27.6974253, "longitude": 85.29904394 },
+      { "name": "", "latitude": 27.6982656, "longitude": 85.29929463 },
+      { "name": "", "latitude": 27.69845585, "longitude": 85.29969305 },
+      { "name": "", "latitude": 27.69819264, "longitude": 85.30174805 },
+      { "name": "", "latitude": 27.69781254, "longitude": 85.3034322 },
+      { "name": "", "latitude": 27.69670148, "longitude": 85.3056392 },
+      { "name": "", "latitude": 27.69610695, "longitude": 85.30768108 },
+      { "name": "", "latitude": 27.69381168, "longitude": 85.31373519 },
+      { "name": "", "latitude": 27.69406021, "longitude": 85.31412045 },
+      { "name": "", "latitude": 27.69712544, "longitude": 85.31367465 },
+      { "name": "", "latitude": 27.69820726, "longitude": 85.31331691 },
+      { "name": "ratnapark", "latitude": 27.70117004, "longitude": 85.31346551 }
     ]
   },
   {
-    "start": "Khasibazar Kirtipur",
-    "end": "Dhalpa Chok Kirtipur",
+    "start": "balkhu",
+    "end": "tu gate",
     "stops": [
       {
         "name": "Khasibazar Kirtipur",

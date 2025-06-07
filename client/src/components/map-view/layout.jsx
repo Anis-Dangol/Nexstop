@@ -42,6 +42,7 @@ function MappingLayout() {
         end={end}
         setEnd={setEnd}
         onRouteSubmit={fetchRoute}
+        setRoute={setRoute} // Pass setRoute to sidebar
       />{" "}
       {/* 👈 sidebar */}
       <div className="flex-1 flex flex-col">

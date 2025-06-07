@@ -2,9 +2,9 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRouter from "./routes/auth/authRoutes.js";
-import routeSuggestion from "./routes/bus/routeSuggestion.js";
-import fareEstimator from "./routes/bus/fareEstimator.js"; // ⬅️ import only here
+import authRouter from './routes/auth/authRoutes.js';
+import routeSuggestion  from "./routes/bus/routeSuggestion.js";
+import fareEstimator from "./routes/bus/fareEstimator.js";
 
 import dotenv from "dotenv";
 dotenv.config();

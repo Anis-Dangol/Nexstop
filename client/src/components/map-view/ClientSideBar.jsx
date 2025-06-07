@@ -13,6 +13,7 @@ export default function ClientSideBar({
   setStart,
   end,
   setEnd,
+  setRoute, // Accept setRoute
 }) {
   const [history, setHistory] = useState([]);
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false); // State for bottom sheet visibility
@@ -52,6 +53,7 @@ export default function ClientSideBar({
               setEnd={setEnd}
               history={history}
               setHistory={setHistory}
+              setRoute={setRoute} // Forward setRoute
             />
           </div>
         </SheetContent>
@@ -82,6 +84,7 @@ function ClientMenuItems({
   setEnd,
   history,
   setHistory,
+  setRoute,
 }) {
   const [busStops, setBusStops] = useState([]);
   const [startSuggestions, setStartSuggestions] = useState([]);
@@ -212,6 +215,20 @@ function ClientMenuItems({
         </div>
         <Button type="submit" variant="default" className="w-full">
           Get Route
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mt-2"
+          onClick={() => {
+            setStart("");
+            setEnd("");
+            if (typeof setRoute === "function") setRoute([]);
+            setOpen(false); // Close the sidebar when clearing
+          }}
+          disabled={!start && !end}
+        >
+          Clear
         </Button>
       </form>
       {/* History List */}

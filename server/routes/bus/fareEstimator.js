@@ -46,6 +46,7 @@ router.post("/estimate-fare", (req, res) => {
         );
       }
 
+      //   const fare = Math.ceil(totalDistance * farePerKm); // Round fare up
       let fare;
       if (totalDistance < 1) {
         fare = 10; // Minimum fare is Rs 10
