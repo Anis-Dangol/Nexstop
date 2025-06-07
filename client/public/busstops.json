@@ -1,146 +1,43 @@
 [
-  { "name": "Panga Dobato", "latitude": 27.67456208, "longitude": 85.28040692 },
-  { "name": "Nagau dobato", "latitude": 27.67490175, "longitude": 85.27780908 },
-  {
-    "name": "Khasibazar Kirtipur",
-    "latitude": 27.67751253,
-    "longitude": 85.27506081
-  },
-  {
-    "name": "Dhalpa Chok Kirtipur",
-    "latitude": 27.67801937,
-    "longitude": 85.27361982
-  },
-  {
-    "name": "Devdhoka Kirtipur Hospital",
-    "latitude": 27.68236912,
-    "longitude": 85.2727913
-  },
-  {
-    "name": "GaShi,BelowKirtipurHospital",
-    "latitude": 27.68112431,
-    "longitude": 85.27554311
-  },
-  { "name": "Kirtipur Gate", "latitude": 27.67710739, "longitude": 85.2818792 },
-  {
-    "name": "Nayabato Laboratory School",
-    "latitude": 27.67632178,
-    "longitude": 85.2941441
-  },
-  { "name": "TU Gate", "latitude": 27.67886137, "longitude": 85.29716181 },
-  {
-    "name": "KumariClub Balkhu",
-    "latitude": 27.6821261,
-    "longitude": 85.29843589
-  },
-  { "name": "Balkhu Wari", "latitude": 27.68425502, "longitude": 85.29731729 },
-  {
-    "name": "clean up bus stop",
-    "latitude": 27.68488062,
-    "longitude": 85.29839286
-  },
-  {
-    "name": "sanepa bus stop",
-    "latitude": 27.68440917,
-    "longitude": 85.30189796
-  },
-  {
-    "name": "kusunti bus stop",
-    "latitude": 27.66532992,
-    "longitude": 85.31313763
-  },
-  { "name": "lagankhel", "latitude": 27.66729327, "longitude": 85.32316176 },
-  { "name": "Balkhu Pari", "latitude": 27.68522556, "longitude": 85.29816674 },
-  {
-    "name": "Kalimati BusStop",
-    "latitude": 27.69827038,
-    "longitude": 85.29937482
-  },
-  { "name": "teku", "latitude": 27.69630007, "longitude": 85.30699268 },
-  { "name": "tripureswor", "latitude": 27.69398864, "longitude": 85.31314353 },
-  { "name": "ratnapark", "latitude": 27.70076884, "longitude": 85.31336937 },
-  {
-    "name": "kalanki bus stop",
-    "latitude": 27.69392732,
-    "longitude": 85.28149749
-  },
-  { "name": "soltimod", "latitude": 27.69668225, "longitude": 85.29354349 },
-  {
-    "name": "tripureswor bus stand",
-    "latitude": 27.69398864,
-    "longitude": 85.31314353
-  },
-  {
-    "name": "tripureswor bus stop",
-    "latitude": 27.69355102,
-    "longitude": 85.31443909
-  },
-  {
-    "name": "thapathali bus stop",
-    "latitude": 27.69123837,
-    "longitude": 85.31767815
-  },
-  { "name": "maitighar", "latitude": 27.69382044, "longitude": 85.32134249 },
-  {
-    "name": "new baneswor bus stop",
-    "latitude": 27.68859267,
-    "longitude": 85.33472112
-  },
-
-  {
-    "name": "mahalaxmisthan",
-    "latitude": 27.66141998,
-    "longitude": 85.31822766
-  },
-  {
-    "name": "thasikhelchowk",
-    "latitude": 27.66284467,
-    "longitude": 85.31642726
-  },
-  {
-    "name": "ekantakuna bus station",
-    "latitude": 27.66665422,
-    "longitude": 85.30821982
-  },
-
-  { "name": "balkhu stop", "latitude": 27.68483792, "longitude": 85.2966863 },
-  {
-    "name": "sita petrol pump stop",
-    "latitude": 27.68826239,
-    "longitude": 85.28666049
-  },
   { "name": "bafal stop", "latitude": 27.70133753, "longitude": 85.28169212 },
-  {
-    "name": "sitapaila sano bus stop",
-    "latitude": 27.70771235,
-    "longitude": 85.2825462
-  },
-  {
-    "name": "swayambu bus stop",
-    "latitude": 27.71663195,
-    "longitude": 85.28339825
-  },
-  {
-    "name": "thulo bharyang bus stop",
-    "latitude": 27.71967778,
-    "longitude": 85.28670996
-  },
-  {
-    "name": "sano bharyang bus stop",
-    "latitude": 27.72080306,
-    "longitude": 85.289137
-  },
-  { "name": "dhunge dhara", "latitude": 27.72345385, "longitude": 85.29445136 },
-  {
-    "name": "banasthali chok",
-    "latitude": 27.7249497,
-    "longitude": 85.29784799
-  },
   { "name": "balju chok", "latitude": 27.72725645, "longitude": 85.30473753 },
-  {
-    "name": "macha pokhari",
-    "latitude": 27.73531861,
-    "longitude": 85.30583029
-  },
-  { "name": "Gongabu", "latitude": 27.723, "longitude": 85.314 }
+  { "name": "balkhu stop", "latitude": 27.68483792, "longitude": 85.2966863 },
+  { "name": "Balkhu Pari", "latitude": 27.68522556, "longitude": 85.29816674 },
+  { "name": "Balkhu Wari", "latitude": 27.68425502, "longitude": 85.29731729 },
+  { "name": "clean up bus stop", "latitude": 27.68488062, "longitude": 85.29839286 },
+  { "name": "devdhoka kirtipur hospital", "latitude": 27.68236912, "longitude": 85.2727913 },
+  { "name": "dhalpa chok kirtipur", "latitude": 27.67801937, "longitude": 85.27361982 },
+  { "name": "dhunge dhara", "latitude": 27.72345385, "longitude": 85.29445136 },
+  { "name": "ekantakuna bus station", "latitude": 27.66665422, "longitude": 85.30821982 },
+  { "name": "GaShi,BelowKirtipurHospital", "latitude": 27.68112431, "longitude": 85.27554311 },
+  { "name": "Gongabu", "latitude": 27.723, "longitude": 85.314 },
+  { "name": "kalanki bus stop", "latitude": 27.69392732, "longitude": 85.28149749 },
+  { "name": "Kalimati BusStop", "latitude": 27.69827038, "longitude": 85.29937482 },
+  { "name": "Khasibazar Kirtipur", "latitude": 27.67751253, "longitude": 85.27506081 },
+  { "name": "Kirtipur Gate", "latitude": 27.67710739, "longitude": 85.2818792 },
+  { "name": "KumariClub Balkhu", "latitude": 27.6821261, "longitude": 85.29843589 },
+  { "name": "kusunti bus stop", "latitude": 27.66532992, "longitude": 85.31313763 },
+  { "name": "lagankhel", "latitude": 27.66729327, "longitude": 85.32316176 },
+  { "name": "mahalaxmisthan", "latitude": 27.66141998, "longitude": 85.31822766 },
+  { "name": "maitighar", "latitude": 27.69382044, "longitude": 85.32134249 },
+  { "name": "macha pokhari", "latitude": 27.73531861, "longitude": 85.30583029 },
+  { "name": "Nagau dobato", "latitude": 27.67490175, "longitude": 85.27780908 },
+  { "name": "Nayabato Laboratory School", "latitude": 27.67632178, "longitude": 85.2941441 },
+  { "name": "new baneswor bus stop", "latitude": 27.68859267, "longitude": 85.33472112 },
+  { "name": "Panga Dobato", "latitude": 27.67456208, "longitude": 85.28040692 },
+  { "name": "ratnapark", "latitude": 27.70076884, "longitude": 85.31336937 },
+  { "name": "sanepa bus stop", "latitude": 27.68440917, "longitude": 85.30189796 },
+  { "name": "sano bharyang bus stop", "latitude": 27.72080306, "longitude": 85.289137 },
+  { "name": "sita petrol pump stop", "latitude": 27.68826239, "longitude": 85.28666049 },
+  { "name": "sitapaila sano bus stop", "latitude": 27.70771235, "longitude": 85.2825462 },
+  { "name": "soltimod", "latitude": 27.69668225, "longitude": 85.29354349 },
+  { "name": "swayambu bus stop", "latitude": 27.71663195, "longitude": 85.28339825 },
+  { "name": "teku", "latitude": 27.69630007, "longitude": 85.30699268 },
+  { "name": "thapathali bus stop", "latitude": 27.69123837, "longitude": 85.31767815 },
+  { "name": "thasikhelchowk", "latitude": 27.66284467, "longitude": 85.31642726 },
+  { "name": "thulo bharyang bus stop", "latitude": 27.71967778, "longitude": 85.28670996 },
+  { "name": "tripureswor", "latitude": 27.69398864, "longitude": 85.31314353 },
+  { "name": "tripureswor bus stand", "latitude": 27.69398864, "longitude": 85.31314353 },
+  { "name": "tripureswor bus stop", "latitude": 27.69355102, "longitude": 85.31443909 },
+  { "name": "TU Gate", "latitude": 27.67886137, "longitude": 85.29716181 }
 ]
