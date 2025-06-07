@@ -91,7 +91,7 @@ export default function MapContainerWrapper({ route, setRoute, triggerOpenBottom
         )}
       </MapContainer>
 
-      {/* GET ROUTES BUTTON */}
+      GET ROUTES BUTTON
       <button
         onClick={() => openBottomSheet("fare")}
         className="fixed bottom-5 right-4 bg-white px-4 py-2 rounded-full shadow-lg"
@@ -139,7 +139,7 @@ export default function MapContainerWrapper({ route, setRoute, triggerOpenBottom
               <h2 className="text-lg font-bold">Fare Estimation</h2>
               {fareData ? (
                 <>
-                  <p>Fare: ₹ {fareData.fare}</p>
+                  <p>Fare: Rs {fareData.fare}</p>
                   <p>Distance: {fareData.totalDistance} km</p>
                 </>
               ) : (

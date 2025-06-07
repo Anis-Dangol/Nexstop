@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const router = express.Router();
-const farePerKm = 5; // ₹5 per km
+const farePerKm = 5; // Rs 5 per km
 
 // Helper to calculate distance
 function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -46,20 +46,19 @@ router.post("/estimate-fare", (req, res) => {
         );
       }
 
-    //   const fare = Math.ceil(totalDistance * farePerKm); // Round fare up
       let fare;
       if (totalDistance < 1) {
-        fare = 5;
+        fare = 10; // Minimum fare is Rs 10
       } else if (totalDistance < 5) {
-        fare = 20;
+        fare = Math.max(20, 10); // Ensure minimum fare is Rs 10
       } else if (totalDistance < 10) {
-        fare = 25;
+        fare = Math.max(25, 10); // Ensure minimum fare is Rs 10
       } else if (totalDistance < 15) {
-        fare = 30;
+        fare = Math.max(30, 10); // Ensure minimum fare is Rs 10
       } else if (totalDistance < 20) {
-        fare = 33;
+        fare = Math.max(33, 10); // Ensure minimum fare is Rs 10
       } else {
-        fare = 38;
+        fare = Math.max(38, 10); // Ensure minimum fare is Rs 10
       }
 
       return res.json({

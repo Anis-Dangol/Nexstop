@@ -1,8 +1,9 @@
 // components/layout/ClientSideBar.jsx
 import { Fragment, useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
-import { ChartNoAxesCombined } from "lucide-react";
+import { MapPin } from "lucide-react"; // Replace ChartNoAxesCombined with MapPin
 import { Button } from "../ui/button"; // Import the Button component
+import BottomSheet from "./BottomSheet"; // Import BottomSheet component
 
 export default function ClientSideBar({
   open,
@@ -13,8 +14,9 @@ export default function ClientSideBar({
   end,
   setEnd,
 }) {
-  // Add history state here
   const [history, setHistory] = useState([]);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false); // State for bottom sheet visibility
+  const [routeData, setRouteData] = useState(null); // State for route data
 
   // On mount, load history from localStorage
   useEffect(() => {
@@ -34,13 +36,16 @@ export default function ClientSideBar({
           <div className="flex flex-col h-full">
             <SheetHeader className="border-b">
               <SheetTitle className="flex gap-2 mt-2 mb-5">
-                <ChartNoAxesCombined size={30} />
-                <h1 className="text-2xl font-extrabold">Nexstop</h1>
+                <MapPin size={30} /> {/* Updated icon */}
+                <h1 className="text-2xl font-extrabold text-[#070f18]">
+                  Nexstop
+                </h1>{" "}
+                {/* Updated design */}
               </SheetTitle>
             </SheetHeader>
             <ClientMenuItems
               setOpen={setOpen}
-              onRouteSubmit={onRouteSubmit}
+              onRouteSubmit={onRouteSubmit} // Use updated handler
               start={start}
               setStart={setStart}
               end={end}
@@ -51,6 +56,19 @@ export default function ClientSideBar({
           </div>
         </SheetContent>
       </Sheet>
+      {/* Bottom Sheet */}
+      {routeData && (
+        <BottomSheet
+          isOpen={bottomSheetOpen}
+          onClose={() => setBottomSheetOpen(false)}
+        >
+          <div>
+            <h2 className="text-lg font-bold">Route Details</h2>
+            <p>Start: {routeData.start}</p>
+            <p>End: {routeData.end}</p>
+          </div>
+        </BottomSheet>
+      )}
     </Fragment>
   );
 }
