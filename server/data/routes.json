@@ -1,10 +1,10 @@
 [
   {
-    "start": "Ratnapark",
+    "start": "ratnapark",
     "end": "Gongabu",
     "stops": [
-      { "name": "Ratnapark", "latitude": 27.704, "longitude": 85.308 },
-      { "name": "Kalanki", "latitude": 27.694, "longitude": 85.284 },
+      { "name": "ratnapark", "latitude": 27.704, "longitude": 85.308 },
+      { "name": "kalanki bus stop", "latitude": 27.694, "longitude": 85.284 },
       { "name": "Gongabu", "latitude": 27.723, "longitude": 85.314 }
     ]
   },
@@ -12,44 +12,148 @@
     "start": "Kirtipur Gate",
     "end": "Panga Dobato",
     "stops": [
-      { "name": "Kirtipur Gate", "latitude": 27.677078715450286, "longitude": 85.28181497007428 },
-      { "name": "", "latitude": 27.67708363978664, "longitude": 85.2816225993165 },
-      { "name": "", "latitude": 27.67712558494806, "longitude": 85.28140494743607 },
-      { "name": "", "latitude": 27.677045689388844, "longitude": 85.28089634123096 },
-      { "name": "", "latitude": 27.675055995281735, "longitude": 85.28123437058635 },
-      { "name": "", "latitude": 27.67493603987272, "longitude": 85.28110696565703 },
-      { "name": "", "latitude": 27.674888532743495, "longitude": 85.28095273863802 },
-      { "name": "", "latitude": 27.674821407485023, "longitude": 85.28056396931919 },
-      { "name": "", "latitude": 27.674765159700762, "longitude": 85.28041998987405 },
-      { "name": "Panga Dobato", "latitude": 27.674558949503297, "longitude": 85.28040244651368 }
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.677078715450286,
+        "longitude": 85.28181497007428
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.67708363978664,
+        "longitude": 85.2816225993165
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.67712558494806,
+        "longitude": 85.28140494743607
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.677045689388844,
+        "longitude": 85.28089634123096
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.675055995281735,
+        "longitude": 85.28123437058635
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.67493603987272,
+        "longitude": 85.28110696565703
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.674888532743495,
+        "longitude": 85.28095273863802
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.674821407485023,
+        "longitude": 85.28056396931919
+      },
+      {
+        "name": "Kirtipur Gate",
+        "latitude": 27.674765159700762,
+        "longitude": 85.28041998987405
+      },
+      {
+        "name": "Panga Dobato",
+        "latitude": 27.674558949503297,
+        "longitude": 85.28040244651368
+      }
     ]
   },
   {
-    "start": "sanepa",
-    "end": "ratnapark (route 1)",
+    "start": "sanepa bus stop",
+    "end": "ratnapark",
     "stops": [
-      { "name": "", "latitude": 27.68418164, "longitude": 85.30168469 },
-      { "name": "", "latitude": 27.68445426, "longitude": 85.29995568 },
-      { "name": "", "latitude": 27.68491797, "longitude": 85.29618243 },
-      { "name": "", "latitude": 27.68514936, "longitude": 85.29406748 },
-      { "name": "", "latitude": 27.68558261, "longitude": 85.29304929 },
-      { "name": "", "latitude": 27.68738583, "longitude": 85.290722 },
-      { "name": "", "latitude": 27.68776637, "longitude": 85.28990217 },
-      { "name": "", "latitude": 27.68795372, "longitude": 85.28900299 },
-      { "name": "", "latitude": 27.68850404, "longitude": 85.2852542 },
-      { "name": "", "latitude": 27.68882604, "longitude": 85.28454676 },
-      { "name": "", "latitude": 27.68926512, "longitude": 85.28409056 },
-      { "name": "", "latitude": 27.6895026, "longitude": 85.2839404 },
-      { "name": "", "latitude": 27.68960362, "longitude": 85.28373613 },
-      { "name": "", "latitude": 27.69218077, "longitude": 85.28198905 },
-      { "name": "", "latitude": 27.69265871, "longitude": 85.28172963 },
-      { "name": "", "latitude": 27.69317063, "longitude": 85.28155959 },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68418164,
+        "longitude": 85.30168469
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68445426,
+        "longitude": 85.29995568
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68491797,
+        "longitude": 85.29618243
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68514936,
+        "longitude": 85.29406748
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68558261,
+        "longitude": 85.29304929
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68738583,
+        "longitude": 85.290722
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68776637,
+        "longitude": 85.28990217
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68795372,
+        "longitude": 85.28900299
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68850404,
+        "longitude": 85.2852542
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68882604,
+        "longitude": 85.28454676
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68926512,
+        "longitude": 85.28409056
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.6895026,
+        "longitude": 85.2839404
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.68960362,
+        "longitude": 85.28373613
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.69218077,
+        "longitude": 85.28198905
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.69265871,
+        "longitude": 85.28172963
+      },
+      {
+        "name": "sanepa bus stop",
+        "latitude": 27.69317063,
+        "longitude": 85.28155959
+      },
       { "name": "ratnapark", "latitude": 27.69394351, "longitude": 85.28147268 }
     ]
   },
   {
-    "start": "sanepa",
-    "end": "ratnapark (route 2)",
+    "start": "sanepa bus stop",
+    "end": "ratnapark",
     "stops": [
       { "name": "", "latitude": 27.68418164, "longitude": 85.30168469 },
       { "name": "", "latitude": 27.68445426, "longitude": 85.29995568 },
@@ -80,8 +184,116 @@
     ]
   },
   {
-    "start": "balkhu",
-    "end": "tu gate",
+    "start": "balkhu stop",
+    "end": "TU Gate",
+    "stops": [
+      {
+        "name": "balkhu wari",
+        "latitude": 27.68425502,
+        "longitude": 85.29731729
+      },
+      { "name": "", "latitude": 27.68369983, "longitude": 85.29775986 },
+      { "name": "", "latitude": 27.68260557, "longitude": 85.29857604 },
+      { "name": "", "latitude": 27.68223405, "longitude": 85.29860656 },
+      { "name": "", "latitude": 27.68074461, "longitude": 85.29825567 },
+      { "name": "", "latitude": 27.68003197, "longitude": 85.29801158 },
+      { "name": "tu gate", "latitude": 27.67873502, "longitude": 85.29722591 }
+    ]
+  },
+  {
+    "start": "star hospital",
+    "end": "sanepa bus stop",
+    "stops": [
+      {
+        "name": "star hospital",
+        "latitude": 27.68123148,
+        "longitude": 85.30213503
+      },
+      { "name": "", "latitude": 27.68343945, "longitude": 85.30222977 },
+      { "name": "", "latitude": 27.68399706, "longitude": 85.30197447 },
+      { "name": "sanepa", "latitude": 27.68427555, "longitude": 85.30145647 }
+    ]
+  },
+  {
+    "start": "Panga Dobato",
+    "end": "Nagau dobato",
+    "stops": [
+      {
+        "name": "Panga Dobato",
+        "latitude": 27.674558949503297,
+        "longitude": 85.28040244651368
+      },
+      {
+        "name": "",
+        "latitude": 27.674765159700762,
+        "longitude": 85.28041998987405
+      },
+      {
+        "name": "",
+        "latitude": 27.674664355781097,
+        "longitude": 85.27992986795412
+      },
+      {
+        "name": "",
+        "latitude": 27.67464038658099,
+        "longitude": 85.27944719951287
+      },
+      {
+        "name": "",
+        "latitude": 27.674700309574984,
+        "longitude": 85.27832849140866
+      },
+      {
+        "name": "Nagaudobato",
+        "latitude": 27.674894024083027,
+        "longitude": 85.27780795176608
+      }
+    ]
+  },
+  {
+    "start": "Nagau dobato",
+    "end": "Khasibazar Kirtipur",
+    "stops": [
+      {
+        "name": "Nagaudobato",
+        "latitude": 27.674919537903698,
+        "longitude": 85.2774252000388
+      },
+      {
+        "name": "",
+        "latitude": 27.67512975673259,
+        "longitude": 85.2771019938583
+      },
+      {
+        "name": "",
+        "latitude": 27.67573006499066,
+        "longitude": 85.27667768629655
+      },
+      {
+        "name": "",
+        "latitude": 27.676405188753698,
+        "longitude": 85.27620403972564
+      },
+      {
+        "name": "",
+        "latitude": 27.676984433639056,
+        "longitude": 85.27599202647089
+      },
+      {
+        "name": "",
+        "latitude": 27.67717618298867,
+        "longitude": 85.27582512244318
+      },
+      {
+        "name": "Khasibazar Kirtipur",
+        "latitude": 27.677649068307524,
+        "longitude": 85.27505803704099
+      }
+    ]
+  },
+  {
+    "start": "Khasibazar Kirtipur",
+    "end": "dhalpa chok kirtipur",
     "stops": [
       {
         "name": "Khasibazar Kirtipur",
@@ -96,8 +308,8 @@
     ]
   },
   {
-    "start": "Dhalpa Chok Kirtipur",
-    "end": "Devdhoka Kirtipur Hospital",
+    "start": "dhalpa chok kirtipur",
+    "end": "devdhoka kirtipur hospital",
     "stops": [
       {
         "name": "Dhalpa Chok Kirtipur",
@@ -152,11 +364,11 @@
     ]
   },
   {
-    "start": "Devdhoka Kirtipur Hospital",
+    "start": "devdhoka kirtipur hospital",
     "end": "GaShi,BelowKirtipurHospital",
     "stops": [
       {
-        "name": "Devdhoka Kirtipur Hospital",
+        "name": "DevdhokaKirtipurHospital",
         "latitude": 27.682753349141706,
         "longitude": 85.27291549387078
       },
@@ -171,7 +383,7 @@
         "longitude": 85.27506305409636
       },
       {
-        "name": "GaShi,BelowKirtipurHospital",
+        "name": "GaShi,BelowKirtiprHospital",
         "latitude": 27.681233178015137,
         "longitude": 85.27554409081701
       }
@@ -182,7 +394,7 @@
     "end": "Kirtipur Gate",
     "stops": [
       {
-        "name": "GaShi,BelowKirtipurHospital",
+        "name": "GaShi,BelowKirtiprHospital",
         "latitude": 27.681233178015137,
         "longitude": 85.27554409081701
       },
@@ -207,7 +419,7 @@
         "longitude": 85.28147379225172
       },
       {
-        "name": "Kirtipur Gate",
+        "name": "KirtipurGate",
         "latitude": 27.677078715450286,
         "longitude": 85.28181497007428
       }
@@ -218,7 +430,7 @@
     "end": "Nayabato Laboratory School",
     "stops": [
       {
-        "name": "Kirtipur Gate",
+        "name": "KirtipurGate",
         "latitude": 27.677078715450286,
         "longitude": 85.28181497007428
       },
@@ -323,7 +535,7 @@
         "longitude": 85.29390926113132
       },
       {
-        "name": "Nayabato Laboratory School",
+        "name": "NayabatoLaboratorySchool",
         "latitude": 27.676355862308395,
         "longitude": 85.29414855081032
       }
@@ -334,7 +546,7 @@
     "end": "TU Gate",
     "stops": [
       {
-        "name": "Nayabato Laboratory School",
+        "name": "NayabatoLaboratorySchool",
         "latitude": 27.676355862308395,
         "longitude": 85.29414855081032
       },
@@ -370,7 +582,7 @@
         "longitude": 85.29825968391772
       },
       {
-        "name": "KumariClub Balkhu",
+        "name": "KumariClubBalkhu",
         "latitude": 27.682258116075317,
         "longitude": 85.29842007623783
       }
@@ -381,7 +593,7 @@
     "end": "Balkhu Wari",
     "stops": [
       {
-        "name": "KumariClub Balkhu",
+        "name": "KumariClubBalkhu",
         "latitude": 27.682258116075317,
         "longitude": 85.29842007623783
       },
@@ -401,7 +613,7 @@
         "longitude": 85.29805156477511
       },
       {
-        "name": "Balkhu Wari",
+        "name": "BalkhuWari",
         "latitude": 27.684381584066557,
         "longitude": 85.29733281071985
       }
@@ -412,7 +624,7 @@
     "end": "Balkhu Pari",
     "stops": [
       {
-        "name": "Balkhu Wari",
+        "name": "BalkhuWari",
         "latitude": 27.682258116075317,
         "longitude": 85.29842007623783
       },
@@ -443,7 +655,7 @@
     "end": "Kalimati BusStop",
     "stops": [
       {
-        "name": "Balkhu Pari",
+        "name": "BalkhuPari",
         "latitude": 27.685320605244392,
         "longitude": 85.29821766196875
       },
@@ -503,7 +715,7 @@
         "longitude": 85.2993481604763
       },
       {
-        "name": "Kalimati BusStop",
+        "name": "KalimatiBusStop",
         "latitude": 27.69846038770305,
         "longitude": 85.29944453743092
       }
@@ -511,14 +723,10 @@
   },
 
   {
-    "start": "sanepa bus stop",
+    "start": "balkhu stop",
     "end": "kalanki bus stop",
     "stops": [
-      {
-        "name": "sanepa bus stop",
-        "latitude": 27.684381,
-        "longitude": 85.30128
-      },
+      { "name": "Balkhu", "latitude": 27.684381, "longitude": 85.30128 },
       {
         "name": "2",
         "latitude": 27.684497441693317,
@@ -639,16 +847,12 @@
         "latitude": 27.693278617763987,
         "longitude": 85.28164245367759
       },
-      {
-        "name": "kalanki bus stop",
-        "latitude": 27.69392732,
-        "longitude": 85.28149749
-      }
+      { "name": "Kalanki", "latitude": 27.69392732, "longitude": 85.28149749 }
     ]
   },
   {
-    "start": "mahalaxmi chok",
-    "end": "sanepa",
+    "start": "mahalaxmisthan",
+    "end": "sanepa bus stop",
     "stops": [
       {
         "name": "mahalaxmi chok",
@@ -678,8 +882,8 @@
     ]
   },
   {
-    "start": "mahalaxmi chok",
-    "end": "TU gate",
+    "start": "mahalaxmisthan",
+    "end": "TU Gate",
     "stops": [
       {
         "name": "mahalaxmi chok",
@@ -720,8 +924,8 @@
     ]
   },
   {
-    "start": "sanepa",
-    "end": "kalanki",
+    "start": "sanepa bus stop",
+    "end": "kalanki bus stop",
     "stops": [
       {
         "name": "sanepa bus stop",
@@ -746,7 +950,7 @@
     ]
   },
   {
-    "start": "sanepa",
+    "start": "sanepa bus stop",
     "end": "ratnapark",
     "stops": [
       {

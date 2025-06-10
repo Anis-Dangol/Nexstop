@@ -13,11 +13,28 @@ router.post("/route", async (req, res) => {
     const file = await fs.readFile(dataPath, "utf-8");
     const routes = JSON.parse(file);
 
-    const matchingRoute = routes.find(
+    // Try direct direction
+    let matchingRoute = routes.find(
       (route) =>
         route.start.toLowerCase() === start.toLowerCase() &&
         route.end.toLowerCase() === end.toLowerCase()
     );
+
+    // If not found, try reverse direction
+    if (!matchingRoute) {
+      const reverseRoute = routes.find(
+        (route) =>
+          route.start.toLowerCase() === end.toLowerCase() &&
+          route.end.toLowerCase() === start.toLowerCase()
+      );
+      if (reverseRoute) {
+        // Return reversed stops
+        return res.json({
+          status: "success",
+          route: [...reverseRoute.stops].reverse(),
+        });
+      }
+    }
 
     if (matchingRoute) {
       res.json({ status: "success", route: matchingRoute.stops });
