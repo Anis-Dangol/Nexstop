@@ -12,7 +12,7 @@ export default function RouteLine({ route, userLocation }) {
   }
 
   // Add each stop from the route
-  positions.push(...route.map((stop) => [stop.latitude, stop.longitude]));
+  positions.push(...route.map((stop) => [stop.lat, stop.lon]));
 
   const startName = route[0]?.name || "Start";
   const endName = route[route.length - 1]?.name || "Destination";

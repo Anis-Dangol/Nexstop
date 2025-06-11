@@ -1,6 +1,3 @@
-// Component for bus stop markers (shown on zoom)
-
-// components/map-view/BusStopMarkers.jsx
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
@@ -12,7 +9,7 @@ const busStopIcon = L.icon({
   popupAnchor: [0, -30],
 });
 
-export default function BusStopMarkers({ busStops, show }) {
+export default function BusStopMarkers({ busStops, show, onStopClick }) {
   if (!show) return null;
 
   return (
@@ -20,8 +17,11 @@ export default function BusStopMarkers({ busStops, show }) {
       {busStops.map((stop, idx) => (
         <Marker
           key={idx}
-          position={[stop.latitude, stop.longitude]}
+          position={[stop.lat, stop.lon]}
           icon={busStopIcon}
+          eventHandlers={{
+            click: () => onStopClick && onStopClick(stop),
+          }}
         >
           <Popup>{stop.name}</Popup>
         </Marker>
