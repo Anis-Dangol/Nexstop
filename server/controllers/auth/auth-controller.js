@@ -5,6 +5,7 @@ import User from '../../models/User.js';
 // register
 export const registerUser = async (req, res) => {
     const { userName, email, password } = req.body;
+    console.log(userName, email, password);
 
     try {
         const checkUser = await User.findOne({ email });
