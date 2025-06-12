@@ -6,7 +6,7 @@ import UserLocationMarker from "./UserLocationMarker";
 import BusStopMarkers from "./BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "./BottomSheet";
-import { ListPlus, HandCoins, BusFront, Bookmark } from "lucide-react";
+import { ListPlus, HandCoins, BusFront } from "lucide-react";
 import routesData from "../../assets/routes.json";
 
 export default function MapContainerWrapper({
@@ -239,15 +239,6 @@ export default function MapContainerWrapper({
               <BusFront size={24} />
               <span className="text-xs mt-1">Buses</span>
             </button>
-            <button
-              className={`flex flex-col items-center focus:outline-none ${
-                activeTab === "favorites" ? "text-blue-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("favorites")}
-            >
-              <Bookmark size={24} />
-              <span className="text-xs mt-1">Favorites</span>
-            </button>
           </div>
           {activeTab === "fare" && (
             <div>
@@ -266,12 +257,6 @@ export default function MapContainerWrapper({
             <div>
               <h2 className="text-lg font-bold">Bus Info</h2>
               <p>Bus details go here.</p>
-            </div>
-          )}
-          {activeTab === "favorites" && (
-            <div>
-              <h2 className="text-lg font-bold">Favorites</h2>
-              <p>Your favorite routes or stops go here.</p>
             </div>
           )}
         </div>
