@@ -4,8 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth/authRoutes.js";
 import routeSuggestion from "./routes/bus/routeSuggestion.js";
-import fareEstimator from "./routes/bus/fareEstimator.js"; // ⬅️ import only here
-
+import fareEstimator from "./routes/bus/fareEstimator.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -14,7 +13,6 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.log(error));
 
-// ✅ define 'app' before using it
 const app = express();
 app.use(express.json());
 
@@ -37,7 +35,6 @@ app.use(
 
 app.use(cookieParser());
 
-// ✅ now use routes after 'app' is declared
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
 app.use("/api/bus", fareEstimator);
