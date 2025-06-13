@@ -6,7 +6,7 @@ import UserLocationMarker from "./UserLocationMarker";
 import BusStopMarkers from "./BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "./BottomSheet";
-import { ListPlus, HandCoins, BusFront } from "lucide-react";
+import { HandCoins, BusFront } from "lucide-react";
 import routesData from "../../assets/routes.json";
 
 export default function MapContainerWrapper({
@@ -31,10 +31,12 @@ export default function MapContainerWrapper({
     }
   }, [triggerOpenBottomSheet]);
 
-  // Effect: Open BottomSheet when route changes (if a route exists)
+  // Effect: Open/close BottomSheet when route changes
   useEffect(() => {
     if (routeProp && routeProp.length > 1) {
       openBottomSheet("fare");
+    } else {
+      setIsBottomSheetOpen(false);
     }
   }, [routeProp]);
 
@@ -198,7 +200,16 @@ export default function MapContainerWrapper({
         <ZoomLevelTracker onZoomChange={setZoom} />
         <UserLocationMarker position={center} />
         {/* Show all unique stops as clickable markers */}
-        <BusStopMarkers busStops={allStops} show={zoom >= 11} />
+        <BusStopMarkers
+          busStops={allStops}
+          show={zoom >= 14}
+          onSetStart={(stopName) => {
+            if (window.setStartInput) window.setStartInput(stopName);
+          }}
+          onSetEnd={(stopName) => {
+            if (window.setEndInput) window.setEndInput(stopName);
+          }}
+        />
         {/* Draw API route polyline if available */}
         {apiRouteCoords.length > 1 && (
           <Polyline positions={apiRouteCoords} color="blue" weight={6} />
@@ -206,21 +217,13 @@ export default function MapContainerWrapper({
         {/* Removed RouteLine for straight line */}
       </MapContainer>
 
-      {/* GET ROUTES BUTTON */}
-      <button
-        onClick={() => openBottomSheet("fare")}
-        className="fixed bottom-5 right-4 bg-white px-4 py-2 rounded-full shadow-lg"
-      >
-        <ListPlus size={24} className="text-gray-600" />
-      </button>
-
       {/* Bottom Sheet */}
       <BottomSheet
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
       >
         <div>
-          <div className="flex justify-around items-center border-t border-gray-200 py-2 mb-4">
+          <div className="flex justify-around items-center border-t border-b border-gray-200 py-2 mb-4">
             <button
               className={`flex flex-col items-center focus:outline-none ${
                 activeTab === "fare" ? "text-blue-600" : "text-gray-600"
