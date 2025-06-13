@@ -23,6 +23,8 @@ export default function MapContainerWrapper({
   const [selectedStops, setSelectedStops] = useState([]);
   const [predefinedRoutes, setPredefinedRoutes] = useState([]);
   const [apiRouteCoords, setApiRouteCoords] = useState([]);
+  // State for OSM route from user location to start bus stop
+  const [userToStartCoords, setUserToStartCoords] = useState([]);
 
   // Effect: Open BottomSheet when triggered externally
   useEffect(() => {
@@ -40,14 +42,19 @@ export default function MapContainerWrapper({
     }
   }, [routeProp]);
 
-  // Load user location only (removed bus stops fetch)
+  const center = [27.686262, 85.303635];
+
+  // Load user location only (fallback to static center if geolocation fails)
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
       },
-      (err) => console.error("Geolocation error:", err)
+      (err) => {
+        console.error("Geolocation error:", err);
+        setUserLocation(center); // fallback to static center
+      }
     );
   }, []);
 
@@ -101,6 +108,43 @@ export default function MapContainerWrapper({
     fetchApiRoute();
     // eslint-disable-next-line
   }, [routeProp]);
+
+  // Fetch OSM route from user location to start bus stop
+  useEffect(() => {
+    async function fetchUserToStart() {
+      if (userLocation && selectedStops.length > 0) {
+        const url =
+          "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization:
+                "5b3ce3597851110001cf62489be549b1f66e4cfeb86481900984eab5", // Replace with a valid key
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              coordinates: [
+                [userLocation[1], userLocation[0]],
+                [selectedStops[0].lon, selectedStops[0].lat],
+              ],
+            }),
+          });
+          if (!res.ok) throw new Error(`API error: ${res.status}`);
+          const data = await res.json();
+          const coords = data.features[0].geometry.coordinates.map(
+            ([lon, lat]) => [lat, lon]
+          );
+          setUserToStartCoords(coords);
+        } catch (err) {
+          setUserToStartCoords([]);
+        }
+      } else {
+        setUserToStartCoords([]);
+      }
+    }
+    fetchUserToStart();
+  }, [userLocation, selectedStops]);
 
   const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
@@ -156,6 +200,15 @@ export default function MapContainerWrapper({
     // eslint-disable-next-line
   }, [selectedStops, predefinedRoutes]);
 
+  // Sync selectedStops with routeProp so green line appears when searching from sidebar
+  useEffect(() => {
+    if (routeProp && routeProp.length > 0) {
+      setSelectedStops([routeProp[0]]);
+    } else {
+      setSelectedStops([]);
+    }
+  }, [routeProp]);
+
   // Fetch route from OpenRouteService API
   async function fetchRouteFromAPI(stops) {
     const url =
@@ -183,8 +236,6 @@ export default function MapContainerWrapper({
       return [];
     }
   }
-
-  const center = [27.686262, 85.303635];
 
   return (
     <div className="relative h-screen w-screen">
@@ -214,7 +265,15 @@ export default function MapContainerWrapper({
         {apiRouteCoords.length > 1 && (
           <Polyline positions={apiRouteCoords} color="blue" weight={6} />
         )}
-        {/* Removed RouteLine for straight line */}
+        {/* Draw OSM route from user location to start bus stop if both exist */}
+        {userToStartCoords.length > 1 && (
+          <Polyline
+            positions={userToStartCoords}
+            color="green"
+            weight={4}
+            dashArray="6,8"
+          />
+        )}
       </MapContainer>
 
       {/* Bottom Sheet */}
