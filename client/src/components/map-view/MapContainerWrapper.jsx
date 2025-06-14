@@ -6,7 +6,7 @@ import UserLocationMarker from "./UserLocationMarker";
 import BusStopMarkers from "./BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "./BottomSheet";
-import { ListPlus, HandCoins, BusFront, Bookmark } from "lucide-react";
+import { HandCoins, BusFront } from "lucide-react";
 import routesData from "../../assets/routes.json";
 
 export default function MapContainerWrapper({
@@ -23,6 +23,8 @@ export default function MapContainerWrapper({
   const [selectedStops, setSelectedStops] = useState([]);
   const [predefinedRoutes, setPredefinedRoutes] = useState([]);
   const [apiRouteCoords, setApiRouteCoords] = useState([]);
+  // State for OSM route from user location to start bus stop
+  const [userToStartCoords, setUserToStartCoords] = useState([]);
 
   // Effect: Open BottomSheet when triggered externally
   useEffect(() => {
@@ -31,21 +33,28 @@ export default function MapContainerWrapper({
     }
   }, [triggerOpenBottomSheet]);
 
-  // Effect: Open BottomSheet when route changes (if a route exists)
+  // Effect: Open/close BottomSheet when route changes
   useEffect(() => {
     if (routeProp && routeProp.length > 1) {
       openBottomSheet("fare");
+    } else {
+      setIsBottomSheetOpen(false);
     }
   }, [routeProp]);
 
-  // Load user location only (removed bus stops fetch)
+  const center = [27.686262, 85.303635];
+
+  // Load user location only (fallback to static center if geolocation fails)
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
       },
-      (err) => console.error("Geolocation error:", err)
+      (err) => {
+        console.error("Geolocation error:", err);
+        setUserLocation(center); // fallback to static center
+      }
     );
   }, []);
 
@@ -99,6 +108,43 @@ export default function MapContainerWrapper({
     fetchApiRoute();
     // eslint-disable-next-line
   }, [routeProp]);
+
+  // Fetch OSM route from user location to start bus stop
+  useEffect(() => {
+    async function fetchUserToStart() {
+      if (userLocation && selectedStops.length > 0) {
+        const url =
+          "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization:
+                "5b3ce3597851110001cf62489be549b1f66e4cfeb86481900984eab5", // Replace with a valid key
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              coordinates: [
+                [userLocation[1], userLocation[0]],
+                [selectedStops[0].lon, selectedStops[0].lat],
+              ],
+            }),
+          });
+          if (!res.ok) throw new Error(`API error: ${res.status}`);
+          const data = await res.json();
+          const coords = data.features[0].geometry.coordinates.map(
+            ([lon, lat]) => [lat, lon]
+          );
+          setUserToStartCoords(coords);
+        } catch (err) {
+          setUserToStartCoords([]);
+        }
+      } else {
+        setUserToStartCoords([]);
+      }
+    }
+    fetchUserToStart();
+  }, [userLocation, selectedStops]);
 
   const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
@@ -154,6 +200,15 @@ export default function MapContainerWrapper({
     // eslint-disable-next-line
   }, [selectedStops, predefinedRoutes]);
 
+  // Sync selectedStops with routeProp so green line appears when searching from sidebar
+  useEffect(() => {
+    if (routeProp && routeProp.length > 0) {
+      setSelectedStops([routeProp[0]]);
+    } else {
+      setSelectedStops([]);
+    }
+  }, [routeProp]);
+
   // Fetch route from OpenRouteService API
   async function fetchRouteFromAPI(stops) {
     const url =
@@ -182,8 +237,6 @@ export default function MapContainerWrapper({
     }
   }
 
-  const center = [27.686262, 85.303635];
-
   return (
     <div className="relative h-screen w-screen">
       <MapContainer
@@ -198,27 +251,38 @@ export default function MapContainerWrapper({
         <ZoomLevelTracker onZoomChange={setZoom} />
         <UserLocationMarker position={center} />
         {/* Show all unique stops as clickable markers */}
-        <BusStopMarkers busStops={allStops} show={zoom >= 11} />
+        <BusStopMarkers
+          busStops={allStops}
+          show={zoom >= 14}
+          onSetStart={(stopName) => {
+            if (window.setStartInput) window.setStartInput(stopName);
+          }}
+          onSetEnd={(stopName) => {
+            if (window.setEndInput) window.setEndInput(stopName);
+          }}
+        />
         {/* Draw API route polyline if available */}
         {apiRouteCoords.length > 1 && (
           <Polyline positions={apiRouteCoords} color="blue" weight={6} />
         )}
-        {/* Removed RouteLine for straight line */}
+        {/* Draw OSM route from user location to start bus stop if both exist */}
+        {userToStartCoords.length > 1 && (
+          <Polyline
+            positions={userToStartCoords}
+            color="green"
+            weight={4}
+            dashArray="6,8"
+          />
+        )}
       </MapContainer>
-      GET ROUTES BUTTON
-      <button
-        onClick={() => openBottomSheet("fare")}
-        className="fixed bottom-5 right-4 bg-white px-4 py-2 rounded-full shadow-lg"
-      >
-        <ListPlus size={24} className="text-gray-600" />
-      </button>
+
       {/* Bottom Sheet */}
       <BottomSheet
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
       >
         <div>
-          <div className="flex justify-around items-center border-t border-gray-200 py-2 mb-4">
+          <div className="flex justify-around items-center border-t border-b border-gray-200 py-2 mb-4">
             <button
               className={`flex flex-col items-center focus:outline-none ${
                 activeTab === "fare" ? "text-blue-600" : "text-gray-600"
@@ -236,15 +300,6 @@ export default function MapContainerWrapper({
             >
               <BusFront size={24} />
               <span className="text-xs mt-1">Buses</span>
-            </button>
-            <button
-              className={`flex flex-col items-center focus:outline-none ${
-                activeTab === "favorites" ? "text-blue-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("favorites")}
-            >
-              <Bookmark size={24} />
-              <span className="text-xs mt-1">Favorites</span>
             </button>
           </div>
           {activeTab === "fare" && (
@@ -264,12 +319,6 @@ export default function MapContainerWrapper({
             <div>
               <h2 className="text-lg font-bold">Bus Info</h2>
               <p>Bus details go here.</p>
-            </div>
-          )}
-          {activeTab === "favorites" && (
-            <div>
-              <h2 className="text-lg font-bold">Favorites</h2>
-              <p>Your favorite routes or stops go here.</p>
             </div>
           )}
         </div>
