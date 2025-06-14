@@ -73,7 +73,7 @@ export default function MapContainerWrapper({
     if (routeProp && routeProp.length > 1) {
       const start = routeProp[0].name;
       const end = routeProp[routeProp.length - 1].name;
-      fetch("http://localhost:5000/api/bus/estimate-fare", {
+      fetch("http://192.168.1.3:5000/api/bus/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ start, end }),
@@ -163,7 +163,7 @@ export default function MapContainerWrapper({
         method: "POST",
         headers: {
           Authorization:
-            "5b3ce3597851110001cf62489be549b1f66e4cfeb86481900984eab5", // Replace with a valid key
+            "5b3ce3597851110001cf62484b3d342155914bb2b61a9ca6874bf0b3", // Replace with a valid key
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -205,7 +205,6 @@ export default function MapContainerWrapper({
         )}
         {/* Removed RouteLine for straight line */}
       </MapContainer>
-
       GET ROUTES BUTTON
       <button
         onClick={() => openBottomSheet("fare")}
@@ -213,7 +212,6 @@ export default function MapContainerWrapper({
       >
         <ListPlus size={24} className="text-gray-600" />
       </button>
-
       {/* Bottom Sheet */}
       <BottomSheet
         isOpen={isBottomSheetOpen}

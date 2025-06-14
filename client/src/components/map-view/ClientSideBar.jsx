@@ -1,7 +1,7 @@
 // components/layout/ClientSideBar.jsx
 import { Fragment, useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
-import { MapPin } from "lucide-react"; // Replace ChartNoAxesCombined with MapPin
+import { ChartNoAxesCombined } from "lucide-react";
 import { Button } from "../ui/button"; // Import the Button component
 import routesData from "../../assets/routes.json";
 

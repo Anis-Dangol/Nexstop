@@ -6,6 +6,7 @@ import authRouter from './routes/auth/authRoutes.js';
 import routeSuggestion  from "./routes/bus/routeSuggestion.js";
 import fareEstimator from "./routes/bus/fareEstimator.js";
 
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,7 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://192.168.1.3:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: [
       "content-type",
@@ -43,5 +44,5 @@ app.use("/api", routeSuggestion);
 app.use("/api/bus", fareEstimator);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://192.168.1.3:${PORT}`);
 });
