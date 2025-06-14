@@ -1,6 +1,7 @@
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useRef } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 // Bus stop icon
 const busStopIcon = L.icon({
@@ -23,6 +24,9 @@ export default function BusStopMarkers({
   function handleSet(type, stopName, markerRef) {
     if (type === "start" && onSetStart) onSetStart(stopName);
     if (type === "end" && onSetEnd) onSetEnd(stopName);
+    if (type === "start")
+      toast({ title: `${stopName} added as start location` });
+    if (type === "end") toast({ title: `${stopName} added as destination` });
     if (markerRef && markerRef.current) {
       markerRef.current.closePopup();
     }
