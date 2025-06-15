@@ -22,17 +22,6 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
     }
   };
 
-  // Expand from minimized (button)
-  const handleExpand = () => {
-    setMinimized(false);
-    controls.start({ y: 0 });
-  };
-  // Optionally allow full close
-  const handleFullClose = () => {
-    controls.start({ y: "100%" });
-    setTimeout(onClose, 200);
-  };
-
   React.useEffect(() => {
     if (isOpen) {
       setMinimized(false);
