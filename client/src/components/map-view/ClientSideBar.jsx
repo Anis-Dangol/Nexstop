@@ -155,19 +155,6 @@ export default function ClientSideBar({
           </div>
         </SheetContent>
       </Sheet>
-      {/* Bottom Sheet */}
-      {routeData && (
-        <BottomSheet
-          isOpen={bottomSheetOpen}
-          onClose={() => setBottomSheetOpen(false)}
-        >
-          <div>
-            <h2 className="text-lg font-bold">Route Details</h2>
-            <p>Start: {routeData.start}</p>
-            <p>End: {routeData.end}</p>
-          </div>
-        </BottomSheet>
-      )}
     </Fragment>
   );
 }
