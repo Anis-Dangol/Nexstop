@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { MappingHeader } from "./header";
-import ClientSideBar from "./ClientSideBar";
+import ClientSideBar from "../client-sidebar/ClientSideBar";
 import MapContainerWrapper from "./MapContainerWrapper";
 
 function MappingLayout() {

@@ -20,7 +20,6 @@ function AdminDashboard() {
 
   return (
     <div className="relative h-screen w-screen">
-      {/* Map as layer 2 (back) */}
       <MapContainer
         center={position}
         zoom={13}
