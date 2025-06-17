@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth/authRoutes.js";
 import routeSuggestion from "./routes/bus/routeSuggestion.js";
 import fareEstimator from "./routes/bus/fareEstimator.js";
+import favouriteRoutes from "./routes/auth/favouriteRoutes.js";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -20,7 +22,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://192.168.1.4:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: [
       "content-type",
@@ -38,7 +40,8 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
 app.use("/api/bus", fareEstimator);
+app.use("/api/favourites", favouriteRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://192.168.1.4:${PORT}`);
 });

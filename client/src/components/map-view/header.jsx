@@ -1,4 +1,4 @@
-import { AlignJustify, LogOut, UserCog } from "lucide-react";
+import { AlignJustify, LogOut, UserCog, MapPin } from "lucide-react"; // Added MapPin
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,14 +54,15 @@ export function MappingHeader({ setOpen }) {
   console.log(user, "useruseruser");
 
   return (
-    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 ">
+    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 shadow-lg"> {/* Added shadow */}
       <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6 pt-5">
         <Button onClick={() => setOpen(true)} className="sm:block">
           <AlignJustify />
           <span className="sr-only">Toggle Menu</span>
         </Button>
         <Link to="/map/home" className="flex items-center gap-2">
-          <h1 className="font-bold text-[#E6E0D3]">Nexstop</h1>
+          <MapPin size={30} color="#E6E0D3" /> {/* Updated icon color */}
+          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1> {/* Updated design */}
         </Link>
 
         {/* Desktop */}

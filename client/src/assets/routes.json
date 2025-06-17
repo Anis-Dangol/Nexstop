@@ -46,7 +46,7 @@
   },
   {
     "routeNumber": 3,
-    "name": "panga Dobato stop to Lagankhel",
+    "name": "Kirtipur to Lagankhel",
     "color": "green",
     "stops": [
       { "name": "Panga Dobato Stop", "lat": 27.67463783, "lon": 85.28025712 },
@@ -758,7 +758,7 @@
   }  ,
   {
     "routeNumber": 37,
-    "name": "Dobato to Balkhu",
+    "name": "Panga Dobato to Balkhu",
     "color": "peru",
     "stops": [
       { "name": "Panga Dobato Stop", "lat": 27.67463783, "lon": 85.28025712 },
