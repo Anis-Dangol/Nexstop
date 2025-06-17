@@ -758,7 +758,7 @@
   }  ,
   {
     "routeNumber": 37,
-    "name": "Panga Dobato to Balkhu",
+    "name": "Dobato to Balkhu",
     "color": "peru",
     "stops": [
       { "name": "Panga Dobato Stop", "lat": 27.67463783, "lon": 85.28025712 },
