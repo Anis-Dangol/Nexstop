@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./map/auth-slice";
 import { Skeleton } from "@/components/ui/skeleton";
-import ShoppingLayout from "./components/map-view/layout";
+import MappingLayout from "./components/map-view/layout";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -69,7 +69,7 @@ function App() {
           path="/map"
           element={
             <CheckAuth isAuthenticated={isAuthenticated} user={user}>
-              <ShoppingLayout />
+              <MappingLayout />
             </CheckAuth>
           }
         >

@@ -2,17 +2,20 @@
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import UserLocationMarker from "./UserLocationMarker";
-import BusStopMarkers from "./BusStopMarkers";
+import UserLocationMarker from "../route-marker/UserLocationMarker";
+import BusStopMarkers from "../route-marker/BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
-import BottomSheet from "./BottomSheet";
+import BottomSheet from "../bottom-sheet/BottomSheet";
+import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
 import { HandCoins, BusFront } from "lucide-react";
+import { fetchRouteFromAPI, fetchUserToStart } from "../../map/mapApi";
 import routesData from "../../assets/routes.json";
 
 export default function MapContainerWrapper({
   route: routeProp,
   triggerOpenBottomSheet,
 }) {
+  // --- State ---
   const [userLocation, setUserLocation] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [zoom, setZoom] = useState(13);
@@ -23,9 +26,9 @@ export default function MapContainerWrapper({
   const [selectedStops, setSelectedStops] = useState([]);
   const [predefinedRoutes, setPredefinedRoutes] = useState([]);
   const [apiRouteCoords, setApiRouteCoords] = useState([]);
-  // State for OSM route from user location to start bus stop
   const [userToStartCoords, setUserToStartCoords] = useState([]);
 
+  // --- Effects ---
   // Effect: Open BottomSheet when triggered externally
   useEffect(() => {
     if (triggerOpenBottomSheet) {
@@ -44,7 +47,7 @@ export default function MapContainerWrapper({
 
   const center = [27.686262, 85.303635];
 
-  // Load user location only (fallback to static center if geolocation fails)
+  // Effect: Load user location
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -53,16 +56,14 @@ export default function MapContainerWrapper({
       },
       (err) => {
         console.error("Geolocation error:", err);
-        setUserLocation(center); // fallback to static center
+        setUserLocation(center);
       }
     );
   }, []);
 
-  // Load routes and extract unique stops
+  // Effect: Load routes and extract unique stops
   useEffect(() => {
-    // Load routes from assets
     setPredefinedRoutes(routesData);
-    // Extract unique stops
     const stopSet = new Set();
     const allStopsArr = [];
     routesData.forEach((route) => {
@@ -77,7 +78,7 @@ export default function MapContainerWrapper({
     setAllStops(allStopsArr);
   }, []);
 
-  // Fetch fare data only when route changes, not on every open/close
+  // Effect: Fetch fare data when route changes
   useEffect(() => {
     if (routeProp && routeProp.length > 1) {
       const start = routeProp[0].name;
@@ -91,11 +92,11 @@ export default function MapContainerWrapper({
         .then((data) => setFareData(data))
         .catch(() => setFareData(null));
     } else {
-      setFareData(null); // Clear fareData if route is cleared
+      setFareData(null);
     }
   }, [routeProp]);
 
-  // Fetch OpenRouteService API route when routeProp changes (sidebar selection)
+  // Effect: Fetch API route when routeProp changes
   useEffect(() => {
     async function fetchApiRoute() {
       if (routeProp && routeProp.length > 1) {
@@ -106,52 +107,27 @@ export default function MapContainerWrapper({
       }
     }
     fetchApiRoute();
-    // eslint-disable-next-line
   }, [routeProp]);
 
-  // Fetch OSM route from user location to start bus stop
+  // Effect: Fetch OSM route from user location to start bus stop
   useEffect(() => {
-    async function fetchUserToStart() {
+    async function fetchUserToStartCoords() {
       if (userLocation && selectedStops.length > 0) {
-        const url =
-          "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: {
-              Authorization:
-                "5b3ce3597851110001cf62489be549b1f66e4cfeb86481900984eab5", // Replace with a valid key
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              coordinates: [
-                [userLocation[1], userLocation[0]],
-                [selectedStops[0].lon, selectedStops[0].lat],
-              ],
-            }),
-          });
-          if (!res.ok) throw new Error(`API error: ${res.status}`);
-          const data = await res.json();
-          const coords = data.features[0].geometry.coordinates.map(
-            ([lon, lat]) => [lat, lon]
-          );
-          setUserToStartCoords(coords);
-        } catch (err) {
-          setUserToStartCoords([]);
-        }
+        const coords = await fetchUserToStart(userLocation, selectedStops);
+        setUserToStartCoords(coords);
       } else {
         setUserToStartCoords([]);
       }
     }
-    fetchUserToStart();
+    fetchUserToStartCoords();
   }, [userLocation, selectedStops]);
 
+  // --- Handlers ---
   const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
     setActiveTab(tab);
   };
 
-  // Handle stop marker click
   const handleStopClick = (stop) => {
     if (selectedStops.length === 0) {
       setSelectedStops([stop]);
@@ -167,7 +143,7 @@ export default function MapContainerWrapper({
     }
   };
 
-  // Find route subset between two stops and draw API route
+  // Effect: Find route subset between two stops and draw API route
   useEffect(() => {
     async function handleRoute() {
       if (selectedStops.length === 2) {
@@ -187,7 +163,6 @@ export default function MapContainerWrapper({
           }
         }
         setRoute(foundRoute || [selectedStops[0], selectedStops[1]]);
-        // Fetch and draw API route
         const stopsToSend = foundRoute || [selectedStops[0], selectedStops[1]];
         const coords = await fetchRouteFromAPI(stopsToSend);
         setApiRouteCoords(coords);
@@ -197,10 +172,9 @@ export default function MapContainerWrapper({
       }
     }
     handleRoute();
-    // eslint-disable-next-line
   }, [selectedStops, predefinedRoutes]);
 
-  // Sync selectedStops with routeProp so green line appears when searching from sidebar
+  // Effect: Sync selectedStops with routeProp
   useEffect(() => {
     if (routeProp && routeProp.length > 0) {
       setSelectedStops([routeProp[0]]);
@@ -209,34 +183,7 @@ export default function MapContainerWrapper({
     }
   }, [routeProp]);
 
-  // Fetch route from OpenRouteService API
-  async function fetchRouteFromAPI(stops) {
-    const url =
-      "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization:
-            "5b3ce3597851110001cf62484b3d342155914bb2b61a9ca6874bf0b3", // Replace with a valid key
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          coordinates: stops.map((stop) => [stop.lon, stop.lat]),
-        }),
-      });
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const data = await res.json();
-      return data.features[0].geometry.coordinates.map(([lon, lat]) => [
-        lat,
-        lon,
-      ]);
-    } catch (err) {
-      console.error("Error fetching route:", err);
-      return [];
-    }
-  }
-
+  // --- Render ---
   return (
     <div className="relative h-screen w-screen">
       <MapContainer
@@ -281,47 +228,13 @@ export default function MapContainerWrapper({
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
       >
-        <div>
-          <div className="flex justify-around items-center border-t border-b border-gray-200 py-2 mb-4">
-            <button
-              className={`flex flex-col items-center focus:outline-none ${
-                activeTab === "fare" ? "text-blue-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("fare")}
-            >
-              <HandCoins size={24} />
-              <span className="text-xs mt-1">Fare</span>
-            </button>
-            <button
-              className={`flex flex-col items-center focus:outline-none ${
-                activeTab === "bus" ? "text-blue-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("bus")}
-            >
-              <BusFront size={24} />
-              <span className="text-xs mt-1">Buses</span>
-            </button>
-          </div>
-          {activeTab === "fare" && (
-            <div>
-              <h2 className="text-lg font-bold">Fare Estimation</h2>
-              {fareData ? (
-                <>
-                  <p>Fare: Rs {fareData.fare}</p>
-                  <p>Distance: {fareData.totalDistance} km</p>
-                </>
-              ) : (
-                <p className="text-gray-500">No fare data available.</p>
-              )}
-            </div>
-          )}
-          {activeTab === "bus" && (
-            <div>
-              <h2 className="text-lg font-bold">Bus Info</h2>
-              <p>Bus details go here.</p>
-            </div>
-          )}
-        </div>
+        <MapBottomSheet
+          isOpen={isBottomSheetOpen}
+          onClose={() => setIsBottomSheetOpen(false)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          fareData={fareData}
+        />
       </BottomSheet>
     </div>
   );
