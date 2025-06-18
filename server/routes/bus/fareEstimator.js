@@ -11,12 +11,10 @@ const router = express.Router();
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const toRad = (angle) => (angle * Math.PI) / 180;
   const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  const dLat = toRad(lat2 - lat1); const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -88,7 +86,7 @@ router.post("/estimate-fare", (req, res) => {
     // Fare logic (same as before)
     let fare;
     if (totalDistance < 1) {
-      fare = 5;
+      fare = 10;
     } else if (totalDistance < 5) {
       fare = 20;
     } else if (totalDistance < 10) {
@@ -96,9 +94,9 @@ router.post("/estimate-fare", (req, res) => {
     } else if (totalDistance < 15) {
       fare = 30;
     } else if (totalDistance < 20) {
-      fare = 33;
+      fare = 35;
     } else {
-      fare = 38;
+      fare = 40;
     }
 
     return res.json({

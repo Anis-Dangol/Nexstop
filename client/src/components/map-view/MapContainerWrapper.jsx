@@ -7,9 +7,9 @@ import BusStopMarkers from "../route-marker/BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "../bottom-sheet/BottomSheet";
 import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
-import { HandCoins, BusFront } from "lucide-react";
 import { fetchRouteFromAPI, fetchUserToStart } from "../../map/mapApi";
 import routesData from "../../assets/routes.json";
+import RoutePopup from "./RoutePopup";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -27,6 +27,8 @@ export default function MapContainerWrapper({
   const [predefinedRoutes, setPredefinedRoutes] = useState([]);
   const [apiRouteCoords, setApiRouteCoords] = useState([]);
   const [userToStartCoords, setUserToStartCoords] = useState([]);
+  const [routePopupOpen, setRoutePopupOpen] = useState(false);
+  const [routePopupPos, setRoutePopupPos] = useState(null);
 
   // --- Effects ---
   // Effect: Open BottomSheet when triggered externally
@@ -143,6 +145,13 @@ export default function MapContainerWrapper({
     }
   };
 
+  // Helper to get midpoint of route for popup
+  function getRouteMidpoint(coords) {
+    if (!coords || coords.length === 0) return null;
+    const midIdx = Math.floor(coords.length / 2);
+    return coords[midIdx];
+  }
+
   // Effect: Find route subset between two stops and draw API route
   useEffect(() => {
     async function handleRoute() {
@@ -210,7 +219,29 @@ export default function MapContainerWrapper({
         />
         {/* Draw API route polyline if available */}
         {apiRouteCoords.length > 1 && (
-          <Polyline positions={apiRouteCoords} color="blue" weight={6} />
+          <>
+            <Polyline
+              positions={apiRouteCoords}
+              color="blue"
+              weight={6}
+              eventHandlers={{
+                click: (e) => {
+                  setRoutePopupOpen(true);
+                  setRoutePopupPos(e.latlng);
+                },
+              }}
+            />
+            {routePopupOpen &&
+              routeProp &&
+              routeProp.length > 1 &&
+              routePopupPos && (
+                <RoutePopup
+                  start={routeProp[0].name}
+                  end={routeProp[routeProp.length - 1].name}
+                  position={routePopupPos}
+                />
+              )}
+          </>
         )}
         {/* Draw OSM route from user location to start bus stop if both exist */}
         {userToStartCoords.length > 1 && (
