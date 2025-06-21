@@ -1,15 +1,24 @@
 // MapContainerWrapper.jsx
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Polyline } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  Popup,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import UserLocationMarker from "../route-marker/UserLocationMarker";
 import BusStopMarkers from "../route-marker/BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "../bottom-sheet/BottomSheet";
 import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
+import { HandCoins, BusFront } from "lucide-react";
 import { fetchRouteFromAPI, fetchUserToStart } from "../../map/mapApi";
 import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
+import { getTransferMessage } from "@/lib/showTransferPopup";
+import transferData from "@/assets/transfer.json";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -29,6 +38,9 @@ export default function MapContainerWrapper({
   const [userToStartCoords, setUserToStartCoords] = useState([]);
   const [routePopupOpen, setRoutePopupOpen] = useState(false);
   const [routePopupPos, setRoutePopupPos] = useState(null);
+  const [transferMessage, setTransferMessage] = useState(null);
+  const [route, setRoute] = useState([]);
+  const [showTransferPopup, setShowTransferPopup] = useState(false);
 
   // --- Effects ---
   // Effect: Open BottomSheet when triggered externally
@@ -124,6 +136,17 @@ export default function MapContainerWrapper({
     fetchUserToStartCoords();
   }, [userLocation, selectedStops]);
 
+  // Effect: Check for transfer popup when route changes
+  useEffect(() => {
+    if (routeProp && routeProp.length > 1) {
+      const stopNames = routeProp.map((stop) => stop.name);
+      const message = getTransferMessage(stopNames);
+      setTransferMessage(message);
+    } else {
+      setTransferMessage(null);
+    }
+  }, [routeProp]);
+
   // --- Handlers ---
   const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
@@ -171,13 +194,17 @@ export default function MapContainerWrapper({
             break;
           }
         }
-        setRoute(foundRoute || [selectedStops[0], selectedStops[1]]);
-        const stopsToSend = foundRoute || [selectedStops[0], selectedStops[1]];
-        const coords = await fetchRouteFromAPI(stopsToSend);
+        const routeArr = foundRoute || [selectedStops[0], selectedStops[1]];
+        setRoute(routeArr);
+        // Get transfer message for this route
+        const stopNames = routeArr.map((stop) => stop.name);
+        setTransferMessage(getTransferMessage(stopNames));
+        const coords = await fetchRouteFromAPI(routeArr);
         setApiRouteCoords(coords);
       } else {
         setRoute([]);
         setApiRouteCoords([]);
+        setTransferMessage(null);
       }
     }
     handleRoute();
@@ -192,9 +219,60 @@ export default function MapContainerWrapper({
     }
   }, [routeProp]);
 
+  // Helper: Find routeNumber for a stop
+  function getRouteNumberForStop(stop) {
+    for (const route of predefinedRoutes) {
+      if (route.stops.some((s) => s.lat === stop.lat && s.lon === stop.lon)) {
+        return route.routeNumber;
+      }
+    }
+    return null;
+  }
+
+  // Helper: Find where routeNumber changes in routeProp
+  function getRouteChangeIndices(routeProp) {
+    if (!routeProp || routeProp.length < 2) return [];
+    const changes = [];
+    let prevRoute = getRouteNumberForStop(routeProp[0]);
+    for (let i = 1; i < routeProp.length; i++) {
+      const currRoute = getRouteNumberForStop(routeProp[i]);
+      if (currRoute !== prevRoute) {
+        changes.push(i);
+        prevRoute = currRoute;
+      }
+    }
+    return changes;
+  }
+
+  // Helper: Find routeNumber for a segment between two stops
+  function getRouteNumberForSegment(stopA, stopB) {
+    // Collect all route numbers for segments matching stopA -> stopB
+    const routeNumbers = [];
+    for (const route of predefinedRoutes) {
+      const stops = route.stops;
+      for (let i = 0; i < stops.length - 1; i++) {
+        if (
+          stops[i].lat === stopA.lat &&
+          stops[i].lon === stopA.lon &&
+          stops[i + 1].lat === stopB.lat &&
+          stops[i + 1].lon === stopB.lon
+        ) {
+          routeNumbers.push(route.routeNumber);
+        }
+      }
+    }
+    return routeNumbers.length > 0 ? routeNumbers : null;
+  }
+
   // --- Render ---
   return (
     <div className="relative h-screen w-screen">
+      {/* Transfer Popup */}
+      {transferMessage && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-200 text-black px-6 py-3 rounded shadow-lg font-semibold">
+          {transferMessage}
+        </div>
+      )}
       <MapContainer
         center={center}
         zoom={13}
@@ -239,6 +317,7 @@ export default function MapContainerWrapper({
                   start={routeProp[0].name}
                   end={routeProp[routeProp.length - 1].name}
                   position={routePopupPos}
+                  transferMessage={transferMessage}
                 />
               )}
           </>
@@ -252,7 +331,99 @@ export default function MapContainerWrapper({
             dashArray="6,8"
           />
         )}
+        {/* Show routeNumber and transfer info in between each bus stop */}
+        {routeProp &&
+          routeProp.length > 1 &&
+          routeProp.slice(0, -1).map((stop, idx) => {
+            const nextStop = routeProp[idx + 1];
+            const midLat = (stop.lat + nextStop.lat) / 2;
+            const midLon = (stop.lon + nextStop.lon) / 2;
+            // Use robust segment route number
+            const routeNumbers =
+              getRouteNumberForSegment(stop, nextStop) || "N/A";
+            // Format for display: join if array, else show as is
+            const routeNumberDisplay = Array.isArray(routeNumbers)
+              ? routeNumbers.join(", ")
+              : routeNumbers;
+            // Check for transfer
+            const transfer = transferData.find(
+              (t) => t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
+            );
+            return (
+              <Marker
+                key={"mid-" + idx}
+                position={[midLat, midLon]}
+                icon={L.divIcon({
+                  className: "route-number-marker",
+                  iconSize: [24, 24],
+                  html: transfer
+                    ? `<div style='background:#f59e42;color:#fff;border-radius:50%;padding:6px 8px;border:2px solid #e67e22;font-size:14px;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.12);'>T</div>`
+                    : `<div style='background:#fff;border-radius:12px;padding:2px 6px;border:1px solid #0074D9;font-size:12px;'>${routeNumberDisplay}</div>`,
+                })}
+              >
+                <Popup>
+                  <div>
+                    Route Number: <b>{routeNumberDisplay}</b>
+                    <br />
+                    Between: <br />
+                    {stop.name} <br />
+                    and <br />
+                    {nextStop.name}
+                    {transfer && (
+                      <div
+                        style={{
+                          marginTop: 8,
+                          color: "#fff",
+                          fontWeight: 600,
+                          background: "#f59e42",
+                          borderRadius: 8,
+                          padding: "10px 12px",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                          border: "2px solid #e67e22",
+                          textAlign: "center",
+                        }}
+                      >
+                        Get off at bus stop <b>{transfer.Transfer1}</b> and take
+                        the bus at <b>{transfer.Transfer2}</b> to continue your
+                        route.
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
       </MapContainer>
+
+      {/* Transfer Info Button */}
+      {route && route.length > 1 && transferMessage && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-4 z-50">
+          <button
+            className="bg-yellow-200 text-black px-6 py-3 rounded shadow-lg font-semibold border border-yellow-400 hover:bg-yellow-300 transition"
+            onClick={() => setShowTransferPopup(true)}
+          >
+            {transferMessage}
+          </button>
+        </div>
+      )}
+      {/* Transfer Info Popup */}
+      {showTransferPopup && (
+        <Popup
+          position={route[1] ? [route[1].lat, route[1].lon] : center}
+          onClose={() => setShowTransferPopup(false)}
+        >
+          <div>
+            <strong>Transfer Info</strong>
+            <div>{transferMessage}</div>
+            <button
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+              onClick={() => setShowTransferPopup(false)}
+            >
+              Close
+            </button>
+          </div>
+        </Popup>
+      )}
 
       {/* Bottom Sheet */}
       <BottomSheet
@@ -265,6 +436,8 @@ export default function MapContainerWrapper({
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           fareData={fareData}
+          route={routeProp}
+          getRouteNumberForSegment={getRouteNumberForSegment}
         />
       </BottomSheet>
     </div>

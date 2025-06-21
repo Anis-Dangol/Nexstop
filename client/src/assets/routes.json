@@ -76,7 +76,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.68539876, "lon": 85.29827651 },
+      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
       { "name": "Balkhu Wari", "lat": 27.68449578, "lon": 85.29740378 },
       {
         "name": "Kumari Club (Dashinkali)",
@@ -405,7 +405,7 @@
       },
       {
         "name": "Sita Petrol Pump Stop (Kalanki)",
-        "lat": 27.68831044,
+        "lat": 27.688301,
         "lon": 85.28644041
       },
       { "name": "Kalanki Stop", "lat": 27.6932356, "lon": 85.28117994 }
@@ -831,7 +831,7 @@
     "name": "Balkhu to Koteshwor",
     "color": "gold",
     "stops": [
-      { "name": "Balkhu Stop", "lat": 27.68539876, "lon": 85.29827651 },
+      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
       {
         "name": "Sanepa Bus Stop (Chakrapath)",
         "lat": 27.68440202,
@@ -970,7 +970,7 @@
       },
       {
         "name": "Sita Petrol Pump Stop (Kalanki)",
-        "lat": 27.68831044,
+        "lat": 27.688301,
         "lon": 85.28644041
       },
       { "name": "Kalanki Stop", "lat": 27.6932356, "lon": 85.28117994 }
@@ -1414,6 +1414,7 @@
       { "name": "Narayan Gopal Chowk", "lat": 27.74042362, "lon": 85.33745252 }
     ]
   },
+
   {
     "routeNumber": 31,
     "name": "Gongabu Bus Stand (Chakrapath) to Ratnapark (via Chabahil)",
@@ -1602,7 +1603,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.68539876, "lon": 85.29827651 }
+      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 }
     ]
   },
   {
@@ -1728,6 +1729,28 @@
         "lat": 27.702561742152824,
         "lon": 85.31361099960553
       }
+    ]
+  },
+  {
+    "routeNumber": 99,
+    "name": "Nayabato (Balkhu) to Kalanki (Bafal)",
+    "color": "orange",
+    "stops": [
+      { "name": "Nayabato (Balkhu)", "lat": 27.67640093, "lon": 85.29430219 },
+      { "name": "TU Gate (Balkhu)", "lat": 27.67886163, "lon": 85.2971644 },
+      { "name": "Kumari Club (Balkhu)", "lat": 27.682138, "lon": 85.29846038 },
+      { "name": "Balkhu Petro Stop", "lat": 27.68434281, "lon": 85.29732339 },
+      {
+        "name": "Balkhu Bus Stop (Kalanki)",
+        "lat": 27.684794,
+        "lon": 85.296967
+      },
+      {
+        "name": "Sita Petrol Pump Stop (Kalanki)",
+        "lat": 27.688301,
+        "lon": 85.286635
+      },
+      { "name": "Kalanki (Bafal)", "lat": 27.69394974, "lon": 85.28146875 }
     ]
   }
 ]
