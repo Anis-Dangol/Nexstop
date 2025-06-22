@@ -1,0 +1,26 @@
+[
+    {
+        "transferNumber": 1,
+        "name": "Balkhu Petro Stop to Balkhu Bus Stop (Kalanki)",
+        "Transfer1": "Balkhu Petro Stop",
+        "Transfer2": "Balkhu Bus Stop (Kalanki)"
+    },
+    {
+        "transferNumber": 2,
+        "name": "Balkhu Petro Stop to Balkhu Bus Stop (Sanepa)",
+        "Transfer1": "Balkhu Petro Stop",
+        "Transfer2": "Balkhu Bus Stop (Sanepa)"
+    },
+    {
+        "transferNumber": 3,
+        "name": "Sanepa Bus Stop (Balkhu) to Balkhu Pari Stop",
+        "Transfer1": "Sanepa Bus Stop (Balkhu)",
+        "Transfer2": "Balkhu Pari Stop"
+    },
+    {
+        "transferNumber": 4,
+        "name": "Sanepa Bus Stop (Balkhu) to Balkhu Wari",
+        "Transfer1": "Sanepa Bus Stop (Balkhu)",
+        "Transfer2": "Balkhu Wari"
+    }
+]
