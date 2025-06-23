@@ -1,29 +1,14 @@
-import { AlignJustify, LogOut } from "lucide-react";
-import { Button } from "../ui/button";
-import { useDispatch } from "react-redux";
-import { logoutUser } from "@/map/auth-slice";
+import { LogOut, MapPin } from "lucide-react";
 
-function AdminHeader({ setOpen }) {
-  const dispatch = useDispatch();
-
-  function handleLogout() {
-    dispatch(logoutUser());
-  }
-
+function AdminHeader() {
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-[#E6E0D3] border-b">
-      <Button onClick={() => setOpen(true)} className="lg:hidden sm:block">
-        <AlignJustify />
-        <span className="sr-only">Toggle Menu</span>
-      </Button>
-      <div className="flex flex-1 justify-end">
-        <Button
-          onClick={handleLogout}
-          className="inline-flex gap-2 items-center rounded-md px-4 py-2 text-sm font-medium shadow"
-        >
-          <LogOut />
-          Logout
-        </Button>
+    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] shadow-lg">
+      <div className="flex items-center justify-center px-4 sm:px-6 py-4">
+        {/* Centered Admin Title */}
+        <div className="flex items-center gap-2">
+          <MapPin size={30} color="#E6E0D3" />
+          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1>
+        </div>
       </div>
     </header>
   );
