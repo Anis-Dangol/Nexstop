@@ -97,7 +97,7 @@ export default function MapContainerWrapper({
     if (routeProp && routeProp.length > 1) {
       const start = routeProp[0].name;
       const end = routeProp[routeProp.length - 1].name;
-      fetch("http://192.168.1.3:5000/api/bus/estimate-fare", {
+      fetch("http://localhost:5000/api/bus/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ start, end }),
