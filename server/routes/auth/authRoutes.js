@@ -5,9 +5,12 @@ import {
     logoutUser, 
     authMiddleware, 
 } from '../../controllers/auth/auth-controller.js';
+import { getAllUsers } from '../../controllers/auth/user-controller.js';
+
+
 
 const router = express.Router();
-
+router.get("/all-users", authMiddleware, getAllUsers);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);

@@ -1,11 +1,26 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 function AdminUsers() {
-  // Placeholder data
-  const users = [
-    { id: 1, name: "Alice", email: "alice@example.com", role: "Admin" },
-    { id: 2, name: "Bob", email: "bob@example.com", role: "User" },
-  ];
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/auth/all-users", {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.success) {
+          console.log("Fetched users:", res.data.users); // ✅ Log here
+          setUsers(res.data.users);
+        } else {
+          console.warn("Not authorized", res.data.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching users:", err);
+      });
+  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -21,9 +36,9 @@ function AdminUsers() {
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id}>
-              <td className="py-2 px-4 border-b">{user.id}</td>
-              <td className="py-2 px-4 border-b">{user.name}</td>
+            <tr key={user._id || user.id}>
+              <td className="py-2 px-4 border-b">{user._id || user.id}</td>
+              <td className="py-2 px-4 border-b">{user.userName || user.name}</td>
               <td className="py-2 px-4 border-b">{user.email}</td>
               <td className="py-2 px-4 border-b">{user.role}</td>
             </tr>
