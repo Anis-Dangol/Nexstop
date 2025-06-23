@@ -27,7 +27,7 @@ export default function CommonForm({
         element = (
           <Input
             name={getControlItem.name}
-            placeholder={getControlItem.placehoder}
+            placeholder={getControlItem.placeholder}
             id={getControlItem.name}
             type={getControlItem.type}
             value={value}
@@ -70,7 +70,7 @@ export default function CommonForm({
         element = (
           <Textarea
             name={getControlItem.name}
-            placeholder={getControlItem.placehoder}
+            placeholder={getControlItem.placeholder}
             id={getControlItem.id}
             value={value}
             onChange={(event) =>
@@ -86,7 +86,7 @@ export default function CommonForm({
         element = (
           <Input
             name={getControlItem.name}
-            placeholder={getControlItem.placehoder}
+            placeholder={getControlItem.placeholder}
             id={getControlItem.name}
             type={getControlItem.type}
             value={value}
