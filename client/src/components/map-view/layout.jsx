@@ -14,7 +14,7 @@ function MappingLayout() {
   // Fetch route from backend and update state
   const fetchRoute = async (start, end) => {
     try {
-      const res = await fetch("http://192.168.1.4:5000/api/route", {
+      const res = await fetch("http://localhost:5000/api/route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ start, end }),
@@ -27,6 +27,7 @@ function MappingLayout() {
         setRoute([]);
       }
     } catch (err) {
+      console.log(err);
       alert("Failed to fetch route");
       setRoute([]);
     }

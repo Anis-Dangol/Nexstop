@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://192.168.1.4:5173",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: [
       "content-type",
@@ -43,5 +43,5 @@ app.use("/api/bus", fareEstimator);
 app.use("/api/favourites", favouriteRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://192.168.1.4:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

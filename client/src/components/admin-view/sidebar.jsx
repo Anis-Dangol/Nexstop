@@ -14,9 +14,9 @@ function AdminSideBar({ open, setOpen }) {
 
   return (
     <Fragment>
-      <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet  open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-64 ">
-          <div className="flex flex-col h-full ">
+          <div onclic className="flex flex-col h-full ">
             <SheetHeader className="border-b">
               <SheetTitle className="flex gap-2 mt-5 mb-5">
                 <ChartNoAxesCombined size={30} />

@@ -9,7 +9,7 @@ function AdminDashboard() {
 
   const fetchApi = async () => {
     try {
-      const response = await axios.get("http://192.168.1.4:8080/api");
+      const response = await axios.get("http://localhost:8080/api");
       console.log(response.data);
     } catch (err) {
       console.error("API Error:", err.message);
