@@ -17,7 +17,7 @@ function AdminSideBar({ collapsed, setCollapsed }) {
   const dispatch = useDispatch();
 
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
     { label: "Users", icon: Users, path: "/admin/users" },
     { label: "Bus Stops", icon: MapPin, path: "/admin/bus-stops" },
     { label: "Bus Routes", icon: Route, path: "/admin/bus-routes" },

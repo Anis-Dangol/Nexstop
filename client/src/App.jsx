@@ -5,6 +5,9 @@ import AuthLogin from "./pages/auth/login";
 import AuthRegister from "./pages/auth/register";
 import AdminLayout from "./components/admin-view/layout";
 import AdminDashboard from "./pages/admin-view/dashboard";
+import AdminUsers from "./pages/admin-view/users"; // Add this line
+import AdminBusStops from "./pages/admin-view/bus-stops";
+import AdminBusRoutes from "./pages/admin-view/bus-routes";
 import NotFound from "./pages/not-found";
 import MappingHome from "./pages/map-view/home";
 import CheckAuth from "./components/common/check-auth";
@@ -63,6 +66,9 @@ function App() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} /> {/* Add this line */}
+          <Route path="bus-stops" element={<AdminBusStops />} />
+          <Route path="bus-routes" element={<AdminBusRoutes />} />
         </Route>
 
         <Route
