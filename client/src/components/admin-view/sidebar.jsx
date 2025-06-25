@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import { useDispatch } from "react-redux";
-import { logoutUser } from "@/map/auth-slice/AuthSlice";
+import { logoutUser } from "@/map/auth-slice";
 
 function AdminSideBar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();

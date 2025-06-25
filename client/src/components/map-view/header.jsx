@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { logoutUser } from "@/map/auth-slice/AuthSlice";
+import { logoutUser } from "@/map/auth-slice";
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
@@ -26,9 +26,7 @@ function HeaderRightContent() {
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black cursor-pointer">
-            {" "}
-            {/* Added cursor-pointer */}
+          <Avatar className="bg-black cursor-pointer"> {/* Added cursor-pointer */}
             <AvatarFallback className="bg-[#E6E0D3] text-[#070f18] font-extrabold">
               {user?.userName[0].toUpperCase()}
             </AvatarFallback>
@@ -56,9 +54,7 @@ export function MappingHeader({ setOpen }) {
   console.log(user, "useruseruser");
 
   return (
-    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 shadow-lg">
-      {" "}
-      {/* Added shadow */}
+    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 shadow-lg"> {/* Added shadow */}
       <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6 pt-5">
         <Button onClick={() => setOpen(true)} className="sm:block">
           <AlignJustify />
@@ -66,8 +62,7 @@ export function MappingHeader({ setOpen }) {
         </Button>
         <Link to="/map/home" className="flex items-center gap-2">
           <MapPin size={30} color="#E6E0D3" /> {/* Updated icon color */}
-          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1>{" "}
-          {/* Updated design */}
+          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1> {/* Updated design */}
         </Link>
 
         {/* Desktop */}

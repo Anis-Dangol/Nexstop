@@ -14,10 +14,10 @@ import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "../bottom-sheet/BottomSheet";
 import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
 import { HandCoins, BusFront } from "lucide-react";
-import { fetchRouteFromAPI, fetchUserToStart } from "../../map/MapAPISlice";
+import { fetchRouteFromAPI, fetchUserToStart } from "../../map/mapApi";
 import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
-import { getTransferMessage } from "@/lib/GetTransferMessage";
+import { getTransferMessage } from "@/lib/showTransferPopup";
 import transferData from "@/assets/transfer.json";
 
 export default function MapContainerWrapper({
