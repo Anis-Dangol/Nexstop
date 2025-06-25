@@ -1,22 +1,22 @@
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
-import AuthLayout from "./components/auth/layout";
+import AuthLayout from "./components/auth/AdminLayout";
 import AuthLogin from "./pages/auth/login";
 import AuthRegister from "./pages/auth/register";
-import AdminLayout from "./components/admin-view/layout";
+import AdminLayout from "./components/admin-view/AdminLayout";
 import AdminDashboard from "./pages/admin-view/dashboard";
 import AdminUsers from "./pages/admin-view/users"; // Add this line
 import AdminBusStops from "./pages/admin-view/bus-stops";
 import AdminBusRoutes from "./pages/admin-view/bus-routes";
 import NotFound from "./pages/not-found";
 import MappingHome from "./pages/map-view/home";
-import CheckAuth from "./components/common/check-auth";
+import CheckAuth from "./components/common/CheckAuth";
 import UnauthPage from "./pages/unauth-page";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { checkAuth } from "./map/auth-slice";
+import { checkAuth } from "./map/auth-slice/AuthSlice";
 import { Skeleton } from "@/components/ui/skeleton";
-import MappingLayout from "./components/map-view/layout";
+import MappingLayout from "./components/map-view/MappingLayout";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
