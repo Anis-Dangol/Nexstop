@@ -65,7 +65,7 @@ export default function MapBottomSheet({
           <h2 className="text-lg font-bold">Follow this Direction</h2>
           {/* Show serial numbers of transfers below the heading */}
           {route.length > 1 && (
-            <div className="mb-2 text-orange-500 font-semibold">
+            <div className="mb-2 text-black font-semibold">
               {route.slice(0, -1).map((stop, idx) => {
                 const nextStop = route[idx + 1];
                 const transfer = transferData.find(
@@ -74,7 +74,10 @@ export default function MapBottomSheet({
                 );
                 return transfer ? (
                   <div key={idx}>
-                    Transfer Serial: {transfer.transferNumber + 1}
+                    Transfer Serial: 
+                    <span className="text-red-500"> {transfer.transferNumber} </span>
+                    -
+                    <span className="text-green-500"> {transfer.transferNumber + 1}</span>
                   </div>
                 ) : null;
               })}
@@ -84,33 +87,41 @@ export default function MapBottomSheet({
             <ol className="list-decimal ml-6">
               {route.slice(0, -1).map((stop, idx) => {
                 const nextStop = route[idx + 1];
-                // Check for transfer
+                // Check for transfer at this segment
                 const transfer = transferData.find(
                   (t) =>
                     t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
                 );
-                // If the next stop is the transfer's Transfer1, make it red
-                const isNextStopTransferFrom = transferData.some(
+                // Check if this stop is the transfer-from (where to get off)
+                const isGetOffStop = transferData.some(
                   (t) => t.Transfer1 === nextStop.name
                 );
-                if (transfer) {
-                  // Show transfer serial and green next stop, with orange label
+                // Check if previous segment was a transfer (for take another bus)
+                const prevTransfer =
+                  idx > 0 &&
+                  transferData.find(
+                    (t) =>
+                      t.Transfer1 === route[idx].name &&
+                      t.Transfer2 === route[idx + 1].name
+                  );
+                // If the next stop is a transfer-from, show 'Get off at ...' in red
+                if (isGetOffStop) {
                   return (
                     <li key={idx} className="mb-2">
-                      <span
-                        style={{ color: "orange", fontWeight: 600 }}
-                      >{`Next Bus stop is :`}</span>{" "}
-                      <b style={{ color: "green" }}>{nextStop.name}</b>
+                      <span style={{ color: "orange", fontWeight: 600 }}>
+                        Get off at Bus Stop :
+                      </span>{" "}
+                      <b style={{ color: "red" }}>{nextStop.name}</b>
                     </li>
                   );
-                } else if (isNextStopTransferFrom) {
-                  // If the next stop is a transfer-from, make label orange and stop red
+                } else if (prevTransfer) {
+                  // If this is the first stop after a transfer, show 'take another bus from ...' in green
                   return (
                     <li key={idx} className="mb-2">
-                      <span
-                        style={{ color: "orange", fontWeight: 600 }}
-                      >{`Next Bus stop is :`}</span>{" "}
-                      <b style={{ color: "red" }}>{nextStop.name}</b>
+                      <span style={{ color: "orange", fontWeight: 600 }}>
+                        take another bus from Bus Stop :
+                      </span>{" "}
+                      <b style={{ color: "green" }}>{nextStop.name}</b>
                     </li>
                   );
                 } else {

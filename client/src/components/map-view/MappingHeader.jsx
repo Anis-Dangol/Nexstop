@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { logoutUser } from "@/map/auth-slice";
+import { logoutUser } from "@/map/auth-slice/AuthSlice";
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
@@ -26,7 +26,9 @@ function HeaderRightContent() {
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black cursor-pointer"> {/* Added cursor-pointer */}
+          <Avatar className="bg-black cursor-pointer">
+            {" "}
+            {/* Added cursor-pointer */}
             <AvatarFallback className="bg-[#E6E0D3] text-[#070f18] font-extrabold">
               {user?.userName[0].toUpperCase()}
             </AvatarFallback>

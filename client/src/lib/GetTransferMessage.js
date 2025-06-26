@@ -5,7 +5,7 @@ import transferData from "@/assets/transfer.json";
  * @param {string[]} routeStops - Array of bus stop names in the route.
  * @returns {string|null} - Transfer message if a transfer is found, otherwise null.
  */
-export function getTransferMessage(routeStops) {
+export function GetTransferMessage(routeStops) {
   for (const transfer of transferData) {
     const fromIdx = routeStops.indexOf(transfer.Transfer1);
     const toIdx = routeStops.indexOf(transfer.Transfer2);
