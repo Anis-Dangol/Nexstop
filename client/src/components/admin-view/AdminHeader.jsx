@@ -1,14 +1,4 @@
-import { AlignJustify, LogOut } from "lucide-react";
-import { Button } from "../ui/button";
-import { useDispatch } from "react-redux";
-import { logoutUser } from "@/map/auth-slice/AuthSlice";
-
-function AdminHeader({ setOpen }) {
-  const dispatch = useDispatch();
-
-  function handleLogout() {
-    dispatch(logoutUser());
-  }
+import { MapPin } from "lucide-react";
 
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-[#E6E0D3] border-b">

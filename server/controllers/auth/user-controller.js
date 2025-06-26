@@ -5,7 +5,9 @@ import bcrypt from "bcryptjs";
 export const getAllUsers = async (req, res) => {
   try {
     if (req.user.role.toLowerCase() !== "admin") {
-      return res.status(403).json({ success: false, message: "Forbidden: Admins only" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
     }
 
     const users = await User.find({}, { password: 0 }); // Exclude password
@@ -22,12 +24,19 @@ export const createUser = async (req, res) => {
   try {
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
     }
     const hashPassword = await bcrypt.hash(password, 12);
     const user = new User({ userName, email, password: hashPassword, role });
     await user.save();
-    res.status(201).json({ success: true, user: { ...user.toObject(), password: undefined } });
+    res
+      .status(201)
+      .json({
+        success: true,
+        user: { ...user.toObject(), password: undefined },
+      });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to create user" });
   }
@@ -42,9 +51,19 @@ export const updateUser = async (req, res) => {
     if (password) {
       updateData.password = await bcrypt.hash(password, 12);
     }
-    const user = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true, context: "query" });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    res.json({ success: true, user: { ...user.toObject(), password: undefined } });
+    const user = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+      context: "query",
+    });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    res.json({
+      success: true,
+      user: { ...user.toObject(), password: undefined },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to update user" });
   }
@@ -55,10 +74,12 @@ export const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await User.findByIdAndDelete(id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     res.json({ success: true, message: "User deleted" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to delete user" });
   }
 };
-

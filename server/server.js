@@ -42,7 +42,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
 app.use("/api/bus", fareEstimator);
-app.use("/api/favourites", favouriteRoutes);
+app.use("/api/auth", favouriteRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

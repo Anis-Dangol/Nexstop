@@ -20,9 +20,7 @@ const userGraphData = [
 function AdminDashboard() {
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold text-gray-700 mb-4">
-        Admin Dashboard
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-700 mb-4">Admin Dashboard</h2>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {stats.map((stat) => (

@@ -99,29 +99,28 @@ export const logoutUser = (req, res) => {
 
 // auth middleware
 export const authMiddleware = async (req, res, next) => {
-    console.log("=== [authMiddleware] Called ===");
-    console.log("Cookies received:", req.cookies);
-  
-    const token = req.cookies.token;
-    if (!token) {
-      console.log("❌ No token found in cookies");
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized User! (No token)",
-      });
-    }
-  
-    try {
-      const decoded = jwt.verify(token, 'CLIENT_SECRET_KEY');
-      console.log("✅ Token verified. Decoded payload:", decoded);
-      req.user = decoded;
-      next();
-    } catch (error) {
-      console.log("❌ JWT error:", error.message);
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized User! (Invalid token)",
-      });
-    }
-  };
-  
+  console.log("=== [authMiddleware] Called ===");
+  console.log("Cookies received:", req.cookies);
+
+  const token = req.cookies.token;
+  if (!token) {
+    console.log("❌ No token found in cookies");
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized User! (No token)",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, "CLIENT_SECRET_KEY");
+    console.log("✅ Token verified. Decoded payload:", decoded);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.log("❌ JWT error:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized User! (Invalid token)",
+    });
+  }
+};

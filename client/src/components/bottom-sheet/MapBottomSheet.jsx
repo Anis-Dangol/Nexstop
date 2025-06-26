@@ -2,13 +2,10 @@ import { HandCoins, BusFront, ArrowLeftRight } from "lucide-react";
 import transferData from "@/assets/transfer.json";
 
 export default function MapBottomSheet({
-  isOpen,
-  onClose,
   activeTab,
   setActiveTab,
   fareData,
   route = [],
-  getRouteNumberForSegment,
 }) {
   return (
     <div>
@@ -74,10 +71,16 @@ export default function MapBottomSheet({
                 );
                 return transfer ? (
                   <div key={idx}>
-                    Transfer Serial: 
-                    <span className="text-red-500"> {transfer.transferNumber} </span>
+                    Transfer Serial:
+                    <span className="text-red-500">
+                      {" "}
+                      {transfer.transferNumber}{" "}
+                    </span>
                     -
-                    <span className="text-green-500"> {transfer.transferNumber + 1}</span>
+                    <span className="text-green-500">
+                      {" "}
+                      {transfer.transferNumber + 1}
+                    </span>
                   </div>
                 ) : null;
               })}

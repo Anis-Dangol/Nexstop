@@ -1,4 +1,3 @@
-// components/map-view/RouteLine.jsx
 import { Polyline, Popup } from "react-leaflet";
 
 export default function RouteLine({ route, userLocation }) {
