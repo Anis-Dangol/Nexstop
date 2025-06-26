@@ -1,9 +1,11 @@
 import { useState, useEffect, Fragment } from "react";
+import { useSelector } from "react-redux";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Bookmark, ChartNoAxesCombined, Search } from "lucide-react";
 import routesData from "../../assets/routes.json";
 import ClientMenuItems from "./ClientMenuItems";
 import FavouriteMenu from "./FavouriteMenu";
+import favouriteRoutesService from "../../services/favouriteRoutes";
 
 export default function ClientSideBar({
   open,
@@ -18,20 +20,111 @@ export default function ClientSideBar({
   const [tab, setTab] = useState("search");
   const [history, setHistory] = useState([]);
   const [favourites, setFavourites] = useState([]);
+  const [isLoadingFavourites, setIsLoadingFavourites] = useState(false);
+
+  // Get user from Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const saved = localStorage.getItem("routeHistory");
     if (saved) setHistory(JSON.parse(saved));
-    const fav = localStorage.getItem("routeFavourites");
-    if (fav) setFavourites(JSON.parse(fav));
-  }, []);
+
+    // Load favourites from API if user is authenticated
+    if (isAuthenticated && user?.id) {
+      loadFavourites();
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      const fav = localStorage.getItem("routeFavourites");
+      if (fav) setFavourites(JSON.parse(fav));
+    }
+  }, [isAuthenticated, user]);
+
+  // Function to load favourites from API
+  const loadFavourites = async () => {
+    if (!user?.id) return;
+
+    setIsLoadingFavourites(true);
+    try {
+      const response = await favouriteRoutesService.getFavouriteRoutes(user.id);
+      // Convert API format to display format for backward compatibility
+      const formattedFavourites = response.favourites.map((fav) =>
+        favouriteRoutesService.formatRouteFromAPI(fav)
+      );
+      setFavourites(formattedFavourites);
+    } catch (error) {
+      console.error("Failed to load favourites:", error);
+      // Fallback to localStorage on error
+      const fav = localStorage.getItem("routeFavourites");
+      if (fav) setFavourites(JSON.parse(fav));
+    } finally {
+      setIsLoadingFavourites(false);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("routeHistory", JSON.stringify(history));
   }, [history]);
+
   useEffect(() => {
-    localStorage.setItem("routeFavourites", JSON.stringify(favourites));
-  }, [favourites]);
+    // Only save to localStorage if user is not authenticated
+    if (!isAuthenticated) {
+      localStorage.setItem("routeFavourites", JSON.stringify(favourites));
+    }
+  }, [favourites, isAuthenticated]);
+
+  // Function to add a route to favourites
+  const addToFavourites = async (routeString) => {
+    // Check for duplicates
+    if (favourites.some((f) => f.toLowerCase() === routeString.toLowerCase())) {
+      return;
+    }
+
+    if (isAuthenticated && user?.id) {
+      // Save to API
+      try {
+        const routeData = favouriteRoutesService.formatRouteForAPI(
+          routeString,
+          user.id
+        );
+        await favouriteRoutesService.addFavouriteRoute(routeData);
+
+        // Update local state
+        setFavourites([routeString, ...favourites]);
+      } catch (error) {
+        console.error("Failed to add favourite to API:", error);
+        // Fallback to localStorage
+        setFavourites([routeString, ...favourites]);
+      }
+    } else {
+      // Save to localStorage for non-authenticated users
+      setFavourites([routeString, ...favourites]);
+    }
+  };
+
+  // Function to remove a route from favourites
+  const removeFromFavourites = async (routeString) => {
+    if (isAuthenticated && user?.id) {
+      // Remove from API
+      try {
+        const [startLocation, endLocation] = routeString.split(" → ");
+        await favouriteRoutesService.removeFavouriteRouteByLocation(
+          user.id,
+          startLocation.trim(),
+          endLocation.trim()
+        );
+
+        // Update local state
+        setFavourites(favourites.filter((f) => f !== routeString));
+      } catch (error) {
+        console.error("Failed to remove favourite from API:", error);
+        // Still update local state even if API call fails
+        setFavourites(favourites.filter((f) => f !== routeString));
+      }
+    } else {
+      // Remove from localStorage for non-authenticated users
+      setFavourites(favourites.filter((f) => f !== routeString));
+    }
+  };
 
   const allStops = (() => {
     const stopSet = new Set();
@@ -152,24 +245,18 @@ export default function ClientSideBar({
                 setHistory={setHistory}
                 setRoute={setRoute}
                 allStops={allStops}
-                addToFavourites={(route) => {
-                  if (
-                    !favourites.some(
-                      (f) => f.toLowerCase() === route.toLowerCase()
-                    )
-                  ) {
-                    setFavourites([route, ...favourites]);
-                  }
-                }}
+                addToFavourites={addToFavourites}
               />
             ) : (
               <FavouriteMenu
                 favourites={favourites}
                 setFavourites={setFavourites}
+                removeFromFavourites={removeFromFavourites}
                 setStart={setStart}
                 setEnd={setEnd}
                 setRoute={setRoute}
                 setOpen={setOpen}
+                isLoading={isLoadingFavourites}
               />
             )}
           </div>
