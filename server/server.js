@@ -6,6 +6,7 @@ import authRouter from "./routes/auth/authRoutes.js";
 import routeSuggestion from "./routes/bus/routeSuggestion.js";
 import fareEstimator from "./routes/bus/fareEstimator.js";
 import favouriteRoutes from "./routes/auth/favouriteRoutes.js";
+import busRoutes from "./routes/bus/busRoutes.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -43,6 +44,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", routeSuggestion);
 app.use("/api/bus", fareEstimator);
 app.use("/api/auth", favouriteRoutes);
+app.use("/api/bus", busRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

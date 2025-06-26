@@ -10,9 +10,17 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  getUserCount,
+  getUserRegistrationStats,
 } from "../../controllers/auth/user-controller.js";
 
 const router = express.Router();
+router.get("/user-count", authMiddleware, getUserCount);
+router.get(
+  "/user-registration-stats",
+  authMiddleware,
+  getUserRegistrationStats
+);
 router.get("/all-users", authMiddleware, getAllUsers);
 router.post("/create-user", authMiddleware, createUser);
 router.put("/update-user/:id", authMiddleware, updateUser);
