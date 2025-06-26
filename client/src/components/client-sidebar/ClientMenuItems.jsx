@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
 import routesData from "../../assets/routes.json";
+import transferData from "../../assets/transfer.json";
 
 export default function ClientMenuItems({
   setOpen,
@@ -17,6 +18,9 @@ export default function ClientMenuItems({
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
+  const [isToggleOn, setIsToggleOn] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [nearestStop, setNearestStop] = useState(null);
   const startRef = useRef();
   const endRef = useRef();
 
@@ -68,7 +72,10 @@ export default function ClientMenuItems({
     const trimmedStart = s.trim();
     const trimmedEnd = d.trim();
     if (!trimmedStart || !trimmedEnd) return;
+
     let foundRoute = null;
+
+    // First, try to find a direct route
     for (const route of routesData) {
       const stops = route.stops;
       const startIndex = stops.findIndex(
@@ -77,11 +84,21 @@ export default function ClientMenuItems({
       const endIndex = stops.findIndex(
         (stop) => stop.name.toLowerCase() === trimmedEnd.toLowerCase()
       );
-      if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
         foundRoute = stops.slice(startIndex, endIndex + 1);
+        console.log(
+          `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
+        );
         break;
       }
     }
+
+    // If no direct route found, try to find route with transfers
+    if (!foundRoute) {
+      foundRoute = findRouteWithTransfers(trimmedStart, trimmedEnd);
+    }
+
+    // Last resort: create simple route if both stops exist
     if (!foundRoute) {
       const all = allStops;
       const startStop = all.find(
@@ -92,6 +109,7 @@ export default function ClientMenuItems({
       );
       if (startStop && endStop) foundRoute = [startStop, endStop];
     }
+
     if (!foundRoute) {
       toast({
         title: "No route found",
@@ -104,6 +122,7 @@ export default function ClientMenuItems({
       if (window.clearMapSelectedStops) window.clearMapSelectedStops();
       return;
     }
+
     if (typeof setRoute === "function") setRoute(foundRoute || []);
     const newEntry = `${trimmedStart} → ${trimmedEnd}`;
     if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
@@ -121,18 +140,321 @@ export default function ClientMenuItems({
     const newHistory = history.filter((_, i) => i !== idx);
     setHistory(newHistory);
   };
+
+  // Helper function to get all stops
+  const getAllStops = () => {
+    return allStops;
+  };
+
+  // Function to find route with transfers using transfer.json data
+  const findRouteWithTransfers = (startName, endName) => {
+    // Try to find if there's a transfer route
+    for (const transfer of transferData) {
+      // Check if we need to go from start to transfer point 1, then transfer point 1 to transfer point 2, then to destination
+      const route1 = findDirectRoute(startName, transfer.Transfer1);
+      const route2 = findDirectRoute(transfer.Transfer2, endName);
+
+      if (route1 && route2) {
+        // Combine routes: start -> Transfer1, Transfer1 -> Transfer2 (transfer), Transfer2 -> end
+        const transferConnection =
+          findDirectRoute(transfer.Transfer1, transfer.Transfer2) ||
+          [getAllStops().find((s) => s.name === transfer.Transfer2)].filter(
+            Boolean
+          );
+        const combinedRoute = [
+          ...route1,
+          ...transferConnection.slice(1), // Remove duplicate transfer point
+          ...route2.slice(1), // Remove duplicate transfer point
+        ];
+        console.log(
+          `Transfer route found via ${transfer.Transfer1} -> ${transfer.Transfer2}`
+        );
+        return combinedRoute.filter(Boolean); // Remove any null/undefined stops
+      }
+
+      // Also try the reverse: start -> Transfer2, Transfer2 -> Transfer1, Transfer1 -> end
+      const route3 = findDirectRoute(startName, transfer.Transfer2);
+      const route4 = findDirectRoute(transfer.Transfer1, endName);
+
+      if (route3 && route4) {
+        const transferConnection =
+          findDirectRoute(transfer.Transfer2, transfer.Transfer1) ||
+          [getAllStops().find((s) => s.name === transfer.Transfer1)].filter(
+            Boolean
+          );
+        const combinedRoute = [
+          ...route3,
+          ...transferConnection.slice(1),
+          ...route4.slice(1),
+        ];
+        console.log(
+          `Transfer route found via ${transfer.Transfer2} -> ${transfer.Transfer1}`
+        );
+        return combinedRoute.filter(Boolean);
+      }
+    }
+
+    return null;
+  };
+
+  // Helper function to find direct route between two stops
+  const findDirectRoute = (startName, endName) => {
+    for (const route of routesData) {
+      const stops = route.stops;
+      const startIndex = stops.findIndex(
+        (stop) => stop.name.toLowerCase() === startName.toLowerCase()
+      );
+      const endIndex = stops.findIndex(
+        (stop) => stop.name.toLowerCase() === endName.toLowerCase()
+      );
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        return stops.slice(startIndex, endIndex + 1);
+      }
+    }
+    return null;
+  };
+
+  // Function to calculate distance between two coordinates
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+  };
+
+  // Function to find nearest bus stop that has route to destination
+  const findNearestBusStop = (userLat, userLon, destinationName = null) => {
+    let nearest = null;
+    let minDistance = Infinity;
+
+    // Filter stops that have routes to the destination (if destination is provided)
+    const candidateStops = destinationName
+      ? allStops.filter((stop) => {
+          // Exclude the destination stop itself
+          if (stop.name.toLowerCase() === destinationName.toLowerCase()) {
+            return false;
+          }
+          // Check if there's a route from this stop to the destination
+          return routesData.some((route) => {
+            const stops = route.stops;
+            const startIndex = stops.findIndex(
+              (s) => s.name.toLowerCase() === stop.name.toLowerCase()
+            );
+            const endIndex = stops.findIndex(
+              (s) => s.name.toLowerCase() === destinationName.toLowerCase()
+            );
+            return (
+              startIndex !== -1 && endIndex !== -1 && startIndex < endIndex
+            );
+          });
+        })
+      : allStops;
+
+    // Debug logging
+    console.log(`Finding nearest stop for destination: ${destinationName}`);
+    console.log(`User location: ${userLat}, ${userLon}`);
+    console.log(`Candidate stops count: ${candidateStops.length}`);
+    console.log(`Destination "${destinationName}" excluded from candidates`);
+
+    candidateStops.forEach((stop) => {
+      const distance = calculateDistance(userLat, userLon, stop.lat, stop.lon);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = stop;
+      }
+      // Debug: Log distances for key stops
+      if (
+        stop.name.toLowerCase().includes("ratna") ||
+        stop.name.toLowerCase().includes("balkhu") ||
+        stop.name.toLowerCase().includes("new")
+      ) {
+        console.log(`${stop.name}: distance = ${distance.toFixed(4)}km`);
+      }
+    });
+
+    console.log(
+      `Nearest stop found: ${nearest?.name} at ${minDistance.toFixed(4)}km`
+    );
+    return nearest;
+  };
+
+  // Function to get user location and find nearest stop
+  const getUserLocationAndNearestStop = () => {
+    // Static fallback location (Your specific location)
+    const fallbackLocation = {
+      latitude: 27.686262,
+      longitude: 85.303635,
+    };
+
+    const processLocation = (latitude, longitude, isFromGPS = true) => {
+      setUserLocation({ lat: latitude, lon: longitude });
+
+      // Pass destination to filter nearest stops
+      const destinationName = end.trim();
+      const nearest = findNearestBusStop(
+        latitude,
+        longitude,
+        destinationName || null
+      );
+
+      if (nearest) {
+        setNearestStop(nearest);
+        setStart(nearest.name);
+
+        // Add red marker to map if window function exists
+        if (window.addNearestStopMarker) {
+          window.addNearestStopMarker(nearest);
+        }
+
+        // Show toast to inform user about location source
+        if (!isFromGPS) {
+          toast({
+            title: "Using default location",
+            description:
+              "GPS not available. Using your static location to find nearest stop.",
+            variant: "default",
+          });
+        }
+      } else if (destinationName) {
+        // If no stop found with route to destination, show message
+        toast({
+          title: "No suitable stop found",
+          description: `No nearby bus stops have routes to "${destinationName}". Please select destination first or choose manually.`,
+          variant: "destructive",
+        });
+        setIsToggleOn(false);
+      }
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          processLocation(latitude, longitude, true);
+        },
+        (error) => {
+          console.error("Error getting GPS location:", error);
+          // Use fallback location instead of showing error
+          processLocation(
+            fallbackLocation.latitude,
+            fallbackLocation.longitude,
+            false
+          );
+        },
+        {
+          timeout: 10000, // 10 second timeout
+          enableHighAccuracy: true,
+          maximumAge: 60000, // 1 minute cache
+        }
+      );
+    } else {
+      // Geolocation not supported, use fallback location
+      processLocation(
+        fallbackLocation.latitude,
+        fallbackLocation.longitude,
+        false
+      );
+    }
+  };
+
+  // Handle toggle change
+  const handleToggleChange = () => {
+    const newToggleState = !isToggleOn;
+
+    if (newToggleState) {
+      // Check if destination is provided
+      const destinationName = end.trim();
+      if (!destinationName) {
+        toast({
+          title: "Please select destination first",
+          description:
+            "To find the best starting point, please enter your destination before enabling auto-detect.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsToggleOn(newToggleState);
+      // Toggle is turned ON - get location and nearest stop
+      getUserLocationAndNearestStop();
+    } else {
+      setIsToggleOn(newToggleState);
+      // Toggle is turned OFF - clear location data and marker
+      setUserLocation(null);
+      setNearestStop(null);
+      setStart("");
+
+      // Remove red marker from map if window function exists
+      if (window.removeNearestStopMarker) {
+        window.removeNearestStopMarker();
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isToggleOn) {
+      getUserLocationAndNearestStop();
+    }
+  }, [isToggleOn]);
+
+  // Re-detect nearest stop when destination changes while toggle is on
+  useEffect(() => {
+    if (isToggleOn && end.trim()) {
+      getUserLocationAndNearestStop();
+    }
+  }, [end, isToggleOn]);
+
   return (
     <nav className="flex-col flex gap-4">
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        {/* Toggle Button */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Route Search</span>
+          <button
+            type="button"
+            onClick={handleToggleChange}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              isToggleOn ? "bg-blue-600" : "bg-gray-200"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isToggleOn ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+
         <div className="relative" ref={startRef}>
           <input
             id="start-input"
             type="text"
-            className="w-full border rounded px-2 py-1"
-            placeholder="Starting location"
-            value={start}
+            className={`w-full border rounded px-2 py-1 ${
+              isToggleOn ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
+            placeholder={
+              isToggleOn
+                ? "Nearest bus stop (auto-detected)"
+                : "Starting location"
+            }
+            value={
+              isToggleOn
+                ? nearestStop
+                  ? nearestStop.name
+                  : "Finding nearest stop..."
+                : start
+            }
             onChange={handleStartChange}
             autoComplete="off"
+            disabled={isToggleOn}
           />
           {startSuggestions.length > 0 && (
             <ul

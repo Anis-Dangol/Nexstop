@@ -72,9 +72,30 @@ export default function ClientSideBar({
         }
       }, 0);
     };
+
+    // Functions for nearest stop marker
+    window.addNearestStopMarker = (stop) => {
+      // This will be handled by MapContainerWrapper
+      window.nearestStopData = stop;
+      window.showNearestMarker = true;
+      if (window.updateNearestMarker) {
+        window.updateNearestMarker(stop);
+      }
+    };
+
+    window.removeNearestStopMarker = () => {
+      window.nearestStopData = null;
+      window.showNearestMarker = false;
+      if (window.updateNearestMarker) {
+        window.updateNearestMarker(null);
+      }
+    };
+
     return () => {
       window.setStartInput = undefined;
       window.setEndInput = undefined;
+      window.addNearestStopMarker = undefined;
+      window.removeNearestStopMarker = undefined;
     };
   }, [setStart, setEnd]);
 
