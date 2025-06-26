@@ -1,9 +1,6 @@
-// components/layout/ClientSideBar.jsx
 import { useState, useEffect, Fragment } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Bookmark, ChartNoAxesCombined, Search } from "lucide-react";
-import { Button } from "../ui/button";
-import { toast } from "../ui/use-toast";
 import routesData from "../../assets/routes.json";
 import ClientMenuItems from "./ClientMenuItems";
 import FavouriteMenu from "./FavouriteMenu";

@@ -1,10 +1,9 @@
-import React, { useRef, useState } from "react";
-import { motion, useMotionValue, useAnimation } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useAnimation } from "framer-motion";
 
 const MINIMIZED_Y = "70%"; // 70% down, adjust as needed
 
 const BottomSheet = ({ isOpen, onClose, children }) => {
-  const y = useMotionValue(0);
   const controls = useAnimation();
   const sheetRef = useRef(null);
   const [minimized, setMinimized] = useState(false);
@@ -22,7 +21,7 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setMinimized(false);
       controls.start({ y: 0 });

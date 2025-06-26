@@ -14,7 +14,6 @@ import BusStopMarkers from "../route-marker/BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "../bottom-sheet/BottomSheet";
 import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
-import { HandCoins, BusFront } from "lucide-react";
 import { fetchRouteFromAPI, fetchUserToStart } from "../../map/MapAPISlice";
 import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
@@ -27,7 +26,6 @@ export default function MapContainerWrapper({
 }) {
   // --- State ---
   const [userLocation, setUserLocation] = useState(null);
-  const [busStops, setBusStops] = useState([]);
   const [zoom, setZoom] = useState(13);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("fare");
@@ -165,28 +163,6 @@ export default function MapContainerWrapper({
     setIsBottomSheetOpen(true);
     setActiveTab(tab);
   };
-
-  const handleStopClick = (stop) => {
-    if (selectedStops.length === 0) {
-      setSelectedStops([stop]);
-    } else if (selectedStops.length === 1) {
-      if (
-        selectedStops[0].lat === stop.lat &&
-        selectedStops[0].lon === stop.lon
-      )
-        return;
-      setSelectedStops([selectedStops[0], stop]);
-    } else {
-      setSelectedStops([stop]);
-    }
-  };
-
-  // Helper to get midpoint of route for popup
-  function getRouteMidpoint(coords) {
-    if (!coords || coords.length === 0) return null;
-    const midIdx = Math.floor(coords.length / 2);
-    return coords[midIdx];
-  }
 
   // Effect: Find route subset between two stops and draw API route
   useEffect(() => {

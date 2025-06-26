@@ -1,14 +1,21 @@
 import "./App.css";
 import { Route, Routes } from "react-router-dom";
+
 import AuthLayout from "./components/auth/AuthLayout";
 import AuthLogin from "./pages/auth-page/AuthLogin";
 import AuthRegister from "./pages/auth-page/AuthRegister";
+
 import AdminLayout from "./components/admin-view/AdminLayout";
 import AdminDashboard from "./pages/admin-page/AdminDashboard";
+import AdminUsers from "./pages/admin-page/AdminUsers";
+import AdminBusStops from "./pages/admin-page/AdminBusStops";
+import AdminBusRoutes from "./pages/admin-page/AdminBusRoutes";
+
 import NotFound from "./pages/not-found/NotFound";
 import MappingHome from "./pages/map-home/MappingHome";
 import CheckAuth from "./components/common/CheckAuth";
 import UnauthPage from "./pages/unauth-page/UnauthPage";
+
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./map/auth-slice/AuthSlice";
@@ -63,6 +70,9 @@ function App() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} /> {/* Add this line */}
+          <Route path="bus-stops" element={<AdminBusStops />} />
+          <Route path="bus-routes" element={<AdminBusRoutes />} />
         </Route>
 
         <Route
