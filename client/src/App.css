@@ -5,9 +5,10 @@
   text-align: center;
 } */
 
+/* Removed overflow: hidden to allow scrolling in admin pages */
 html,
 body {
-  overflow: hidden;
+  height: 100%;
 }
 
 .leaflet-static-icon {
