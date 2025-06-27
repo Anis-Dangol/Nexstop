@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserCount,
@@ -86,122 +86,186 @@ function AdminDashboard() {
   const userGraphData =
     userRegistrationStats.length > 0 ? userRegistrationStats : [];
 
-  return (
-    <div className="w-full">
-      <h2 className="text-2xl font-bold text-gray-700 mb-4">Admin Dashboard</h2>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white rounded-lg shadow p-4 flex flex-col items-center"
-          >
-            <div
-              className={`text-3xl font-bold ${
-                isLoading ? "text-gray-400" : "text-blue-600"
-              }`}
-            >
-              {stat.value}
-            </div>
-            <div className="text-gray-500 mt-2">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-      {/* Users Registered Graph */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">
-            Users Registered{" "}
-            {selectedMonth === "all" ? "Per Month" : "for Selected Month"} (
-            {selectedYear})
-          </h3>
-          <div className="flex space-x-3">
-            {/* Year Selector */}
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-600">Year:</label>
-              <Select value={selectedYear} onValueChange={handleYearChange}>
-                <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearOptions.map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+  // Add debug logging to see what data we're getting
+  console.log("userRegistrationStats:", userRegistrationStats);
+  console.log("selectedMonth:", selectedMonth);
+  console.log("userGraphData:", userGraphData);
 
-            {/* Month Selector */}
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-600">
-                Month:
-              </label>
-              <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map((month) => (
-                    <SelectItem key={month.value} value={month.value}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+  return (
+    <div className="w-full bg-gray-50 min-h-screen p-3 pb-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-2 mb-2">
+          <h1 className="text-3xl font-bold text-gray-800 mb-1">Dashboard</h1>
+          <p className="text-gray-600">Welcome to the admin dashboard</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-2">
+          {stats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-gray-600 mb-1">
+                    {stat.label}
+                  </p>
+                  <div
+                    className={`text-3xl font-bold ${
+                      index === 0
+                        ? "text-blue-600"
+                        : index === 1
+                        ? "text-green-600"
+                        : "text-purple-600"
+                    }`}
+                  >
+                    {stat.value}
+                  </div>
+                </div>
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    index === 0
+                      ? "bg-blue-100"
+                      : index === 1
+                      ? "bg-green-100"
+                      : "bg-purple-100"
+                  }`}
+                >
+                  <span className="text-xl">
+                    {index === 0 ? "👥" : index === 1 ? "🚏" : "🚌"}
+                  </span>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* User Registration Chart */}
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                User Registration Statistics
+              </h3>
+              <p className="text-gray-600">
+                Track user registrations over time
+              </p>
+            </div>
+            {/* Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-gray-700 mb-1">
+                  Year
+                </label>
+                <Select value={selectedYear} onValueChange={handleYearChange}>
+                  <SelectTrigger className="w-32 bg-white border-gray-300">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-gray-700 mb-1">
+                  Month
+                </label>
+                <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                  <SelectTrigger className="w-40 bg-white border-gray-300">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Chart Content */}
+          <div className="bg-gray-50 rounded-lg p-6 min-h-[400px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-gray-500">Loading chart data...</div>
+              </div>
+            ) : userGraphData.length > 0 ? (
+              <>
+                <div className="overflow-x-auto pb-8">
+                  <div
+                    className="flex items-end h-64 space-x-2 mb-8"
+                    style={{
+                      minWidth:
+                        selectedMonth === "all"
+                          ? userGraphData.length > 12
+                            ? `${userGraphData.length * 60}px`
+                            : "100%"
+                          : userGraphData.length > 20
+                          ? `${userGraphData.length * 40}px`
+                          : "100%",
+                    }}
+                  >
+                    {userGraphData.map((data, index) => {
+                      const maxUsers = Math.max(
+                        ...userGraphData.map((d) => d.users)
+                      );
+                      const heightRatio =
+                        maxUsers > 0 ? (data.users / maxUsers) * 200 : 0;
+                      return (
+                        <div
+                          key={`${data.month || data.day || data.date}`}
+                          className="flex flex-col items-center flex-shrink-0"
+                          style={{
+                            minWidth: selectedMonth === "all" ? "60px" : "40px",
+                          }}
+                        >
+                          <div className="text-xs text-gray-600 mb-1 font-medium">
+                            {data.users}
+                          </div>
+                          <div
+                            className="bg-blue-500 w-8 rounded-t min-h-[8px] hover:bg-blue-600 transition-colors"
+                            style={{ height: `${Math.max(heightRatio, 8)}px` }}
+                            title={`${data.users} users`}
+                          ></div>
+                          <span className="mt-3 text-xs text-gray-600 font-medium whitespace-nowrap">
+                            {selectedMonth === "all"
+                              ? data.month ||
+                                data.monthName ||
+                                `Month ${
+                                  data.monthNumber || data.date?.split("-")[1]
+                                }`
+                              : data.day ||
+                                data.date?.split("-")[2] ||
+                                `Day ${data.dayNumber || index + 1}`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-gray-500">
+                  No registration data available for {selectedYear}
+                  {selectedMonth !== "all" &&
+                    ` - ${
+                      monthOptions.find((m) => m.value === selectedMonth)?.label
+                    }`}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <span className="text-gray-400">Loading chart data...</span>
-          </div>
-        ) : userGraphData.length === 0 ? (
-          <div className="flex items-center justify-center h-40">
-            <span className="text-gray-400">
-              No registration data available for {selectedYear}
-              {selectedMonth !== "all" &&
-                ` - ${
-                  monthOptions.find((m) => m.value === selectedMonth)?.label
-                }`}
-            </span>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-end h-40 space-x-2">
-              {userGraphData.map((data) => {
-                const maxUsers = Math.max(...userGraphData.map((d) => d.users));
-                const heightRatio =
-                  maxUsers > 0 ? (data.users / maxUsers) * 120 : 0;
-                return (
-                  <div
-                    key={`${data.month || data.day || data.date}`}
-                    className="flex flex-col items-center flex-1"
-                  >
-                    <div
-                      className="bg-blue-500 w-6 rounded-t min-h-[4px]"
-                      style={{ height: `${Math.max(heightRatio, 4)}px` }}
-                      title={`${data.users} users`}
-                    ></div>
-                    <span className="mt-1 text-xs text-gray-600">
-                      {selectedMonth === "all"
-                        ? data.month
-                        : data.day || data.date}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex justify-between mt-1 px-1 text-xs text-gray-400">
-              {userGraphData.map((data) => (
-                <span key={`count-${data.month || data.day || data.date}`}>
-                  {data.users}
-                </span>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
