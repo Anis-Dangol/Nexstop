@@ -30,7 +30,7 @@ function AdminSideBar({ collapsed, setCollapsed }) {
   return (
     <div
       className={clsx(
-        "h-screen bg-[#070f18] text-[#E6E0D3] shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out",
+        "h-screen bg-[#070f18] text-[#E6E0D3] shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out fixed left-0 top-0 z-50",
         collapsed ? "w-20" : "w-64"
       )}
     >
