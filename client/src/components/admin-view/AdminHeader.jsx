@@ -1,4 +1,4 @@
-import { LogOut, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 function AdminHeader() {
   return (

@@ -5,15 +5,15 @@
   text-align: center;
 } */
 
-html, body {
-  overflow: hidden;
+/* Removed overflow: hidden to allow scrolling in admin pages */
+html,
+body {
+  height: 100%;
 }
-
 
 .leaflet-static-icon {
   transform: scale(1) !important;
 }
-
 
 .card {
   padding: 2em;

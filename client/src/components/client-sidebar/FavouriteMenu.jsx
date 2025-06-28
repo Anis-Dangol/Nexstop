@@ -3,13 +3,22 @@ import routesData from "../../assets/routes.json";
 export default function FavouriteMenu({
   favourites,
   setFavourites,
+  removeFromFavourites,
   setStart,
   setEnd,
   setRoute,
   setOpen,
+  isLoading,
 }) {
   const handleDeleteFavourite = (idx) => {
-    setFavourites(favourites.filter((_, i) => i !== idx));
+    const routeToDelete = favourites[idx];
+    if (removeFromFavourites) {
+      // Use the API-aware remove function
+      removeFromFavourites(routeToDelete);
+    } else {
+      // Fallback to old method
+      setFavourites(favourites.filter((_, i) => i !== idx));
+    }
   };
   const handleFavouriteClick = (item) => {
     const [s, d] = item.split(" → ");
@@ -64,7 +73,11 @@ export default function FavouriteMenu({
     <div className="flex-col flex gap-4">
       <div className="font-bold text-lg">Favourites</div>
       <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
-        {favourites.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center text-gray-500 py-4">
+            Loading favourites...
+          </div>
+        ) : favourites.length === 0 ? (
           <div className="text-center text-gray-500 py-4">
             No favourites yet. Add some routes to favourites.
           </div>

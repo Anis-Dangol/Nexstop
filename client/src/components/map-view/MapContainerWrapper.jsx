@@ -8,16 +8,16 @@ import {
   Popup,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import UserLocationMarker from "../route-marker/UserLocationMarker";
 import BusStopMarkers from "../route-marker/BusStopMarkers";
 import ZoomLevelTracker from "./ZoomLevelTracker";
 import BottomSheet from "../bottom-sheet/BottomSheet";
 import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
-import { HandCoins, BusFront } from "lucide-react";
-import { fetchRouteFromAPI, fetchUserToStart } from "../../map/mapApi";
+import { fetchRouteFromAPI, fetchUserToStart } from "../../map/MapAPISlice";
 import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
-import { getTransferMessage } from "@/lib/showTransferPopup";
+import { GetTransferMessage } from "@/lib/GetTransferMessage";
 import transferData from "@/assets/transfer.json";
 
 export default function MapContainerWrapper({
@@ -26,7 +26,6 @@ export default function MapContainerWrapper({
 }) {
   // --- State ---
   const [userLocation, setUserLocation] = useState(null);
-  const [busStops, setBusStops] = useState([]);
   const [zoom, setZoom] = useState(13);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("fare");
@@ -41,6 +40,7 @@ export default function MapContainerWrapper({
   const [transferMessage, setTransferMessage] = useState(null);
   const [route, setRoute] = useState([]);
   const [showTransferPopup, setShowTransferPopup] = useState(false);
+  const [nearestStopMarker, setNearestStopMarker] = useState(null);
 
   // --- Effects ---
   // Effect: Open BottomSheet when triggered externally
@@ -140,40 +140,29 @@ export default function MapContainerWrapper({
   useEffect(() => {
     if (routeProp && routeProp.length > 1) {
       const stopNames = routeProp.map((stop) => stop.name);
-      const message = getTransferMessage(stopNames);
+      const message = GetTransferMessage(stopNames);
       setTransferMessage(message);
     } else {
       setTransferMessage(null);
     }
   }, [routeProp]);
 
+  // Effect: Set up nearest stop marker window function
+  useEffect(() => {
+    window.updateNearestMarker = (stop) => {
+      setNearestStopMarker(stop);
+    };
+
+    return () => {
+      window.updateNearestMarker = undefined;
+    };
+  }, []);
+
   // --- Handlers ---
   const openBottomSheet = (tab = "fare") => {
     setIsBottomSheetOpen(true);
     setActiveTab(tab);
   };
-
-  const handleStopClick = (stop) => {
-    if (selectedStops.length === 0) {
-      setSelectedStops([stop]);
-    } else if (selectedStops.length === 1) {
-      if (
-        selectedStops[0].lat === stop.lat &&
-        selectedStops[0].lon === stop.lon
-      )
-        return;
-      setSelectedStops([selectedStops[0], stop]);
-    } else {
-      setSelectedStops([stop]);
-    }
-  };
-
-  // Helper to get midpoint of route for popup
-  function getRouteMidpoint(coords) {
-    if (!coords || coords.length === 0) return null;
-    const midIdx = Math.floor(coords.length / 2);
-    return coords[midIdx];
-  }
 
   // Effect: Find route subset between two stops and draw API route
   useEffect(() => {
@@ -198,7 +187,7 @@ export default function MapContainerWrapper({
         setRoute(routeArr);
         // Get transfer message for this route
         const stopNames = routeArr.map((stop) => stop.name);
-        setTransferMessage(getTransferMessage(stopNames));
+        setTransferMessage(GetTransferMessage(stopNames));
         const coords = await fetchRouteFromAPI(routeArr);
         setApiRouteCoords(coords);
       } else {
@@ -295,6 +284,31 @@ export default function MapContainerWrapper({
             if (window.setEndInput) window.setEndInput(stopName);
           }}
         />
+
+        {/* Nearest Stop Marker (Red) */}
+        {nearestStopMarker && (
+          <Marker
+            position={[nearestStopMarker.lat, nearestStopMarker.lon]}
+            icon={L.divIcon({
+              className: "nearest-stop-marker",
+              iconSize: [30, 30],
+              html: `<div style='background: #dc3545; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);'>📍</div>`,
+            })}
+          >
+            <Popup>
+              <div>
+                <strong>Nearest Bus Stop</strong>
+                <br />
+                {nearestStopMarker.name}
+                <br />
+                <small style={{ color: "#666" }}>
+                  Auto-detected based on your location
+                </small>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
         {/* Draw API route polyline if available */}
         {apiRouteCoords.length > 1 && (
           <>

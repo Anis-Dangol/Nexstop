@@ -1,6 +1,3 @@
-// or tracking zoom level
-
-// components/map-view/ZoomLevelTracker.jsx
 import { useMap } from "react-leaflet";
 import { useEffect } from "react";
 

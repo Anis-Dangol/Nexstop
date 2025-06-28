@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { MappingHeader } from "./header";
+import { MappingHeader } from "./HeaderRightContent";
 import ClientSideBar from "../client-sidebar/ClientSideBar";
 import MapContainerWrapper from "./MapContainerWrapper";
 

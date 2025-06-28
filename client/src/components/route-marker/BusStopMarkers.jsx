@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/use-toast";
 
 // Bus stop icon
 const busStopIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/128/6686/6686693.png",
+  iconUrl: "https://cdn-icons-png.flaticon.com/128/8059/8059045.png",
   iconSize: [30, 30],
   iconAnchor: [15, 30],
   popupAnchor: [0, -30],

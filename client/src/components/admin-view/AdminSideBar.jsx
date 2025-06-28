@@ -10,14 +10,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import { useDispatch } from "react-redux";
-import { logoutUser } from "@/map/auth-slice";
+import { logoutUser } from "@/map/auth-slice/AuthSlice";
 
 function AdminSideBar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
     { label: "Users", icon: Users, path: "/admin/users" },
     { label: "Bus Stops", icon: MapPin, path: "/admin/bus-stops" },
     { label: "Bus Routes", icon: Route, path: "/admin/bus-routes" },
@@ -30,7 +30,7 @@ function AdminSideBar({ collapsed, setCollapsed }) {
   return (
     <div
       className={clsx(
-        "h-screen bg-[#070f18] text-[#E6E0D3] shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out",
+        "h-screen bg-[#070f18] text-[#E6E0D3] shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out fixed left-0 top-0 z-50",
         collapsed ? "w-20" : "w-64"
       )}
     >
