@@ -1,4 +1,14 @@
-import { MapPin } from "lucide-react";
+import { useState } from "react";
+import { LogOut, AlignJustify, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button"; // Adjust this import if needed
+
+function AdminHeader() {
+  const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    // Add logout logic here
+    console.log("Logging out...");
+  };
 
   return (
     <header className="flex items-center justify-between px-4 py-3 bg-[#E6E0D3] border-b">
