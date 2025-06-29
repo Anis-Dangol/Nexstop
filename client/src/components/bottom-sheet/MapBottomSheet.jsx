@@ -7,6 +7,16 @@ export default function MapBottomSheet({
   fareData,
   route = [],
 }) {
+  // Helper function to check if a transfer is valid (both transfer points exist in route)
+  const isValidTransferInRoute = (transfer1, transfer2, routeStops) => {
+    const transfer1Index = routeStops.findIndex(
+      (stop) => stop.name === transfer1
+    );
+    const transfer2Index = routeStops.findIndex(
+      (stop) => stop.name === transfer2
+    );
+    return transfer1Index !== -1 && transfer2Index !== -1;
+  };
   return (
     <div>
       <div className="flex justify-around items-center border-t border-b border-gray-200 py-2 mb-4">
@@ -69,7 +79,13 @@ export default function MapBottomSheet({
                   (t) =>
                     t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
                 );
-                return transfer ? (
+                // Only show transfer colors if both transfer points are valid in the route
+                return transfer &&
+                  isValidTransferInRoute(
+                    transfer.Transfer1,
+                    transfer.Transfer2,
+                    route
+                  ) ? (
                   <div key={idx}>
                     Transfer Serial:
                     <span className="text-red-500">
@@ -95,18 +111,24 @@ export default function MapBottomSheet({
                   (t) =>
                     t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
                 );
+
                 // Check if this stop is the transfer-from (where to get off)
                 const isGetOffStop = transferData.some(
-                  (t) => t.Transfer1 === nextStop.name
+                  (t) =>
+                    t.Transfer1 === nextStop.name &&
+                    isValidTransferInRoute(t.Transfer1, t.Transfer2, route)
                 );
+
                 // Check if previous segment was a transfer (for take another bus)
                 const prevTransfer =
                   idx > 0 &&
                   transferData.find(
                     (t) =>
                       t.Transfer1 === route[idx].name &&
-                      t.Transfer2 === route[idx + 1].name
+                      t.Transfer2 === route[idx + 1].name &&
+                      isValidTransferInRoute(t.Transfer1, t.Transfer2, route)
                   );
+
                 // If the next stop is a transfer-from, show 'Get off at ...' in red
                 if (isGetOffStop) {
                   return (

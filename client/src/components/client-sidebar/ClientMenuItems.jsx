@@ -84,12 +84,42 @@ export default function ClientMenuItems({
       const endIndex = stops.findIndex(
         (stop) => stop.name.toLowerCase() === trimmedEnd.toLowerCase()
       );
-      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-        foundRoute = stops.slice(startIndex, endIndex + 1);
-        console.log(
-          `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
-        );
-        break;
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        // Check for direct route (forward direction)
+        if (startIndex < endIndex) {
+          foundRoute = stops.slice(startIndex, endIndex + 1);
+          console.log(
+            `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
+          );
+          break;
+        }
+        // Check for circular route (wrap around)
+        else if (startIndex > endIndex) {
+          // For circular routes, check if the route loops back to the starting point
+          const firstStop = stops[0];
+          const lastStop = stops[stops.length - 1];
+
+          // Check if it's a circular route (first and last stops are the same or very close)
+          const isCircular =
+            firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
+            (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+              Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+
+          if (isCircular) {
+            // Create circular route: from start to end of array, then from beginning to end index
+            foundRoute = [
+              ...stops.slice(startIndex), // From start to end of route
+              ...stops.slice(1, endIndex + 1), // From beginning to destination (skip first to avoid duplicate)
+            ];
+            console.log(
+              `Circular route found: ${foundRoute
+                .map((s) => s.name)
+                .join(" → ")}`
+            );
+            break;
+          }
+        }
       }
     }
 
@@ -207,8 +237,31 @@ export default function ClientMenuItems({
       const endIndex = stops.findIndex(
         (stop) => stop.name.toLowerCase() === endName.toLowerCase()
       );
-      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-        return stops.slice(startIndex, endIndex + 1);
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        // Check for direct route (forward direction)
+        if (startIndex < endIndex) {
+          return stops.slice(startIndex, endIndex + 1);
+        }
+        // Check for circular route (wrap around)
+        else if (startIndex > endIndex) {
+          // Check if it's a circular route
+          const firstStop = stops[0];
+          const lastStop = stops[stops.length - 1];
+
+          const isCircular =
+            firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
+            (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+              Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+
+          if (isCircular) {
+            // Create circular route
+            return [
+              ...stops.slice(startIndex), // From start to end of route
+              ...stops.slice(1, endIndex + 1), // From beginning to destination
+            ];
+          }
+        }
       }
     }
     return null;
@@ -251,9 +304,25 @@ export default function ClientMenuItems({
             const endIndex = stops.findIndex(
               (s) => s.name.toLowerCase() === destinationName.toLowerCase()
             );
-            return (
-              startIndex !== -1 && endIndex !== -1 && startIndex < endIndex
-            );
+
+            if (startIndex !== -1 && endIndex !== -1) {
+              // Check forward direction
+              if (startIndex < endIndex) {
+                return true;
+              }
+              // Check circular route
+              else if (startIndex > endIndex) {
+                const firstStop = stops[0];
+                const lastStop = stops[stops.length - 1];
+                const isCircular =
+                  firstStop.name.toLowerCase() ===
+                    lastStop.name.toLowerCase() ||
+                  (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+                    Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+                return isCircular;
+              }
+            }
+            return false;
           });
         })
       : allStops;
