@@ -1,6 +1,10 @@
 import express from "express";
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -8,36 +12,64 @@ router.post("/route", async (req, res) => {
   const { start, end } = req.body;
 
   try {
-    const dataPath = path.resolve("data", "routes.json");
+    // Read from the correct routes.json location
+    const dataPath = path.resolve(
+      __dirname,
+      "../../../client/src/assets/routes.json"
+    );
     const file = await fs.readFile(dataPath, "utf-8");
     const routes = JSON.parse(file);
 
-    // Try direct direction
-    let matchingRoute = routes.find(
-      (route) =>
-        route.start.toLowerCase() === start.toLowerCase() &&
-        route.end.toLowerCase() === end.toLowerCase()
-    );
+    console.log(`Looking for route from "${start}" to "${end}"`);
 
-    // If not found, try reverse direction
-    if (!matchingRoute) {
-      const reverseRoute = routes.find(
-        (route) =>
-          route.start.toLowerCase() === end.toLowerCase() &&
-          route.end.toLowerCase() === start.toLowerCase()
+    let foundRoute = null;
+
+    // Search through all routes for a path from start to end (including circular routes)
+    for (const route of routes) {
+      const stops = route.stops;
+      const startIndex = stops.findIndex(
+        (stop) => stop.name.toLowerCase() === start.toLowerCase()
       );
-      if (reverseRoute) {
-        // Return reversed stops
-        return res.json({
-          status: "success",
-          route: [...reverseRoute.stops].reverse(),
-        });
+      const endIndex = stops.findIndex(
+        (stop) => stop.name.toLowerCase() === end.toLowerCase()
+      );
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        if (startIndex <= endIndex) {
+          // Normal forward route
+          foundRoute = stops.slice(startIndex, endIndex + 1);
+          console.log(
+            `Forward route found: ${foundRoute.map((s) => s.name).join(" → ")}`
+          );
+          break;
+        } else {
+          // Check if this is a circular route
+          const firstStop = stops[0];
+          const lastStop = stops[stops.length - 1];
+          const isCircular =
+            firstStop.name.toLowerCase() === lastStop.name.toLowerCase();
+
+          if (isCircular) {
+            // Create circular route: from start to end of array + from beginning to end
+            foundRoute = [
+              ...stops.slice(startIndex),
+              ...stops.slice(0, endIndex + 1),
+            ];
+            console.log(
+              `Circular route found: ${foundRoute
+                .map((s) => s.name)
+                .join(" → ")}`
+            );
+            break;
+          }
+        }
       }
     }
 
-    if (matchingRoute) {
-      res.json({ status: "success", route: matchingRoute.stops });
+    if (foundRoute) {
+      res.json({ status: "success", route: foundRoute });
     } else {
+      console.log("No route found");
       res.status(404).json({ status: "fail", message: "Route not found" });
     }
   } catch (err) {
