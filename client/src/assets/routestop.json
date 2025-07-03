@@ -76,7 +76,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 },
       { "name": "Balkhu Wari", "lat": 27.68449578, "lon": 85.29740378 },
       {
         "name": "Kumari Club (Dashinkali)",
@@ -864,7 +864,7 @@
     "name": "Balkhu to Koteshwor",
     "color": "gold",
     "stops": [
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 },
       {
         "name": "Sanepa Bus Stop (Chakrapath)",
         "lat": 27.68440202,
@@ -1636,7 +1636,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 }
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 }
     ]
   },
   {
@@ -1775,8 +1775,8 @@
       { "name": "Balkhu Petro Stop", "lat": 27.68434281, "lon": 85.29732339 },
       {
         "name": "Balkhu Bus Stop (Kalanki)",
-        "lat": 27.684794,
-        "lon": 85.296967
+        "lat": 27.685911,
+        "lon": 85.298217
       },
       {
         "name": "Sita Petrol Pump Stop (Kalanki)",
