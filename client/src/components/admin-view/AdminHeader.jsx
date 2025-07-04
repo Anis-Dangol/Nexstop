@@ -1,14 +1,29 @@
-import { MapPin } from "lucide-react";
+import { useState } from "react";
+import { LogOut, AlignJustify, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button"; // Adjust this import if needed
 
 function AdminHeader() {
+  const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    // Add logout logic here
+    console.log("Logging out...");
+  };
+
   return (
-    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] shadow-lg">
-      <div className="flex items-center justify-center px-4 sm:px-6 py-4">
-        {/* Centered Admin Title */}
-        <div className="flex items-center gap-2">
-          <MapPin size={30} color="#E6E0D3" />
-          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1>
-        </div>
+    <header className="flex items-center justify-between px-4 py-3 bg-[#E6E0D3] border-b">
+      <Button onClick={() => setOpen(true)} className="lg:hidden sm:block">
+        <AlignJustify />
+        <span className="sr-only">Toggle Menu</span>
+      </Button>
+      <div className="flex flex-1 justify-end">
+        <Button
+          onClick={handleLogout}
+          className="inline-flex gap-2 items-center rounded-md px-4 py-2 text-sm font-medium shadow"
+        >
+          <LogOut />
+          Logout
+        </Button>
       </div>
     </header>
   );
