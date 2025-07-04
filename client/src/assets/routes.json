@@ -27,7 +27,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 },
       { "name": "Balkhu Wari", "lat": 27.68449578, "lon": 85.29740378 },
       {
         "name": "Kumari Club (Dashinkali)",
@@ -281,7 +281,8 @@
       { "name": "Gaushala", "lat": 27.70822133, "lon": 85.34345273 },
       { "name": "Jay Bageshwari Stop", "lat": 27.71051448, "lon": 85.34422342 },
       { "name": "Mitrapark Stand", "lat": 27.71326775, "lon": 85.34544178 },
-      { "name": "Chabahil Bus Stand", "lat": 27.71746188, "lon": 85.34655954 }
+      { "name": "Chabahil Bus Stand", "lat": 27.71746188, "lon": 85.34655954 },
+      { "name": "Chabahil Stop", "lat": 27.71694003, "lon": 85.34670778 }
     ]
   },
   {
@@ -409,7 +410,8 @@
       { "name": "Gaushala Bus Stop", "lat": 27.70744278, "lon": 85.34386185 },
       { "name": "Jay Bageshwari Stop", "lat": 27.71051448, "lon": 85.34422342 },
       { "name": "Mitrapark Stand", "lat": 27.71326775, "lon": 85.34544178 },
-      { "name": "Chabahil", "lat": 27.71683269, "lon": 85.34640348 }
+      { "name": "Chabahil", "lat": 27.71683269, "lon": 85.34640348 },
+      { "name": "Chabahil Bus Stand", "lat": 27.71746188, "lon": 85.34655954 }
     ]
   },
   {
@@ -418,6 +420,11 @@
     "color": "brown",
     "stops": [
       { "name": "Kalanki", "lat": 27.69319531, "lon": 85.28061859 },
+      {
+        "name": "Kalanki Bus Stop (Kalimati)",
+        "lat": 27.69345481,
+        "lon": 85.28210743
+      },
       { "name": "Soltimod", "lat": 27.69670557, "lon": 85.29358539 },
       {
         "name": "Kalimati (Vegetable Market)",
@@ -450,12 +457,17 @@
         "lon": 85.29894525
       },
       { "name": "Soltimod (Kalanki)", "lat": 27.69645154, "lon": 85.29347021 },
-      { "name": "Kalanki (Global IME)", "lat": 27.69338329, "lon": 85.28218439 }
+      {
+        "name": "Kalanki (Global IME)",
+        "lat": 27.69338329,
+        "lon": 85.28218439
+      },
+      { "name": "Kalanki", "lat": 27.69319531, "lon": 85.28061859 }
     ]
   },
   {
     "routeNumber": 6,
-    "name": "Ratnapark to Kalimati Long Route",
+    "name": "Ratnapark to Ekantakuna to Kalanki Long Route",
     "color": "pink",
     "stops": [
       {
@@ -546,7 +558,26 @@
         "lat": 27.688301,
         "lon": 85.28644041
       },
-      { "name": "Kalanki Stop", "lat": 27.6932356, "lon": 85.28117994 }
+      { "name": "Kalanki Stop", "lat": 27.6932356, "lon": 85.28117994 },
+      { "name": "Kalanki", "lat": 27.69319531, "lon": 85.28061859 },
+      {
+        "name": "Kalanki Bus Stop (Kalimati)",
+        "lat": 27.69345481,
+        "lon": 85.28210743
+      },
+      { "name": "Soltimod", "lat": 27.69670557, "lon": 85.29358539 },
+      {
+        "name": "Kalimati (Vegetable Market)",
+        "lat": 27.69841335,
+        "lon": 85.29935658
+      },
+      { "name": "Teku Stop", "lat": 27.69629718, "lon": 85.30699188 },
+      { "name": "Tripureshwar (RNAC)", "lat": 27.69403388, "lon": 85.31303754 },
+      {
+        "name": "Ratnapark",
+        "lat": 27.702561742152824,
+        "lon": 85.31361099960553
+      }
     ]
   },
   {
@@ -1036,7 +1067,7 @@
     "name": "Balkhu to Koteshwor",
     "color": "gold",
     "stops": [
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 },
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 },
       {
         "name": "Sanepa Bus Stop (Chakrapath)",
         "lat": 27.68440202,
@@ -1118,7 +1149,7 @@
         "lat": 27.69826685,
         "lon": 85.29961261
       },
-      { "name": "Balkhu Stop", "lat": 27.684794, "lon": 85.296967 }
+      { "name": "Balkhu Stop", "lat": 27.685911, "lon": 85.298217 }
     ]
   },
   {
@@ -1485,7 +1516,6 @@
         "lat": 27.688301,
         "lon": 85.28644041
       }
-      
     ]
   }
 ]
