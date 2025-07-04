@@ -228,7 +228,7 @@
     { "name": "JRC Chok", "lat": 27.66016321, "lon": 85.3196507 },
     { "name": "Mahalaxmi Bus Stop (Ekantakuna)", "lat": 27.66147417, "lon": 85.31792641 },
     { "name": "Thasikhel Chowk", "lat": 27.66277965, "lon": 85.31623568 },
-    { "name": "Kusunti Bus Stop (Sanepa)", "lat": 27.66427832, "lon": 85.31438435 },
+    { "name": "Kusunti Bus Stop (Sanepa)", "lat": 27.66427832, "lon": 85.31438435 },          
     { "name": "Ekantakuna Bus Stop (Balkhu)", "lat": 27.66678831, "lon": 85.30784892 },
     { "name": "Star Hospital Bus Stop (Balkhu)", "lat": 27.6812033, "lon": 85.30209858 },
     { "name": "Sanepa Bus Stop (Balkhu)", "lat": 27.68426962, "lon": 85.30127631 },
@@ -611,7 +611,65 @@
     { "name": "Singha Durbar Bus Stand", "lat": 27.69745072, "lon": 85.32126599 },
     { "name": "Ratnapark", "lat": 27.702561742152824, "lon": 85.31361099960553}
   ]
-}
+},
+{
+  "routeNumber": 21,
+  "name": "Gongabu right ",
+  "color": "darkcyan",
+  "stops": [
+    { "name": "Gongabu New Bus Park", "lat": 27.73484845, "lon": 85.30819588 },
+    { "name": "Gongabu Bus Stand (Chakrapath)", "lat": 27.73521528, "lon": 85.30835905 },
+    { "name": "Gongabu Chowk Stand", "lat": 27.73504705, "lon": 85.31485887 },
+    { "name": "Samakhusi Bus Stand", "lat": 27.73524882, "lon": 85.31855417 },
+    { "name": "Talim Khendra Stand", "lat": 27.73641119, "lon": 85.32231216 },
+    { "name": "Basundhara Bus Stand", "lat": 27.73815083, "lon": 85.32517588 },
+    { "name": "Basundhara Main", "lat": 27.7422166, "lon": 85.33230493 },
+    { "name": "Narayan Gopal", "lat": 27.74030331, "lon": 85.33679906 },
+    { "name": "Dhumbarahi Stand", "lat": 27.73158685, "lon": 85.34460638 },
+    { "name": "Gopi Krishna Bus Stop", "lat": 27.72180594, "lon": 85.34570658 },
+    { "name": "Chabahil Stop", "lat": 27.71694003, "lon": 85.34670778 },
+    { "name": "Mitra Park Stop", "lat": 27.71332146, "lon": 85.34558723 },
+    { "name": "Bageshwari Stop", "lat": 27.710407, "lon": 85.34430516 },
+    { "name": "Gaushala Stop", "lat": 27.70758817, "lon": 85.34399789 },
+    { "name": "Bimansthal", "lat": 27.7010368, "lon": 85.35338553 },
+    { "name": "Sinamangal Bus Stop", "lat": 27.69531482, "lon": 85.35515246 },
+    { "name": "Koteswor Bus Stop (Bal Kumari Bridge)", "lat": 27.67821423, "lon": 85.34890669 },
+    { "name": "Balkumari Bus Stand", "lat": 27.67139317, "lon": 85.34041152 },
+    { "name": "Khariboat Bus Stand", "lat": 27.67009562, "lon": 85.33818034 },
+    { "name": "Gwarko Bus Stand", "lat": 27.66636234, "lon": 85.33214606 },
+    { "name": "B and B Bus Stand", "lat": 27.66421193, "lon": 85.33034287 },
+    { "name": "Bodhigram Bus Stand", "lat": 27.66195902, "lon": 85.32845797 },
+    { "name": "Satobato Stop (Ekantakuna)", "lat": 27.65801511, "lon": 85.32210245 },
+    { "name": "Tikabhairav Chowk", "lat": 27.65916143, "lon": 85.32069604 },
+    { "name": "Talchikhela Chowk", "lat": 27.65915451, "lon": 85.32071347 },
+    { "name": "JRC Chok", "lat": 27.66016321, "lon": 85.3196507 },
+    { "name": "Mahalaxmi Bus Stop (Ekantakuna)", "lat": 27.66147417, "lon": 85.31792641 },
+    { "name": "Thasikhel Chowk", "lat": 27.66277965, "lon": 85.31623568 },
+    { "name": "Kusunti Bus Stop (Sanepa)", "lat": 27.66427832, "lon": 85.31438435 },          
+    { "name": "Ekantakuna Bus Stop (Balkhu)", "lat": 27.66678831, "lon": 85.30784892 },
+    { "name": "Star Hospital Bus Stop (Balkhu)", "lat": 27.6812033, "lon": 85.30209858 },
+    { "name": "Sanepa Bus Stop (Balkhu)", "lat": 27.68426962, "lon": 85.30127631 },
+    { "name": "Balkhu Bus Stop (Kalanki)", "lat": 27.6847635, "lon": 85.29700203 },
+    { "name": "Sita Petrol Pump Stop (Kalanki)", "lat": 27.688301, "lon": 85.28644041 },
+    { "name": "Kalanki (Bafal)", "lat": 27.69394974, "lon": 85.28146875 },
+    { "name": "Bafal Bus Stop", "lat": 27.70199895, "lon": 85.28175819 },
+    { "name": "Soaltee Dobato Chowk", "lat": 27.7045369, "lon": 85.28211905 },
+    { "name": "Sano Bus Stop", "lat": 27.70783195, "lon": 85.282539 },
+    { "name": "Swayambhu Bus Stop (Main Road)", "lat": 27.71664622, "lon": 85.2835426 },
+    { "name": "Thulo Bharyang", "lat": 27.71965556, "lon": 85.28676521 },
+    { "name": "Sano Bharyang Bus Stand", "lat": 27.7207999, "lon": 85.28913161 },
+    { "name": "Dhunge Dhara Bus Stand", "lat": 27.72342947, "lon": 85.29458608 },
+    { "name": "Banasthali Bus Stand", "lat": 27.72493083, "lon": 85.29789729 },
+    { "name": "Balaju Bus Stand", "lat": 27.72725225, "lon": 85.30473405 },
+    { "name": "Macha Pokhari Bus Stand", "lat": 27.73542791, "lon": 85.3059706 },
+    { "name": "Gongabu New Bus Park", "lat": 27.73484845, "lon": 85.30819588 }
+    
+
+
+
+
+  ]
+  }
 ]
 
  
