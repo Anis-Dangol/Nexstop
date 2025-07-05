@@ -489,7 +489,7 @@ export default function MapContainerWrapper({
           fareData={fareData}
           route={routeProp}
           getRouteNumberForSegment={getRouteNumberForSegment}
-          
+          getBusNamesForStop={getBusNamesForStop}
         />
       </BottomSheet>
     </div>

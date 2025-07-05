@@ -56,8 +56,8 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
       </div>
       {/* Content (hidden when minimized) */}
       {!minimized && (
-        <div className="p-4 h-full flex flex-col">
-          <div className="flex-1 overflow-hidden">{children}</div>
+        <div className="p-4 h-full flex flex-col overflow-y-auto">
+          <div className="flex-1 flex flex-col">{children}</div>
         </div>
       )}
     </motion.div>

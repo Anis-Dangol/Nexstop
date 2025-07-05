@@ -6,7 +6,7 @@ export default function MapBottomSheet({
   setActiveTab,
   fareData,
   route = [],
-  getBusNameForStop,
+  getBusNamesForStop,
 }) {
   // Helper function to check if a transfer is valid (both transfer points exist in route)
   const isValidTransferInRoute = (transfer1, transfer2, routeStops) => {
@@ -77,125 +77,121 @@ export default function MapBottomSheet({
           </div>
         )}
         {activeTab === "bus" && (
-          <div className="h-full flex flex-col">
-            <h2 className="text-lg font-bold mb-3">Bus Info</h2>
-            {route && route.length > 0 ? (
-              <>
-                {/* Summary at top */}
-                {route.some(
-                  (stop) => getBusNameForStop && getBusNameForStop(stop.name)
-                ) && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-800 font-medium">
-                      Total Stops with Bus Service:{" "}
-                      {
-                        route.filter(
-                          (stop) =>
-                            getBusNameForStop && getBusNameForStop(stop.name)
-                        ).length
-                      }
-                    </div>
-                    <div className="text-xs text-blue-600 mt-1">
-                      Available Buses:{" "}
-                      {[
-                        ...new Set(
-                          route
-                            .map((stop) =>
-                              getBusNameForStop
-                                ? getBusNameForStop(stop.name)
-                                : null
-                            )
-                            .filter(Boolean)
-                        ),
-                      ].join(", ")}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex-1 overflow-y-auto space-y-3">
-                  {(() => {
-                    // Group consecutive stops by bus name
-                    const groupedStops = [];
-                    let currentGroup = null;
-
-                    route.forEach((stop, idx) => {
-                      const busName = getBusNameForStop
-                        ? getBusNameForStop(stop.name)
-                        : null;
-
-                      if (!busName) return; // Skip stops without bus names
-
-                      if (currentGroup && currentGroup.busName === busName) {
-                        // Add to current group
-                        currentGroup.stops.push({ stop, originalIndex: idx });
-                      } else {
-                        // Start new group
-                        if (currentGroup) {
-                          groupedStops.push(currentGroup);
-                        }
-                        currentGroup = {
-                          busName,
-                          stops: [{ stop, originalIndex: idx }],
-                        };
-                      }
-                    });
-
-                    // Add the last group
-                    if (currentGroup) {
-                      groupedStops.push(currentGroup);
-                    }
-
-                    return groupedStops.map((group, groupIdx) => (
-                      <div
-                        key={groupIdx}
-                        className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-semibold text-gray-800 text-base">
-                            {group.busName}
-                          </div>
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                            <span className="text-xs text-gray-500">
-                              Stop{group.stops.length > 1 ? "s" : ""}{" "}
-                              {group.stops
-                                .map((s) => s.originalIndex + 1)
-                                .join(", ")}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-sm text-gray-600">
-                          {group.stops.map((stopData, stopIdx) => (
-                            <span key={stopIdx}>
-                              {stopData.stop.name}
-                              {stopIdx < group.stops.length - 1 && "-> "}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ));
-                  })()}
-
-                  {/* Show message if no buses found */}
-                  {route.every(
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              <h2 className="text-lg font-bold mb-3">Bus Info</h2>
+              {route && route.length > 0 ? (
+                <>
+                  {/* Summary at top */}
+                  {route.some(
                     (stop) =>
-                      !getBusNameForStop || !getBusNameForStop(stop.name)
+                      getBusNamesForStop && getBusNamesForStop(stop.name)
                   ) && (
-                    <div className="text-center py-4 text-gray-500">
-                      No bus information available for this route.
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="text-sm text-blue-800 font-medium">
+                        Total Stops with Bus Service:{" "}
+                        {
+                          route.filter(
+                            (stop) =>
+                              getBusNamesForStop &&
+                              getBusNamesForStop(stop.name)
+                          ).length
+                        }
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        Available Buses:{" "}
+                        {[
+                          ...new Set(
+                            route
+                              .flatMap((stop) =>
+                                getBusNamesForStop
+                                  ? getBusNamesForStop(stop.name)
+                                  : []
+                              )
+                              .filter(Boolean)
+                          ),
+                        ].join(", ")}
+                      </div>
                     </div>
                   )}
+
+                  <div className="space-y-3">
+                    {(() => {
+                      const busNameMap = {};
+                      route.forEach((stop, idx) => {
+                        const busNames = getBusNamesForStop
+                          ? getBusNamesForStop(stop.name)
+                          : [];
+                        if (!busNames || busNames.length === 0) return;
+                        busNames.forEach((busName) => {
+                          if (!busNameMap[busName]) {
+                            busNameMap[busName] = [];
+                          }
+                          busNameMap[busName].push({
+                            stop,
+                            originalIndex: idx,
+                          });
+                        });
+                      });
+
+                      const groupedStops = Object.entries(busNameMap).map(
+                        ([busName, stops]) => ({
+                          busName,
+                          stops,
+                        })
+                      );
+
+                      return groupedStops.map((group, groupIdx) => (
+                        <div
+                          key={groupIdx}
+                          className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="font-semibold text-gray-800 text-base">
+                              {group.busName}
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                              <span className="text-xs text-gray-500">
+                                Stop{group.stops.length > 1 ? "s" : ""}{" "}
+                                {group.stops
+                                  .map((s) => s.originalIndex + 1)
+                                  .join(", ")}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {group.stops.map((stopData, stopIdx) => (
+                              <span key={stopIdx}>
+                                {stopData.stop.name}
+                                {stopIdx < group.stops.length - 1 && " -> "}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+
+                    {/* Show message if no buses found */}
+                    {route.every(
+                      (stop) =>
+                        !getBusNamesForStop || !getBusNamesForStop(stop.name)
+                    ) && (
+                      <div className="text-center py-4 text-gray-500">
+                        No bus information available for this route.
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-gray-500">
+                    No route selected. Please select a route to view bus
+                    information.
+                  </p>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-32">
-                <p className="text-gray-500">
-                  No route selected. Please select a route to view bus
-                  information.
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
