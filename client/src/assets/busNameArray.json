@@ -1,0 +1,47 @@
+[
+  {
+    "busname": "Nepal Yatayat",
+    "stops": ["Ratnapark", "Tudikhel Bus Stop", "Bhirikuti Mandap Stop"]
+  },
+  {
+    "busname": "Kirtipur Yatayat",
+    "stops": [
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Sahid Gate Bus Stop",
+      "Tripureshwar Bus Stop",
+      "Teku Bus Stop",
+      "Kalimati Bus Stop (Balkhu)",
+      "Balkhu Stop",
+      "Balkhu Wari",
+      "Kumari Club (Dashinkali)",
+      "TU Gate (Dashinkali)",
+      "Nayabato (Dashinkali)",
+      "Nayabato (Kirtipur)",
+      "Ayurbedhik Hospital Stop",
+      "Tin Kune Kirtipur",
+      "Nayabazar Gate",
+      "Panga Dobato Stop",
+      "Nagau Dobato Stop",
+      "Telecome Stop",
+      "Khasi Bazar Stop",
+      "Dhalpa Chowk",
+      "Devdhoka Stop",
+      "Dev Bus Stop",
+      "Bishnudevi Hospital Bus Stop",
+      "Nayabazar Gate",
+      "Tin Kune (Nayabato)",
+      "Ayurbedhik Hospital (Nayabato)",
+      "Nayabato (Balkhu)",
+      "TU Gate (Balkhu)",
+      "Kumari Club (Balkhu)",
+      "Balkhu Petro Stop",
+      "Balkhu Pari Stop",
+      "Kalimati Bus Stop (Teku)",
+      "Teku Stop",
+      "Tripureshwar (RNAC)",
+      "Ratnapark"
+    ]
+  }
+]

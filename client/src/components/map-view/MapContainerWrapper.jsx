@@ -19,6 +19,7 @@ import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
 import transferData from "@/assets/transfer.json";
+import busNameArray from "../../assets/busNameArray.json";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -231,6 +232,16 @@ export default function MapContainerWrapper({
       }
     }
     return changes;
+  }
+
+  // Helper: Get bus name for a stop
+  function getBusNameForStop(stopName) {
+    for (const entry of busNameArray) {
+      if (entry.stops.includes(stopName)) {
+        return entry.busname;
+      }
+    }
+    return null;
   }
 
   // Helper: Find routeNumber for a segment between two stops
@@ -452,6 +463,7 @@ export default function MapContainerWrapper({
           fareData={fareData}
           route={routeProp}
           getRouteNumberForSegment={getRouteNumberForSegment}
+          getBusNameForStop={getBusNameForStop}
         />
       </BottomSheet>
     </div>

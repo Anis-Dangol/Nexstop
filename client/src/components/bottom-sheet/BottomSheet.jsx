@@ -39,7 +39,10 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
       drag="y"
       dragConstraints={{ top: 0 }}
       dragElastic={0.2}
-      style={{ minHeight: "100px", touchAction: "none" }}
+      style={{
+        height: "50vh", // Set to half screen height
+        touchAction: "none",
+      }}
       className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-xl z-50"
       onDragEnd={handleDragEnd}
     >
@@ -52,7 +55,11 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
         {/* Close button removed */}
       </div>
       {/* Content (hidden when minimized) */}
-      {!minimized && <div className="p-4">{children}</div>}
+      {!minimized && (
+        <div className="p-4 h-full flex flex-col">
+          <div className="flex-1 overflow-hidden">{children}</div>
+        </div>
+      )}
     </motion.div>
   );
 };
