@@ -20,6 +20,7 @@ import RoutePopup from "./RoutePopup";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
 import transferData from "@/assets/transfer.json";
 import busNameArray from "../../assets/busNameArray.json";
+import busNameArray from "../../assets/busNameArray.json";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -490,6 +491,7 @@ export default function MapContainerWrapper({
           fareData={fareData}
           route={routeProp}
           getRouteNumberForSegment={getRouteNumberForSegment}
+          getBusNameForStop={getBusNameForStop}
         />
       </BottomSheet>
     </div>
