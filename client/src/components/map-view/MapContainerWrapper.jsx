@@ -19,6 +19,7 @@ import routesData from "../../assets/routes.json";
 import RoutePopup from "./RoutePopup";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
 import transferData from "@/assets/transfer.json";
+import busNameArray from "../../assets/busNameArray.json";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -233,6 +234,14 @@ export default function MapContainerWrapper({
     return changes;
   }
 
+  function getBusNameForStop(stopName) {
+    for (const entry of busNameArray) {
+      if (entry.stops.includes(stopName)) {
+        return entry.busname;
+      }
+    }
+    return null;
+  }
   // Helper: Find routeNumber for a segment between two stops
   function getRouteNumberForSegment(stopA, stopB) {
     // Collect all route numbers for segments matching stopA -> stopB
@@ -284,6 +293,32 @@ export default function MapContainerWrapper({
             if (window.setEndInput) window.setEndInput(stopName);
           }}
         />
+
+        {routeProp &&
+          routeProp.length > 0 &&
+          routeProp.map((stop, idx) => {
+            const busName = getBusNameForStop(stop.name);
+            if (!busName) return null; // Skip this stop if no bus name
+
+            return (
+              <Marker
+                key={`busname-${idx}`}
+                position={[stop.lat, stop.lon]}
+                icon={L.divIcon({
+                  className: "bus-name-marker",
+                  html: `<div style='background:#0074D9;color:white;padding:4px 8px;border-radius:6px;'>${busName}</div>`,
+                })}
+              >
+                <Popup>
+                  <div>
+                    <strong>{busName}</strong>
+                    <br />
+                    {stop.name}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
 
         {/* Nearest Stop Marker (Red) */}
         {nearestStopMarker && (
