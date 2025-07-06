@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 
-const MINIMIZED_Y = "70%"; // 70% down, adjust as needed
+const MINIMIZED_Y = "90%"; // 90% down, adjust as needed
 
 const BottomSheet = ({ isOpen, onClose, children }) => {
   const controls = useAnimation();
@@ -57,7 +57,7 @@ const BottomSheet = ({ isOpen, onClose, children }) => {
       {/* Content (hidden when minimized) */}
       {!minimized && (
         <div className="p-4 h-full flex flex-col overflow-y-auto">
-          <div className="flex-1 flex flex-col">{children}</div>
+          <div className="flex-1 flex flex-col pb-3">{children}</div>
         </div>
       )}
     </motion.div>

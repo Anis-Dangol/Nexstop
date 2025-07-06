@@ -165,7 +165,7 @@ export default function FavouriteMenu({
   return (
     <div className="flex-col flex gap-4">
       <div className="font-bold text-lg">Favourites</div>
-      <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
+      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
         {isLoading ? (
           <div className="text-center text-gray-500 py-4">
             Loading favourites...

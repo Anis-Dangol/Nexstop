@@ -1,26 +1,98 @@
 [
-    {
-        "transferNumber": 1,
-        "name": "Balkhu Petro Stop to Balkhu Bus Stop (Kalanki)",
-        "Transfer1": "Balkhu Petro Stop",
-        "Transfer2": "Balkhu Bus Stop (Kalanki)"
-    },
-    {
-        "transferNumber": 2,
-        "name": "Balkhu Petro Stop to Balkhu Bus Stop (Sanepa)",
-        "Transfer1": "Balkhu Petro Stop",
-        "Transfer2": "Balkhu Bus Stop (Sanepa)"
-    },
-    {
-        "transferNumber": 3,
-        "name": "Sanepa Bus Stop (Balkhu) to Balkhu Pari Stop",
-        "Transfer1": "Sanepa Bus Stop (Balkhu)",
-        "Transfer2": "Balkhu Pari Stop"
-    },
-    {
-        "transferNumber": 4,
-        "name": "Sanepa Bus Stop (Balkhu) to Balkhu Wari",
-        "Transfer1": "Sanepa Bus Stop (Balkhu)",
-        "Transfer2": "Balkhu Wari"
-    }
+  {
+    "transferNumber": 1,
+    "name": "Balkhu Petro Stop to Balkhu Bus Stop (Kalanki)",
+    "Transfer1": "Balkhu Petro Stop",
+    "Transfer2": "Balkhu Bus Stop (Kalanki)"
+  },
+  {
+    "transferNumber": 2,
+    "name": "Balkhu Petro Stop to Balkhu Bus Stop (Sanepa)",
+    "Transfer1": "Balkhu Petro Stop",
+    "Transfer2": "Balkhu Bus Stop (Sanepa)"
+  },
+  {
+    "transferNumber": 3,
+    "name": "Sanepa Bus Stop (Balkhu) to Balkhu Pari Stop",
+    "Transfer1": "Sanepa Bus Stop (Balkhu)",
+    "Transfer2": "Balkhu Pari Stop"
+  },
+  {
+    "transferNumber": 4,
+    "name": "Sita Petrol Pump Stop (Balkhu) to Balkhu Wari",
+    "Transfer1": "Sita Petrol Pump Stop (Balkhu)",
+    "Transfer2": "Balkhu Wari"
+  },
+  {
+    "transferNumber": 5,
+    "name": "Sita Petrol Pump Stop (Balkhu) to Balkhu Pari Stop",
+    "Transfer1": "Sita Petrol Pump Stop (Balkhu)",
+    "Transfer2": "Balkhu Pari Stop"
+  },
+  {
+    "transferNumber": 6,
+    "name": "Kalimati Bus Stop (Teku) to Kalimati Bus Stop (Kalanki)",
+    "Transfer1": "Kalimati Bus Stop (Teku)",
+    "Transfer2": "Kalimati Bus Stop (Kalanki)"
+  },
+  {
+    "transferNumber": 7,
+    "name": "Banasthali Bus Stand to Balaju Bus Stand (Nayabazar)",
+    "Transfer1": "Banasthali Bus Stand",
+    "Transfer2": "Balaju Bus Stand (Nayabazar)"
+  },
+  {
+    "transferNumber": 8,
+    "name": "Banasthali Bus Stand to Balaju (Lekhnath Sadak)",
+    "Transfer1": "Banasthali Bus Stand",
+    "Transfer2": "Balaju (Lekhnath Sadak)"
+  },
+  {
+    "transferNumber": 9,
+    "name": "Chakrapath Bus Stop to Narayan Gopal Bus Stop",
+    "Transfer1": "Chakrapath Bus Stop",
+    "Transfer2": "Narayan Gopal Bus Stop"
+  },
+  {
+    "transferNumber": 10,
+    "name": "Narayan Gopal  to Narayan Gopal Chowk",
+    "Transfer1": "Narayan Gopal",
+    "Transfer2": "Narayan Gopal Chowk"
+  },
+  {
+    "transferNumber": 11,
+    "name": "Narayan Gopal to Chakrapath Bus Stand",
+    "Transfer1": "Narayan Gopal",
+    "Transfer2": "Chakrapath Bus Stand"
+  },
+  {
+    "transferNumber": 12,
+    "name": "Narayan Gopal Chowk to Narayan Gopal Bus Stop",
+    "Transfer1": "Narayan Gopal Chowk",
+    "Transfer2": "Narayan Gopal Bus Stop"
+  },
+  {
+    "transferNumber": 13,
+    "name": "Chapal Karkhana Bus Stop to Chakrapath Bus Stand",
+    "Transfer1": "Chapal Karkhana Bus Stop",
+    "Transfer2": "Chakrapath Bus Stand"
+  },
+  {
+    "transferNumber": 14,
+    "name": "Chapal Karkhana Bus Stop to Narayan Gopal Chowk",
+    "Transfer1": "Chapal Karkhana Bus Stop",
+    "Transfer2": "Narayan Gopal Chowk"
+  },
+  {
+    "transferNumber": 15,
+    "name": "Gaushala Stop to Gaushala (Battisputali)",
+    "Transfer1": "Gaushala Stop",
+    "Transfer2": "Gaushala (Battisputali)"
+  },
+  {
+    "transferNumber": 16,
+    "name": "Patan Industry Stop (Satobato) to Satobato Stop (Lagankhel)",
+    "Transfer1": "Patan Industry Stop (Satobato)",
+    "Transfer2": "Satobato Stop (Lagankhel)"
+  }
 ]

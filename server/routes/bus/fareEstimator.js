@@ -22,8 +22,8 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 
 router.post("/estimate-fare", (req, res) => {
   try {
-    const { start, end } = req.body;
-    console.log("Estimate fare request:", { start, end });
+    const { start, end, route } = req.body;
+    console.log("Estimate fare request:", { start, end, route });
     const filePath = path.resolve(
       __dirname,
       "../../../client/src/assets/routes.json"
@@ -43,8 +43,8 @@ router.post("/estimate-fare", (req, res) => {
     // Flatten all stops (unique by name)
     const allStops = [];
     const stopSet = new Set();
-    for (const route of routesData) {
-      for (const stop of route.stops) {
+    for (const routeData of routesData) {
+      for (const stop of routeData.stops) {
         if (!stopSet.has(stop.name)) {
           stopSet.add(stop.name);
           allStops.push(stop);
@@ -76,13 +76,41 @@ router.post("/estimate-fare", (req, res) => {
       });
     }
 
-    // Calculate straight-line (haversine) distance
-    const totalDistance = haversineDistance(
-      startStop.lat,
-      startStop.lon,
-      endStop.lat,
-      endStop.lon
-    );
+    let totalDistance;
+
+    // If route is provided, calculate route-based distance
+    if (route && Array.isArray(route) && route.length > 1) {
+      totalDistance = 0;
+      for (let i = 0; i < route.length - 1; i++) {
+        const currentStop = route[i];
+        const nextStop = route[i + 1];
+
+        if (
+          currentStop.lat &&
+          currentStop.lon &&
+          nextStop.lat &&
+          nextStop.lon
+        ) {
+          const segmentDistance = haversineDistance(
+            currentStop.lat,
+            currentStop.lon,
+            nextStop.lat,
+            nextStop.lon
+          );
+          totalDistance += segmentDistance;
+        }
+      }
+      console.log("Route-based distance calculated:", totalDistance);
+    } else {
+      // Fallback: Calculate straight-line (haversine) distance
+      totalDistance = haversineDistance(
+        startStop.lat,
+        startStop.lon,
+        endStop.lat,
+        endStop.lon
+      );
+      console.log("Straight-line distance calculated:", totalDistance);
+    }
 
     // Fare logic (same as before)
     let fare;

@@ -53,18 +53,20 @@ export default function MapBottomSheet({
       <div className="flex-1 overflow-hidden">
         {activeTab === "fare" && (
           <div className="h-full flex flex-col">
-            <h2 className="text-lg font-bold mb-3">Fare Estimation</h2>
+            <h2 className="text-lg font-bold mb-1">Fare Estimation</h2>
             <div className="flex-1">
               {fareData ? (
                 <div className="space-y-2">
                   <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-lg font-semibold text-green-800">
-                      Fare: ₹ {fareData.fare}
+                      <span className="font-bold">Fare:</span> Rs.{" "}
+                      {fareData.fare}
                     </div>
                   </div>
                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-800">
-                      Distance: {fareData.totalDistance} km
+                    <div className="text-lg font-semibold text-blue-800">
+                      <span className="font-bold">Route Distance:</span>{" "}
+                      {fareData.totalDistance} km
                     </div>
                   </div>
                 </div>
@@ -78,18 +80,17 @@ export default function MapBottomSheet({
         )}
         {activeTab === "bus" && (
           <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              <h2 className="text-lg font-bold mb-3">Bus Info</h2>
-              {route && route.length > 0 ? (
-                <>
-                  {/* Summary at top */}
-                  {route.some(
-                    (stop) =>
-                      getBusNamesForStop && getBusNamesForStop(stop.name)
-                  ) && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="text-sm text-blue-800 font-medium">
-                        Total Stops with Bus Service:{" "}
+            <h2 className="text-lg font-bold mb-1">Bus Info</h2>
+            {route && route.length > 0 ? (
+              <>
+                {/* Summary at top */}
+                {route.some(
+                  (stop) => getBusNamesForStop && getBusNamesForStop(stop.name)
+                ) && (
+                  <div className="mb-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm text-blue-800 font-bold">
+                      Total Stops:{" "}
+                      <span className="font-semibold">
                         {
                           route.filter(
                             (stop) =>
@@ -97,9 +98,11 @@ export default function MapBottomSheet({
                               getBusNamesForStop(stop.name)
                           ).length
                         }
-                      </div>
-                      <div className="text-xs text-blue-600 mt-1">
-                        Available Buses:{" "}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-blue-600 mt-1">
+                      Available Buses:{" "}
+                      <span className="font-semibold">
                         {[
                           ...new Set(
                             route
@@ -111,123 +114,195 @@ export default function MapBottomSheet({
                               .filter(Boolean)
                           ),
                         ].join(", ")}
-                      </div>
+                      </span>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  <div className="space-y-3">
-                    {(() => {
-                      const busNameMap = {};
-                      route.forEach((stop, idx) => {
-                        const busNames = getBusNamesForStop
-                          ? getBusNamesForStop(stop.name)
-                          : [];
-                        if (!busNames || busNames.length === 0) return;
-                        busNames.forEach((busName) => {
-                          if (!busNameMap[busName]) {
-                            busNameMap[busName] = [];
-                          }
-                          busNameMap[busName].push({
-                            stop,
-                            originalIndex: idx,
-                          });
+                <div className="space-y-3">
+                  {(() => {
+                    const busNameMap = {};
+                    route.forEach((stop, idx) => {
+                      const busNames = getBusNamesForStop
+                        ? getBusNamesForStop(stop.name)
+                        : [];
+                      if (!busNames || busNames.length === 0) return;
+                      busNames.forEach((busName) => {
+                        if (!busNameMap[busName]) {
+                          busNameMap[busName] = [];
+                        }
+                        busNameMap[busName].push({
+                          stop,
+                          originalIndex: idx,
                         });
                       });
+                    });
 
-                      const groupedStops = Object.entries(busNameMap).map(
-                        ([busName, stops]) => ({
-                          busName,
-                          stops,
-                        })
-                      );
+                    const groupedStops = Object.entries(busNameMap).map(
+                      ([busName, stops]) => ({
+                        busName,
+                        stops,
+                        coverage: stops.length, // Number of stops this bus covers
+                      })
+                    );
 
-                      return groupedStops.map((group, groupIdx) => (
+                    // Sort by coverage (most stops first)
+                    groupedStops.sort((a, b) => b.coverage - a.coverage);
+
+                    // Find overlapping stops between buses
+                    const getOverlappingStops = (currentGroup, allGroups) => {
+                      const currentStopNames = currentGroup.stops.map(s => s.stop.name);
+                      const overlaps = new Set();
+                      
+                      allGroups.forEach(otherGroup => {
+                        if (otherGroup.busName !== currentGroup.busName) {
+                          const otherStopNames = otherGroup.stops.map(s => s.stop.name);
+                          currentStopNames.forEach(stopName => {
+                            if (otherStopNames.includes(stopName)) {
+                              overlaps.add(stopName);
+                            }
+                          });
+                        }
+                      });
+                      
+                      return overlaps;
+                    };
+
+                    return groupedStops.map((group, groupIdx) => {
+                      const overlappingStops = getOverlappingStops(group, groupedStops);
+                      const isBestCoverage = groupIdx === 0; // First bus has best coverage
+                      
+                      return (
                         <div
                           key={groupIdx}
-                          className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          className={`p-3 rounded-lg border ${
+                            isBestCoverage 
+                              ? "bg-green-50 border-green-300 ring-2 ring-green-200" 
+                              : "bg-gray-50 border-gray-200"
+                          }`}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <div className="font-semibold text-gray-800 text-base">
-                              {group.busName}
+                            <div className="flex items-center">
+                              <div className={`font-bold text-base ${
+                                isBestCoverage ? "text-green-800" : "text-gray-800"
+                              }`}>
+                                {group.busName}
+                              </div>
+                              {isBestCoverage && (
+                                <span className="ml-2 px-2 py-1 bg-green-200 text-green-800 text-xs font-bold rounded-full">
+                                  BEST ROUTE
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                              <span className="text-xs text-gray-500">
-                                Stop{group.stops.length > 1 ? "s" : ""}{" "}
+                              <div className={`w-3 h-3 rounded-full mr-2 ${
+                                isBestCoverage ? "bg-green-500" : "bg-blue-500"
+                              }`}></div>
+                              <span className="text-xs font-bold text-gray-500">
+                                {group.coverage} Stop{group.coverage > 1 ? "s" : ""}
+                                {": "}
                                 {group.stops
                                   .map((s) => s.originalIndex + 1)
                                   .join(", ")}
                               </span>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            {group.stops.map((stopData, stopIdx) => (
-                              <span key={stopIdx}>
-                                {stopData.stop.name}
-                                {stopIdx < group.stops.length - 1 && " -> "}
-                              </span>
-                            ))}
+                          <div className="text-sm">
+                            {group.stops.map((stopData, stopIdx) => {
+                              const isOverlapping = overlappingStops.has(stopData.stop.name);
+                              return (
+                                <span 
+                                  key={stopIdx}
+                                  className={
+                                    isOverlapping 
+                                      ? "bg-yellow-200 text-yellow-800 px-1 rounded font-semibold" 
+                                      : "text-gray-600"
+                                  }
+                                >
+                                  {stopData.stop.name}
+                                  {stopIdx < group.stops.length - 1 && " -> "}
+                                </span>
+                              );
+                            })}
                           </div>
+                          {isBestCoverage && (
+                            <div className="mt-2 text-xs text-green-700 font-medium">
+                              🎯 This bus covers the most stops on your route
+                            </div>
+                          )}
                         </div>
-                      ));
-                    })()}
+                      );
+                    });
+                  })()}
 
-                    {/* Show message if no buses found */}
-                    {route.every(
-                      (stop) =>
-                        !getBusNamesForStop || !getBusNamesForStop(stop.name)
-                    ) && (
-                      <div className="text-center py-4 text-gray-500">
-                        No bus information available for this route.
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-center h-32">
-                  <p className="text-gray-500">
-                    No route selected. Please select a route to view bus
-                    information.
-                  </p>
+                  {/* Show message if no buses found */}
+                  {route.every(
+                    (stop) =>
+                      !getBusNamesForStop || !getBusNamesForStop(stop.name)
+                  ) && (
+                    <div className="text-center py-4 text-gray-500">
+                      No bus information available for this route.
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-32">
+                <p className="text-gray-500">
+                  No route selected. Please select a route to view bus
+                  information.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === "direction" && (
           <div className="h-full flex flex-col">
-            <h2 className="text-lg font-bold mb-3">Follow this Direction</h2>
+            <h2 className="text-lg font-bold mb-0">Follow this Direction</h2>
             {/* Show serial numbers of transfers below the heading */}
             {route.length > 1 && (
               <div className="mb-2 text-black font-semibold">
-                {route.slice(0, -1).map((stop, idx) => {
-                  const nextStop = route[idx + 1];
-                  const transfer = transferData.find(
-                    (t) =>
-                      t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
-                  );
-                  // Only show transfer colors if both transfer points are valid in the route
-                  return transfer &&
-                    isValidTransferInRoute(
-                      transfer.Transfer1,
-                      transfer.Transfer2,
-                      route
-                    ) ? (
-                    <div key={idx}>
+                {(() => {
+                  const transfers = [];
+                  route.slice(0, -1).forEach((stop, idx) => {
+                    const nextStop = route[idx + 1];
+                    const transfer = transferData.find(
+                      (t) =>
+                        t.Transfer1 === stop.name &&
+                        t.Transfer2 === nextStop.name
+                    );
+                    if (
+                      transfer &&
+                      isValidTransferInRoute(
+                        transfer.Transfer1,
+                        transfer.Transfer2,
+                        route
+                      )
+                    ) {
+                      transfers.push({
+                        transfer,
+                        getOffStep: idx + 1, // Step number where to get off
+                        boardStep: idx + 2, // Step number where to board next bus
+                      });
+                    }
+                  });
+
+                  return transfers.map((item, transferIdx) => (
+                    <div key={transferIdx}>
                       Transfer Serial:
                       <span className="text-red-500">
                         {" "}
-                        {transfer.transferNumber}{" "}
+                        {item.getOffStep - 1}{" "}
                       </span>
                       -
                       <span className="text-green-500">
                         {" "}
-                        {transfer.transferNumber + 1}
+                        {item.boardStep - 1}
                       </span>
                     </div>
-                  ) : null;
-                })}
+                  ));
+                })()}
               </div>
             )}
 

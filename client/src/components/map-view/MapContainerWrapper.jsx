@@ -101,7 +101,11 @@ export default function MapContainerWrapper({
       fetch("http://localhost:5000/api/bus/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ start, end }),
+        body: JSON.stringify({
+          start,
+          end,
+          route: routeProp, // Send the complete route for distance calculation
+        }),
       })
         .then((res) => res.json())
         .then((data) => setFareData(data))
@@ -264,7 +268,7 @@ export default function MapContainerWrapper({
 
   // --- Render ---
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
       {/* Transfer Popup */}
       {transferMessage && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-200 text-black px-6 py-3 rounded shadow-lg font-semibold">
@@ -293,34 +297,6 @@ export default function MapContainerWrapper({
             if (window.setEndInput) window.setEndInput(stopName);
           }}
         />
-
-        {routeProp &&
-          routeProp.length > 0 &&
-          routeProp.map((stop, idx) => {
-            const busNames = getBusNamesForStop(stop.name);
-            if (!busNames) return null; // No matching bus names
-
-            return (
-              <Marker
-                key={`busname-${idx}`}
-                position={[stop.lat, stop.lon]}
-                icon={L.divIcon({
-                  className: "bus-name-marker",
-                  html: `<div style='background:#0074D9;color:white;padding:4px 8px;border-radius:6px;'>
-            ${busNames.join(", ")}
-          </div>`,
-                })}
-              >
-                <Popup>
-                  <div>
-                    <strong>{busNames.join(", ")}</strong>
-                    <br />
-                    {stop.name}
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
 
         {/* Nearest Stop Marker (Red) */}
         {nearestStopMarker && (
