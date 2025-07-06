@@ -50,18 +50,21 @@ function AdminSideBar({ collapsed, setCollapsed }) {
 
         {/* Navigation */}
         <nav className="mt-6 flex flex-col gap-2">
-          {menuItems.map(({ label, icon: Icon, path }) => (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              className={`flex items-center py-2 text-left hover:bg-[#1f1f1f] transition-colors ${
-                collapsed ? "justify-center px-2" : "gap-3 px-4"
-              }`}
-            >
-              <Icon size={20} />
-              {!collapsed && <span>{label}</span>}
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={`flex items-center py-2 text-left hover:bg-[#1f1f1f] transition-colors ${
+                  collapsed ? "justify-center px-2" : "gap-3 px-4"
+                }`}
+              >
+                <Icon size={20} />
+                {!collapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
         </nav>
       </div>
 

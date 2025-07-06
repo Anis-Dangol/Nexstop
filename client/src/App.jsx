@@ -69,7 +69,7 @@ function App() {
               <AdminLayout />
             </CheckAuth>
           }
-        >
+        >        ping github.com
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} /> {/* Add this line */}
           <Route path="bus-stops" element={<AdminBusStops />} />
