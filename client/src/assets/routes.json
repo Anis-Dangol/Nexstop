@@ -1520,7 +1520,8 @@
         "name": "Sita Petrol Pump Stop (Kalanki)",
         "lat": 27.688301,
         "lon": 85.28644041
-      }
+      },
+      { "name": "Kalanki (Bafal)", "lat": 27.69394974, "lon": 85.28146875 }
     ]
   }
 ]
