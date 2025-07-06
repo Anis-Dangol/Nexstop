@@ -3,11 +3,6 @@ import MapContainerWrapper from "@/components/map-view/MapContainerWrapper";
 function MappingHome() {
   return (
     <div></div>
-    // <div className="flex flex-col min-h-screen">
-    //   <div className="relative w-full h-screen overflow-hidden">
-    //     {/* <MapContainerWrapper /> */}
-    //   </div>
-    // </div>
   );
 }
 
