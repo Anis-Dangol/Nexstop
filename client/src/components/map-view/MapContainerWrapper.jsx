@@ -81,6 +81,7 @@ export default function MapContainerWrapper({
         {/* Bus Stop Markers */}
         <BusStopMarkers
           busStops={allStops}
+          routesData={predefinedRoutes}
           show={zoom >= 14}
           onSetStart={(stopName) => {
             if (window.setStartInput) window.setStartInput(stopName);
@@ -94,10 +95,11 @@ export default function MapContainerWrapper({
         {nearestStopMarker && (
           <Marker
             position={[nearestStopMarker.lat, nearestStopMarker.lon]}
+            zIndexOffset={1000}
             icon={L.divIcon({
               className: "nearest-stop-marker",
               iconSize: [30, 30],
-              html: `<div style='background: #dc3545; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);'>📍</div>`,
+              html: `<div class='nearest-stop-icon'>📍</div>`,
             })}
           >
             <Popup>

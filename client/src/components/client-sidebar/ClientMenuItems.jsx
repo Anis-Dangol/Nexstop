@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
-import routesData from "../../assets/routes.json";
 import transferData from "../../assets/transfer.json";
 
 export default function ClientMenuItems({
@@ -15,6 +14,8 @@ export default function ClientMenuItems({
   setRoute,
   allStops,
   addToFavourites,
+  routesData = [],
+  routesLoading = false,
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
@@ -150,6 +151,10 @@ export default function ClientMenuItems({
       setEnd("");
       if (typeof setRoute === "function") setRoute([]);
       if (window.clearMapSelectedStops) window.clearMapSelectedStops();
+      // Clear nearest stop marker when route is cleared
+      if (window.removeNearestStopMarker) {
+        window.removeNearestStopMarker();
+      }
       return;
     }
 
@@ -599,6 +604,10 @@ export default function ClientMenuItems({
             setStart("");
             setEnd("");
             if (typeof setRoute === "function") setRoute([]);
+            // Clear nearest stop marker when route is cleared
+            if (window.removeNearestStopMarker) {
+              window.removeNearestStopMarker();
+            }
           }}
           disabled={!start && !end}
         >

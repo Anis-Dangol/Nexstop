@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import routesData from "../../assets/routes.json";
+import { fetchBusStops } from "../../services/busRoutes";
 
 function AdminBusStops() {
   const [busStops, setBusStops] = useState([]);
@@ -12,40 +12,34 @@ function AdminBusStops() {
     latitude: "",
     longitude: "",
   });
-  const [updatedRoutesData, setUpdatedRoutesData] = useState(routesData);
 
   useEffect(() => {
-    // Extract all unique bus stops from routes data
-    const extractBusStops = () => {
-      const allStops = [];
-      const uniqueStops = new Map(); // Use Map to avoid duplicates based on name and coordinates
-
-      updatedRoutesData.forEach((route) => {
-        route.stops.forEach((stop) => {
-          const stopKey = `${stop.name}-${stop.lat}-${stop.lon}`; // Create unique key
-          if (!uniqueStops.has(stopKey)) {
-            uniqueStops.set(stopKey, {
-              id: uniqueStops.size + 1, // Generate sequential ID
-              name: stop.name,
-              latitude: stop.lat,
-              longitude: stop.lon,
-            });
-          }
-        });
-      });
-
-      return Array.from(uniqueStops.values());
+    // Load bus stops from MongoDB via API
+    const loadBusStops = async () => {
+      try {
+        setLoading(true);
+        const stops = await fetchBusStops();
+        // Transform the API response to match the expected structure
+        const transformedStops = stops.map((stop, index) => ({
+          id: index + 1,
+          name: stop.name,
+          latitude: stop.lat,
+          longitude: stop.lon,
+          routeId: stop.routeId,
+          routeName: stop.routeName,
+          routeNumber: stop.routeNumber,
+        }));
+        setBusStops(transformedStops);
+      } catch (error) {
+        console.error("Failed to load bus stops:", error);
+        setBusStops([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    try {
-      const stops = extractBusStops();
-      setBusStops(stops);
-    } catch (error) {
-      console.error("Error loading bus stops:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [updatedRoutesData]);
+    loadBusStops();
+  }, []);
 
   // Format coordinates to show limited decimal places
   const formatCoordinate = (coord) => {

@@ -1,4 +1,3 @@
-import routesData from "../../assets/routes.json";
 import transferData from "../../assets/transfer.json";
 
 export default function FavouriteMenu({
@@ -10,6 +9,8 @@ export default function FavouriteMenu({
   setRoute,
   setOpen,
   isLoading,
+  routesData = [],
+  routesLoading = false,
 }) {
   const handleDeleteFavourite = (idx) => {
     const routeToDelete = favourites[idx];
@@ -158,8 +159,8 @@ export default function FavouriteMenu({
 
       setRoute(foundRoute || []);
     }
-    // Keep sidebar open after route selection
-    // if (setOpen) setOpen(false);
+    // Close sidebar after route selection (like the search functionality)
+    if (setOpen) setOpen(false);
   };
 
   return (

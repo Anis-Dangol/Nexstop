@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchRouteFromAPI, fetchUserToStart } from "../map/MapAPISlice";
-import routesData from "../assets/routes.json";
+import { fetchBusRoutes } from "../services/busRoutes";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
-import transferData from "@/assets/transfer.json";
-import busNameArray from "../assets/busNameArray.json";
 
 export const useMapData = (routeProp) => {
   const [userLocation, setUserLocation] = useState(null);
@@ -16,8 +14,23 @@ export const useMapData = (routeProp) => {
   const [transferMessage, setTransferMessage] = useState(null);
   const [route, setRoute] = useState([]);
   const [nearestStopMarker, setNearestStopMarker] = useState(null);
+  const [routesData, setRoutesData] = useState([]);
 
   const center = [27.686262, 85.303635];
+
+  // Load routes data from MongoDB
+  useEffect(() => {
+    const loadRoutes = async () => {
+      try {
+        const routes = await fetchBusRoutes();
+        setRoutesData(routes);
+      } catch (error) {
+        console.error("Failed to load routes:", error);
+        setRoutesData([]);
+      }
+    };
+    loadRoutes();
+  }, []);
 
   // Effect: Load user location
   useEffect(() => {
@@ -48,7 +61,7 @@ export const useMapData = (routeProp) => {
       });
     });
     setAllStops(allStopsArr);
-  }, []);
+  }, [routesData]); // Add routesData as dependency
 
   // Effect: Fetch fare data when route changes
   useEffect(() => {
@@ -143,12 +156,14 @@ export const useMapData = (routeProp) => {
     handleRoute();
   }, [selectedStops, predefinedRoutes]);
 
-  // Effect: Sync selectedStops with routeProp
+  // Effect: Sync selectedStops with routeProp and clear nearest stop marker when route is cleared
   useEffect(() => {
     if (routeProp && routeProp.length > 0) {
       setSelectedStops([routeProp[0]]);
     } else {
       setSelectedStops([]);
+      // Clear nearest stop marker when route is cleared
+      setNearestStopMarker(null);
     }
   }, [routeProp]);
 
