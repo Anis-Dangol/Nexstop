@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import transferData from "../../assets/transfer.json";
+import {
+  fetchTransfers,
+  createTransfer,
+  updateTransfer,
+  deleteTransfer,
+  bulkImportTransfers,
+} from "../../services/transfers";
 
 function AdminTransfers() {
   const [transfers, setTransfers] = useState([]);
@@ -12,31 +18,40 @@ function AdminTransfers() {
     transfer1: "",
     transfer2: "",
   });
-  const [updatedTransfersData, setUpdatedTransfersData] =
-    useState(transferData);
 
+  // Add new transfer modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [newTransfer, setNewTransfer] = useState({
+    name: "",
+    transfer1: "",
+    transfer2: "",
+  });
+
+  // Load transfers from MongoDB
   useEffect(() => {
-    // Load transfer data
-    const loadTransfers = () => {
-      try {
-        const formattedTransfers = updatedTransfersData.map((transfer) => ({
-          id: transfer.transferNumber,
-          number: transfer.transferNumber,
-          name: transfer.name,
-          transfer1: transfer.Transfer1,
-          transfer2: transfer.Transfer2,
-          status: "Active", // Default status
-        }));
-        setTransfers(formattedTransfers);
-      } catch (error) {
-        console.error("Error loading transfers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadTransfers();
-  }, [updatedTransfersData]);
+  }, []);
+
+  const loadTransfers = async () => {
+    try {
+      setLoading(true);
+      const transfersData = await fetchTransfers();
+      const formattedTransfers = transfersData.map((transfer) => ({
+        id: transfer._id,
+        number: transfer.transferNumber,
+        name: transfer.name,
+        transfer1: transfer.transfer1,
+        transfer2: transfer.transfer2,
+      }));
+      setTransfers(formattedTransfers);
+    } catch (error) {
+      console.error("Error loading transfers:", error);
+      alert("Failed to load transfers. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle edit button click
   const handleEdit = (transfer) => {
@@ -67,7 +82,7 @@ function AdminTransfers() {
   };
 
   // Save changes to transfer
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const originalTransfer = transfers.find(
       (transfer) => transfer.id === editingTransfer
     );
@@ -82,61 +97,177 @@ function AdminTransfers() {
       return;
     }
 
-    // Update the transfers data
-    const newUpdatedTransfersData = updatedTransfersData.map((transfer) => {
-      if (transfer.transferNumber === editingTransfer) {
-        return {
-          ...transfer,
-          name: editForm.name.trim(),
-          Transfer1: editForm.transfer1.trim(),
-          Transfer2: editForm.transfer2.trim(),
-        };
+    try {
+      setSubmitLoading(true);
+      const updatedTransferData = {
+        name: editForm.name.trim(),
+        transfer1: editForm.transfer1.trim(),
+        transfer2: editForm.transfer2.trim(),
+      };
+
+      await updateTransfer(editingTransfer, updatedTransferData);
+
+      // Reload transfers to get the updated data
+      await loadTransfers();
+
+      // Clear editing state
+      setEditingTransfer(null);
+      setEditForm({
+        name: "",
+        transfer1: "",
+        transfer2: "",
+      });
+
+      alert("Transfer updated successfully!");
+    } catch (error) {
+      console.error("Error updating transfer:", error);
+      alert("Failed to update transfer. Please try again.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Handle add new transfer
+  const handleAddTransfer = async (e) => {
+    e.preventDefault();
+
+    try {
+      setSubmitLoading(true);
+
+      // Validate input
+      if (
+        !newTransfer.name.trim() ||
+        !newTransfer.transfer1.trim() ||
+        !newTransfer.transfer2.trim()
+      ) {
+        alert("Please fill in all required fields.");
+        return;
       }
-      return transfer;
+
+      // Create new transfer object
+      const newTransferData = {
+        name: newTransfer.name.trim(),
+        transfer1: newTransfer.transfer1.trim(),
+        transfer2: newTransfer.transfer2.trim(),
+      };
+
+      await createTransfer(newTransferData);
+
+      // Reload transfers to get the updated data
+      await loadTransfers();
+
+      // Reset form and close modal
+      setNewTransfer({
+        name: "",
+        transfer1: "",
+        transfer2: "",
+      });
+      setShowAddModal(false);
+
+      alert("Transfer added successfully!");
+    } catch (error) {
+      console.error("Error adding transfer:", error);
+      alert("Failed to add transfer. Please try again.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Close add modal
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setNewTransfer({
+      name: "",
+      transfer1: "",
+      transfer2: "",
     });
+  };
 
-    // Update the state
-    setUpdatedTransfersData(newUpdatedTransfersData);
-
-    // Show success message
+  // Handle delete transfer
+  const handleDelete = async (transfer) => {
     const confirmed = window.confirm(
-      `Successfully updated transfer "${originalTransfer.name}"!\n\nWould you like to download the updated transfers.json file?`
+      `Are you sure you want to delete the transfer "${transfer.name}"?`
     );
 
     if (confirmed) {
-      downloadUpdatedJSON(newUpdatedTransfersData);
-    }
+      try {
+        setSubmitLoading(true);
+        await deleteTransfer(transfer.id);
 
-    handleCancelEdit();
+        // Reload transfers to get the updated data
+        await loadTransfers();
+
+        alert("Transfer deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting transfer:", error);
+        alert("Failed to delete transfer. Please try again.");
+      } finally {
+        setSubmitLoading(false);
+      }
+    }
   };
 
-  // Function to download updated JSON file
-  const downloadUpdatedJSON = (data) => {
-    const jsonString = JSON.stringify(data, null, 2);
+  // Function to export transfers to JSON
+  const exportTransfersToJSON = () => {
+    const exportData = transfers.map((transfer) => ({
+      transferNumber: transfer.number,
+      name: transfer.name,
+      Transfer1: transfer.transfer1,
+      Transfer2: transfer.transfer2,
+    }));
+
+    const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "transfers_updated.json";
+    a.download = "transfers.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Handle delete transfer
-  const handleDelete = (transfer) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the transfer "${transfer.name}"?`
-    );
+  // Function to handle file import
+  const handleFileImport = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    if (confirmed) {
-      const newUpdatedTransfersData = updatedTransfersData.filter(
-        (t) => t.transferNumber !== transfer.id
-      );
-      setUpdatedTransfersData(newUpdatedTransfersData);
-      alert("Transfer deleted successfully!");
-    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+
+        if (!Array.isArray(jsonData)) {
+          alert(
+            "Invalid JSON format. Please upload a valid transfers JSON file."
+          );
+          return;
+        }
+
+        const confirmed = window.confirm(
+          `Are you sure you want to import ${jsonData.length} transfers? This will replace all existing transfers.`
+        );
+
+        if (confirmed) {
+          setSubmitLoading(true);
+          await bulkImportTransfers(jsonData);
+          await loadTransfers();
+          alert("Transfers imported successfully!");
+        }
+      } catch (error) {
+        console.error("Error importing transfers:", error);
+        alert(
+          "Failed to import transfers. Please check the JSON format and try again."
+        );
+      } finally {
+        setSubmitLoading(false);
+      }
+    };
+    reader.readAsText(file);
+
+    // Clear the input so the same file can be imported again
+    event.target.value = "";
   };
 
   // Filter transfers based on search term
@@ -204,18 +335,25 @@ function AdminTransfers() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
               <button
-                onClick={() =>
-                  alert("Add new transfer functionality coming soon!")
-                }
+                onClick={() => setShowAddModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
               >
                 + Add New Transfer
               </button>
+              <label className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 cursor-pointer">
+                📤 Import Transfers
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileImport}
+                  className="hidden"
+                />
+              </label>
               <button
-                onClick={() => downloadUpdatedJSON(updatedTransfersData)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                onClick={exportTransfersToJSON}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
               >
-                📥 Import Transfers
+                📥 Export Transfers
               </button>
             </div>
           </div>
@@ -280,38 +418,6 @@ function AdminTransfers() {
           </div>
         </div>
 
-        {/* Edit Warning Message */}
-        {editingTransfer && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Edit Transfer
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  <p>
-                    You are editing transfer connection details. Make sure both
-                    transfer points are accurate.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Transfers Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
           <div className="overflow-x-auto">
@@ -325,13 +431,10 @@ function AdminTransfers() {
                     Transfer Name
                   </th>
                   <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    From Stop
+                    Transfer-1
                   </th>
                   <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    To Stop
-                  </th>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    Status
+                    Transfer-2
                   </th>
                   <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
                     Actions
@@ -375,7 +478,7 @@ function AdminTransfers() {
                             handleInputChange("transfer1", e.target.value)
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="From stop"
+                          placeholder="Transfer-1"
                         />
                       ) : (
                         <span className="text-gray-700">
@@ -392,18 +495,13 @@ function AdminTransfers() {
                             handleInputChange("transfer2", e.target.value)
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="To stop"
+                          placeholder="Transfer-2"
                         />
                       ) : (
                         <span className="text-gray-700">
                           {transfer.transfer2}
                         </span>
                       )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {transfer.status}
-                      </span>
                     </td>
                     <td className="py-4 px-6">
                       {editingTransfer === transfer.id ? (
@@ -467,6 +565,108 @@ function AdminTransfers() {
             )}
           </div>
         </div>
+
+        {/* Add Transfer Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-blue-600">
+                    Add New Transfer
+                  </h2>
+                  <button
+                    onClick={closeAddModal}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddTransfer}>
+                  {/* Transfer Basic Info */}
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transfer Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTransfer.name}
+                        onChange={(e) =>
+                          setNewTransfer((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter transfer connection name"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transfer-1 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTransfer.transfer1}
+                        onChange={(e) =>
+                          setNewTransfer((prev) => ({
+                            ...prev,
+                            transfer1: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter Transfer-1 stop name"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transfer-2 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newTransfer.transfer2}
+                        onChange={(e) =>
+                          setNewTransfer((prev) => ({
+                            ...prev,
+                            transfer2: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter Transfer-2 stop name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Form Actions */}
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={closeAddModal}
+                      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      disabled={submitLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={submitLoading}
+                    >
+                      {submitLoading ? "Adding..." : "Add Transfer"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

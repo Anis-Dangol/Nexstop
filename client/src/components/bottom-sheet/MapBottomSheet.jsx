@@ -1,5 +1,6 @@
 import { HandCoins, BusFront, ArrowLeftRight } from "lucide-react";
-import transferData from "@/assets/transfer.json";
+import { useState, useEffect } from "react";
+import { fetchTransfers } from "../../services/transfers";
 
 export default function MapBottomSheet({
   activeTab,
@@ -8,6 +9,22 @@ export default function MapBottomSheet({
   route = [],
   getBusNamesForStop,
 }) {
+  const [transferData, setTransferData] = useState([]);
+
+  // Load transfer data from MongoDB
+  useEffect(() => {
+    const loadTransferData = async () => {
+      try {
+        const transfers = await fetchTransfers();
+        setTransferData(transfers);
+      } catch (error) {
+        console.error("Error loading transfer data:", error);
+        setTransferData([]);
+      }
+    };
+    loadTransferData();
+  }, []);
+
   // Helper function to check if a transfer is valid (both transfer points exist in route)
   const isValidTransferInRoute = (transfer1, transfer2, routeStops) => {
     const transfer1Index = routeStops.findIndex(
@@ -151,41 +168,52 @@ export default function MapBottomSheet({
 
                     // Find overlapping stops between buses
                     const getOverlappingStops = (currentGroup, allGroups) => {
-                      const currentStopNames = currentGroup.stops.map(s => s.stop.name);
+                      const currentStopNames = currentGroup.stops.map(
+                        (s) => s.stop.name
+                      );
                       const overlaps = new Set();
-                      
-                      allGroups.forEach(otherGroup => {
+
+                      allGroups.forEach((otherGroup) => {
                         if (otherGroup.busName !== currentGroup.busName) {
-                          const otherStopNames = otherGroup.stops.map(s => s.stop.name);
-                          currentStopNames.forEach(stopName => {
+                          const otherStopNames = otherGroup.stops.map(
+                            (s) => s.stop.name
+                          );
+                          currentStopNames.forEach((stopName) => {
                             if (otherStopNames.includes(stopName)) {
                               overlaps.add(stopName);
                             }
                           });
                         }
                       });
-                      
+
                       return overlaps;
                     };
 
                     return groupedStops.map((group, groupIdx) => {
-                      const overlappingStops = getOverlappingStops(group, groupedStops);
+                      const overlappingStops = getOverlappingStops(
+                        group,
+                        groupedStops
+                      );
                       const isBestCoverage = groupIdx === 0; // First bus has best coverage
-                      
+
                       return (
                         <div
                           key={groupIdx}
                           className={`p-3 rounded-lg border ${
-                            isBestCoverage 
-                              ? "bg-green-50 border-green-300 ring-2 ring-green-200" 
+                            isBestCoverage
+                              ? "bg-green-50 border-green-300 ring-2 ring-green-200"
                               : "bg-gray-50 border-gray-200"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center">
-                              <div className={`font-bold text-base ${
-                                isBestCoverage ? "text-green-800" : "text-gray-800"
-                              }`}>
+                              <div
+                                className={`font-bold text-base ${
+                                  isBestCoverage
+                                    ? "text-green-800"
+                                    : "text-gray-800"
+                                }`}
+                              >
                                 {group.busName}
                               </div>
                               {isBestCoverage && (
@@ -195,11 +223,16 @@ export default function MapBottomSheet({
                               )}
                             </div>
                             <div className="flex items-center">
-                              <div className={`w-3 h-3 rounded-full mr-2 ${
-                                isBestCoverage ? "bg-green-500" : "bg-blue-500"
-                              }`}></div>
+                              <div
+                                className={`w-3 h-3 rounded-full mr-2 ${
+                                  isBestCoverage
+                                    ? "bg-green-500"
+                                    : "bg-blue-500"
+                                }`}
+                              ></div>
                               <span className="text-xs font-bold text-gray-500">
-                                {group.coverage} Stop{group.coverage > 1 ? "s" : ""}
+                                {group.coverage} Stop
+                                {group.coverage > 1 ? "s" : ""}
                                 {": "}
                                 {group.stops
                                   .map((s) => s.originalIndex + 1)
@@ -209,13 +242,15 @@ export default function MapBottomSheet({
                           </div>
                           <div className="text-sm">
                             {group.stops.map((stopData, stopIdx) => {
-                              const isOverlapping = overlappingStops.has(stopData.stop.name);
+                              const isOverlapping = overlappingStops.has(
+                                stopData.stop.name
+                              );
                               return (
-                                <span 
+                                <span
                                   key={stopIdx}
                                   className={
-                                    isOverlapping 
-                                      ? "bg-yellow-200 text-yellow-800 px-1 rounded font-semibold" 
+                                    isOverlapping
+                                      ? "bg-yellow-200 text-yellow-800 px-1 rounded font-semibold"
                                       : "text-gray-600"
                                   }
                                 >
@@ -269,14 +304,14 @@ export default function MapBottomSheet({
                     const nextStop = route[idx + 1];
                     const transfer = transferData.find(
                       (t) =>
-                        t.Transfer1 === stop.name &&
-                        t.Transfer2 === nextStop.name
+                        t.transfer1 === stop.name &&
+                        t.transfer2 === nextStop.name
                     );
                     if (
                       transfer &&
                       isValidTransferInRoute(
-                        transfer.Transfer1,
-                        transfer.Transfer2,
+                        transfer.transfer1,
+                        transfer.transfer2,
                         route
                       )
                     ) {
@@ -314,15 +349,15 @@ export default function MapBottomSheet({
                     // Check for transfer at this segment
                     const transfer = transferData.find(
                       (t) =>
-                        t.Transfer1 === stop.name &&
-                        t.Transfer2 === nextStop.name
+                        t.transfer1 === stop.name &&
+                        t.transfer2 === nextStop.name
                     );
 
                     // Check if this stop is the transfer-from (where to get off)
                     const isGetOffStop = transferData.some(
                       (t) =>
-                        t.Transfer1 === nextStop.name &&
-                        isValidTransferInRoute(t.Transfer1, t.Transfer2, route)
+                        t.transfer1 === nextStop.name &&
+                        isValidTransferInRoute(t.transfer1, t.transfer2, route)
                     );
 
                     // Check if previous segment was a transfer (for take another bus)
@@ -330,11 +365,11 @@ export default function MapBottomSheet({
                       idx > 0 &&
                       transferData.find(
                         (t) =>
-                          t.Transfer1 === route[idx].name &&
-                          t.Transfer2 === route[idx + 1].name &&
+                          t.transfer1 === route[idx].name &&
+                          t.transfer2 === route[idx + 1].name &&
                           isValidTransferInRoute(
-                            t.Transfer1,
-                            t.Transfer2,
+                            t.transfer1,
+                            t.transfer2,
                             route
                           )
                       );

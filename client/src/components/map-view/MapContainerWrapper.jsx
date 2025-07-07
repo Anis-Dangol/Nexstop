@@ -59,13 +59,6 @@ export default function MapContainerWrapper({
 
   return (
     <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
-      {/* Transfer Message */}
-      {transferMessage && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-yellow-200 text-black px-6 py-3 rounded shadow-lg font-semibold">
-          {transferMessage}
-        </div>
-      )}
-
       <MapContainer
         center={center}
         zoom={13}

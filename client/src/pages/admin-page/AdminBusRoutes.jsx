@@ -50,6 +50,31 @@ function AdminBusRoutes() {
     }
   };
 
+  // Function to export routes to JSON
+  const exportRoutesToJSON = () => {
+    const exportData = busRoutes.map((route) => ({
+      routeNumber: route.routeNumber,
+      name: route.name,
+      color: route.color,
+      stops: route.stops.map((stop) => ({
+        name: stop.name,
+        lat: stop.lat,
+        lon: stop.lon,
+      })),
+    }));
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bus_routes_${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Filter routes based on search term
   const filteredRoutes = busRoutes.filter(
     (route) =>
@@ -468,6 +493,13 @@ function AdminBusRoutes() {
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 📥 Import Routes
+              </button>
+              <button
+                onClick={exportRoutesToJSON}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                title="Export routes to JSON file"
+              >
+                📤 Export Routes
               </button>
             </div>
           </div>

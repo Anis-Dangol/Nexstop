@@ -1,9 +1,26 @@
 import { Marker, Popup } from "react-leaflet";
+import { useState, useEffect } from "react";
 import L from "leaflet";
-import transferData from "../../assets/transfer.json";
+import { fetchTransfers } from "../../services/transfers";
 import { getRouteNumberForSegment } from "../../utils/mapUtils";
 
 export default function RouteMarkers({ routeProp, predefinedRoutes }) {
+  const [transferData, setTransferData] = useState([]);
+
+  // Load transfer data from MongoDB
+  useEffect(() => {
+    const loadTransferData = async () => {
+      try {
+        const transfers = await fetchTransfers();
+        setTransferData(transfers);
+      } catch (error) {
+        console.error("Error loading transfer data:", error);
+        setTransferData([]);
+      }
+    };
+    loadTransferData();
+  }, []);
+
   if (!routeProp || routeProp.length < 2) return null;
 
   return (
@@ -24,7 +41,7 @@ export default function RouteMarkers({ routeProp, predefinedRoutes }) {
 
         // Check for transfer
         const transfer = transferData.find(
-          (t) => t.Transfer1 === stop.name && t.Transfer2 === nextStop.name
+          (t) => t.transfer1 === stop.name && t.transfer2 === nextStop.name
         );
 
         return (
@@ -61,8 +78,8 @@ export default function RouteMarkers({ routeProp, predefinedRoutes }) {
                       textAlign: "center",
                     }}
                   >
-                    Get off at bus stop <b>{transfer.Transfer1}</b> and take the
-                    bus at <b>{transfer.Transfer2}</b> to continue your route.
+                    Get off at bus stop <b>{transfer.transfer1}</b> and take the
+                    bus at <b>{transfer.transfer2}</b> to continue your route.
                   </div>
                 )}
               </div>

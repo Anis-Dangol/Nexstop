@@ -113,13 +113,17 @@ export const useMapData = (routeProp) => {
 
   // Effect: Check for transfer popup when route changes
   useEffect(() => {
-    if (routeProp && routeProp.length > 1) {
-      const stopNames = routeProp.map((stop) => stop.name);
-      const message = GetTransferMessage(stopNames);
-      setTransferMessage(message);
-    } else {
-      setTransferMessage(null);
-    }
+    const checkTransferMessage = async () => {
+      if (routeProp && routeProp.length > 1) {
+        const stopNames = routeProp.map((stop) => stop.name);
+        const message = await GetTransferMessage(stopNames);
+        setTransferMessage(message);
+      } else {
+        setTransferMessage(null);
+      }
+    };
+
+    checkTransferMessage();
   }, [routeProp]);
 
   // Effect: Find route subset between two stops and draw API route
@@ -144,7 +148,8 @@ export const useMapData = (routeProp) => {
         const routeArr = foundRoute || [selectedStops[0], selectedStops[1]];
         setRoute(routeArr);
         const stopNames = routeArr.map((stop) => stop.name);
-        setTransferMessage(GetTransferMessage(stopNames));
+        const transferMessage = await GetTransferMessage(stopNames);
+        setTransferMessage(transferMessage);
         const coords = await fetchRouteFromAPI(routeArr);
         setApiRouteCoords(coords);
       } else {
