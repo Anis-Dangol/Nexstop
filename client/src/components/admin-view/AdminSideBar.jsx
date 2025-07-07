@@ -41,7 +41,12 @@ function AdminSideBar({ collapsed, setCollapsed }) {
       <div>
         {/* Logo & Collapse Button */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-[#1f1f1f]">
-          {!collapsed && <h1 className="text-2xl font-bold">Admin Panel</h1>}
+          {!collapsed && (
+            <span className="flex items-center gap-2 w-full justify-center">
+              <MapPin size={28} className="text-[#E6E0D3]" />
+              <h1 className="text-2xl font-bold">Nexstop</h1>
+            </span>
+          )}
           <button onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? (
               <ChevronRight size={20} className="text-white" />
@@ -76,10 +81,10 @@ function AdminSideBar({ collapsed, setCollapsed }) {
       </div>
 
       {/* Logout */}
-      <div className="mb-4">
+      <div className="mb-4 flex justify-center">
         <button
           onClick={handleLogout}
-          className={`flex items-center w-full text-left py-2 hover:bg-[#1f1f1f] transition-colors ${
+          className={`flex items-center text-left py-2 hover:bg-[#1f1f1f] transition-colors ${
             collapsed ? "justify-center px-2" : "gap-3 px-4"
           }`}
         >

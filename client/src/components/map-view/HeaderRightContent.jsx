@@ -1,5 +1,5 @@
-import { AlignJustify, LogOut, MapPin } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { AlignJustify, LogOut, MapPin, LayoutDashboard } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -16,13 +16,28 @@ import { logoutUser } from "@/map/auth-slice/AuthSlice";
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   function handleLogout() {
     dispatch(logoutUser());
   }
 
+  // Show "Back to Admin Panel" if admin is in /map
+  const showBackToAdmin = user?.role === "admin" && location.pathname.startsWith("/map");
+
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
+      {showBackToAdmin && (
+        <Button
+          onClick={() => navigate("/admin/dashboard")}
+          className="inline-flex gap-2 items-center rounded-md px-4 py-2 text-sm font-medium shadow bg-purple-600 text-white hover:bg-purple-700"
+          title="Back to Admin Panel"
+        >
+          <LayoutDashboard />
+          Admin Panel
+        </Button>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="bg-black cursor-pointer">
