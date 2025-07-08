@@ -9,6 +9,19 @@ const initialState = {
     totalBusStops: 0,
   },
   userRegistrationStats: [],
+  busRouteStats: [],
+  busStopStats: [],
+  transferStats: [],
+  busNameStats: [],
+  fareConfigStats: [],
+  dashboardStats: {
+    users: 0,
+    busStops: 0,
+    busRoutes: 0,
+    transfers: 0,
+    busNames: 0,
+    fareConfigs: 0,
+  },
   error: null,
 };
 
@@ -47,6 +60,104 @@ export const fetchUserRegistrationStats = createAsyncThunk(
 
     const response = await axios.get(
       `http://localhost:5000/api/auth/user-registration-stats?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchDashboardStats = createAsyncThunk(
+  "/admin/fetchDashboardStats",
+  async () => {
+    const response = await axios.get(
+      "http://localhost:5000/api/statistics/dashboard",
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchBusRouteStats = createAsyncThunk(
+  "/admin/fetchBusRouteStats",
+  async ({ year, month = null }) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year);
+    if (month) params.append("month", month);
+
+    const response = await axios.get(
+      `http://localhost:5000/api/statistics/bus-routes?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchBusStopStats = createAsyncThunk(
+  "/admin/fetchBusStopStats",
+  async ({ year, month = null }) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year);
+    if (month) params.append("month", month);
+
+    const response = await axios.get(
+      `http://localhost:5000/api/statistics/bus-stops?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchTransferStats = createAsyncThunk(
+  "/admin/fetchTransferStats",
+  async ({ year, month = null }) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year);
+    if (month) params.append("month", month);
+
+    const response = await axios.get(
+      `http://localhost:5000/api/statistics/transfers?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchBusNameStats = createAsyncThunk(
+  "/admin/fetchBusNameStats",
+  async ({ year, month = null }) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year);
+    if (month) params.append("month", month);
+
+    const response = await axios.get(
+      `http://localhost:5000/api/statistics/bus-names?${params.toString()}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  }
+);
+
+export const fetchFareConfigStats = createAsyncThunk(
+  "/admin/fetchFareConfigStats",
+  async ({ year, month = null }) => {
+    const params = new URLSearchParams();
+    if (year) params.append("year", year);
+    if (month) params.append("month", month);
+
+    const response = await axios.get(
+      `http://localhost:5000/api/statistics/fare-configs?${params.toString()}`,
       {
         withCredentials: true,
       }
@@ -102,6 +213,90 @@ const adminSlice = createSlice({
         }
       })
       .addCase(fetchUserRegistrationStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchDashboardStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDashboardStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.dashboardStats = action.payload.data;
+        }
+      })
+      .addCase(fetchDashboardStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchBusRouteStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchBusRouteStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.busRouteStats = action.payload.data;
+        }
+      })
+      .addCase(fetchBusRouteStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchBusStopStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchBusStopStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.busStopStats = action.payload.data;
+        }
+      })
+      .addCase(fetchBusStopStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchTransferStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchTransferStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.transferStats = action.payload.data;
+        }
+      })
+      .addCase(fetchTransferStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchBusNameStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchBusNameStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.busNameStats = action.payload.data;
+        }
+      })
+      .addCase(fetchBusNameStats.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchFareConfigStats.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFareConfigStats.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.fareConfigStats = action.payload.data;
+        }
+      })
+      .addCase(fetchFareConfigStats.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message;
       });

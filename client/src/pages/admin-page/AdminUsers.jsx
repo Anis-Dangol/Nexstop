@@ -37,6 +37,11 @@ function AdminUsers() {
   });
   const [editingId, setEditingId] = useState(null);
 
+  // Bulk selection states
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   // Date filtering and sorting state
   const [dateSort, setDateSort] = useState("desc"); // "asc", "desc", or "none"
   const [selectedYear, setSelectedYear] = useState("all"); // "all" or specific year
@@ -176,10 +181,33 @@ function AdminUsers() {
     setCurrentPage(1);
   }, [selectedYear, dateSort]);
 
-  // Pagination controls
-  const goToPage = (page) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
+  // Clean up selections when filtered users change
+  useEffect(() => {
+    const visibleUserIds = currentUsers.map((user) => user._id);
+    setSelectedUsers((prev) =>
+      prev.filter((id) => visibleUserIds.includes(id))
+    );
+    setSelectAll(false);
+  }, [selectedYear, dateSort, currentPage]);
+
+  // Keyboard shortcuts for bulk actions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+A to select all
+      if (e.ctrlKey && e.key === "a" && !editingId) {
+        e.preventDefault();
+        handleSelectAll();
+      }
+      // Delete key to delete selected users
+      if (e.key === "Delete" && selectedUsers.length > 0 && !editingId) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedUsers, editingId]);
 
   // Fetch users
   const fetchUsers = () => {
@@ -188,6 +216,9 @@ function AdminUsers() {
       .then((res) => {
         if (res.data.success) {
           setUsers(res.data.users);
+          // Reset bulk selection when users are reloaded
+          setSelectedUsers([]);
+          setSelectAll(false);
         } else {
           toast({
             title: "❌ Error",
@@ -206,6 +237,90 @@ function AdminUsers() {
           className: "bg-red-50 border-red-200 text-red-800",
         });
       });
+  };
+
+  // Bulk selection functions
+  const handleSelectUser = (userId) => {
+    setSelectedUsers((prev) => {
+      if (prev.includes(userId)) {
+        // Remove from selection
+        const newSelection = prev.filter((id) => id !== userId);
+        setSelectAll(
+          newSelection.length === currentUsers.length && currentUsers.length > 0
+        );
+        return newSelection;
+      } else {
+        // Add to selection
+        const newSelection = [...prev, userId];
+        setSelectAll(newSelection.length === currentUsers.length);
+        return newSelection;
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // Deselect all
+      setSelectedUsers([]);
+      setSelectAll(false);
+    } else {
+      // Select all visible users
+      const allUserIds = currentUsers.map((user) => user._id);
+      setSelectedUsers(allUserIds);
+      setSelectAll(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "⚠️ Warning",
+        description: "Please select users to delete.",
+        variant: "destructive",
+        className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+      });
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${
+      selectedUsers.length
+    } user${
+      selectedUsers.length > 1 ? "s" : ""
+    }? This action cannot be undone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        setBulkDeleteLoading(true);
+
+        // Delete users one by one
+        const deletionPromises = selectedUsers.map((userId) =>
+          axios.delete(`${API_URL}/delete-user/${userId}`, {
+            withCredentials: true,
+          })
+        );
+        await Promise.all(deletionPromises);
+
+        // Reload users and reset selection
+        fetchUsers();
+        toast({
+          title: "✅ Success",
+          description: `Successfully deleted ${selectedUsers.length} user${
+            selectedUsers.length > 1 ? "s" : ""
+          }!`,
+          className: "bg-green-50 border-green-200 text-green-800",
+        });
+      } catch (error) {
+        console.error("Error deleting users:", error);
+        toast({
+          title: "❌ Error",
+          description: "Failed to delete some users. Please try again.",
+          variant: "destructive",
+          className: "bg-red-50 border-red-200 text-red-800",
+        });
+      } finally {
+        setBulkDeleteLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -481,7 +596,7 @@ function AdminUsers() {
             )}
 
             {/* Results Count */}
-            <div className="flex items-center ml-auto">
+            <div className="flex flex-col items-end ml-auto gap-2">
               <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded-md border border-gray-200">
                 Showing {startIndex + 1}-
                 {Math.min(endIndex, filteredAndSortedUsers.length)} of{" "}
@@ -492,10 +607,35 @@ function AdminUsers() {
           </div>
         </div>
         {/* User Form */}
-        <div className="flex flex-col lg:flex-row lg:items-center space-y-3 lg:space-y-0 lg:space-x-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
           <h3 className="text-lg font-bold text-blue-800 uppercase tracking-wide border-b-2 border-blue-300 pb-1 mb-2 inline-block">
             {editingId ? "Edit User" : "Create New User"}
           </h3>
+          {selectedUsers.length > 0 && (
+            <span className="text-sm text-orange-700 bg-orange-50 px-3 py-1 rounded-md border border-orange-200">
+              {selectedUsers.length} user
+              {selectedUsers.length > 1 ? "s" : ""} selected
+            </span>
+          )}
+
+          {selectedUsers.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteLoading}
+              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-2"
+              title={`Delete ${selectedUsers.length} selected user${
+                selectedUsers.length > 1 ? "s" : ""
+              }`}
+            >
+              {bulkDeleteLoading
+                ? "Deleting..."
+                : `🗑️ Delete ${selectedUsers.length} User${
+                    selectedUsers.length > 1 ? "s" : ""
+                  }`}
+            </button>
+          )}
+        </div>
+        <div>
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3"
@@ -559,6 +699,14 @@ function AdminUsers() {
             <table className="min-w-full text-left">
               <thead className="sticky top-0 bg-white z-10 shadow-sm">
                 <tr>
+                  <th className="py-3 px-4 border-b-2 border-gray-200 font-semibold text-gray-700 bg-gray-50 w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </th>
                   {visibleColumns.id && (
                     <th className="py-3 px-4 border-b-2 border-gray-200 font-semibold text-gray-700 bg-gray-50">
                       ID
@@ -601,7 +749,22 @@ function AdminUsers() {
               </thead>
               <tbody className="overflow-y-auto">
                 {currentUsers.map((user) => (
-                  <tr key={user._id || user.id} className="hover:bg-gray-50">
+                  <tr
+                    key={user._id || user.id}
+                    className={`hover:bg-gray-50 transition-colors ${
+                      selectedUsers.includes(user._id || user.id)
+                        ? "bg-blue-50"
+                        : ""
+                    }`}
+                  >
+                    <td className="py-2 px-4 border-b">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user._id || user.id)}
+                        onChange={() => handleSelectUser(user._id || user.id)}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
                     {visibleColumns.id && (
                       <td className="py-4 px-4 border-b text-sm text-gray-600">
                         {(user._id || user.id)?.substring()}

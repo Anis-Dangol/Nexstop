@@ -1,5 +1,5 @@
-import routesData from "../../assets/routes.json";
-import transferData from "../../assets/transfer.json";
+import { useState, useEffect } from "react";
+import { fetchTransfers } from "../../services/transfers";
 
 export default function FavouriteMenu({
   favourites,
@@ -10,14 +10,29 @@ export default function FavouriteMenu({
   setRoute,
   setOpen,
   isLoading,
+  routesData = [],
 }) {
+  const [transferData, setTransferData] = useState([]);
+
+  // Load transfer data from MongoDB
+  useEffect(() => {
+    const loadTransferData = async () => {
+      try {
+        const transfers = await fetchTransfers();
+        setTransferData(transfers);
+      } catch (error) {
+        console.error("Error loading transfer data:", error);
+        setTransferData([]);
+      }
+    };
+    loadTransferData();
+  }, []);
+
   const handleDeleteFavourite = (idx) => {
     const routeToDelete = favourites[idx];
     if (removeFromFavourites) {
-      // Use the API-aware remove function
       removeFromFavourites(routeToDelete);
     } else {
-      // Fallback to old method
       setFavourites(favourites.filter((_, i) => i !== idx));
     }
   };
@@ -39,38 +54,33 @@ export default function FavouriteMenu({
 
   // Function to find route with transfers using transfer.json data
   const findRouteWithTransfers = (startName, endName) => {
-    // Try to find if there's a transfer route
     for (const transfer of transferData) {
-      // Check if we need to go from start to transfer point 1, then transfer point 1 to transfer point 2, then to destination
-      const route1 = findDirectRoute(startName, transfer.Transfer1);
-      const route2 = findDirectRoute(transfer.Transfer2, endName);
+      // Check route: start -> transfer1 -> transfer2 -> end
+      const route1 = findDirectRoute(startName, transfer.transfer1);
+      const route2 = findDirectRoute(transfer.transfer2, endName);
 
       if (route1 && route2) {
-        // Combine routes: start -> Transfer1, Transfer1 -> Transfer2 (transfer), Transfer2 -> end
         const transferConnection =
-          findDirectRoute(transfer.Transfer1, transfer.Transfer2) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer2)].filter(
+          findDirectRoute(transfer.transfer1, transfer.transfer2) ||
+          [getAllStops().find((s) => s.name === transfer.transfer2)].filter(
             Boolean
           );
         const combinedRoute = [
           ...route1,
-          ...transferConnection.slice(1), // Remove duplicate transfer point
-          ...route2.slice(1), // Remove duplicate transfer point
+          ...transferConnection.slice(1),
+          ...route2.slice(1),
         ];
-        console.log(
-          `Transfer route found via ${transfer.Transfer1} -> ${transfer.Transfer2}`
-        );
-        return combinedRoute.filter(Boolean); // Remove any null/undefined stops
+        return combinedRoute.filter(Boolean);
       }
 
-      // Also try the reverse: start -> Transfer2, Transfer2 -> Transfer1, Transfer1 -> end
-      const route3 = findDirectRoute(startName, transfer.Transfer2);
-      const route4 = findDirectRoute(transfer.Transfer1, endName);
+      // Check route: start -> transfer2 -> transfer1 -> end
+      const route3 = findDirectRoute(startName, transfer.transfer2);
+      const route4 = findDirectRoute(transfer.transfer1, endName);
 
       if (route3 && route4) {
         const transferConnection =
-          findDirectRoute(transfer.Transfer2, transfer.Transfer1) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer1)].filter(
+          findDirectRoute(transfer.transfer2, transfer.transfer1) ||
+          [getAllStops().find((s) => s.name === transfer.transfer1)].filter(
             Boolean
           );
         const combinedRoute = [
@@ -78,17 +88,13 @@ export default function FavouriteMenu({
           ...transferConnection.slice(1),
           ...route4.slice(1),
         ];
-        console.log(
-          `Transfer route found via ${transfer.Transfer2} -> ${transfer.Transfer1}`
-        );
         return combinedRoute.filter(Boolean);
       }
     }
-
     return null;
   };
 
-  // Helper function to find direct route between two stops (supports circular routes)
+  // Helper function to find direct route between two stops
   const findDirectRoute = (startName, endName) => {
     for (const route of routesData) {
       const stops = route.stops;
@@ -100,26 +106,21 @@ export default function FavouriteMenu({
       );
 
       if (startIndex !== -1 && endIndex !== -1) {
-        // Check for direct route (forward direction)
         if (startIndex < endIndex) {
           return stops.slice(startIndex, endIndex + 1);
-        }
-        // Check for circular route (wrap around)
-        else if (startIndex > endIndex) {
+        } else if (startIndex > endIndex) {
           // Check if it's a circular route
           const firstStop = stops[0];
           const lastStop = stops[stops.length - 1];
-
           const isCircular =
             firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
             (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
               Math.abs(firstStop.lon - lastStop.lon) < 0.001);
 
           if (isCircular) {
-            // Create circular route: from start to end of array, then from beginning to end index
             return [
-              ...stops.slice(startIndex), // From start to end of route
-              ...stops.slice(1, endIndex + 1), // From beginning to destination (skip first to avoid duplicate)
+              ...stops.slice(startIndex),
+              ...stops.slice(1, endIndex + 1),
             ];
           }
         }
@@ -136,7 +137,7 @@ export default function FavouriteMenu({
       const trimmedStart = s.trim();
       const trimmedEnd = d.trim();
 
-      // First, try to find a direct route using the improved logic
+      // Try to find a direct route
       let foundRoute = findDirectRoute(trimmedStart, trimmedEnd);
 
       // If no direct route found, try to find route with transfers
@@ -156,10 +157,11 @@ export default function FavouriteMenu({
         if (startStop && endStop) foundRoute = [startStop, endStop];
       }
 
-      setRoute(foundRoute || []);
+      // Force a new array reference to ensure React detects the change
+      setRoute(foundRoute ? [...foundRoute] : []);
     }
-    // Keep sidebar open after route selection
-    // if (setOpen) setOpen(false);
+    // Close sidebar after route selection
+    if (setOpen) setOpen(false);
   };
 
   return (

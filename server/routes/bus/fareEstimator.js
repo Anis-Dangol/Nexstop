@@ -1,9 +1,6 @@
 import express from "express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import BusRoute from "../../models/BusRoute.js";
+import { getFareForDistance } from "../../controllers/fare/fare-controller.js";
 
 const router = express.Router();
 
@@ -20,25 +17,13 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-router.post("/estimate-fare", (req, res) => {
+router.post("/estimate-fare", async (req, res) => {
   try {
     const { start, end, route } = req.body;
     console.log("Estimate fare request:", { start, end, route });
-    const filePath = path.resolve(
-      __dirname,
-      "../../../client/src/assets/routes.json"
-    );
-    if (!fs.existsSync(filePath)) {
-      console.error("routes.json file not found at:", filePath);
-      return res.status(500).json({ error: "routes.json file not found" });
-    }
-    let routesData;
-    try {
-      routesData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch (err) {
-      console.error("Error parsing routes.json:", err);
-      return res.status(500).json({ error: "Error parsing routes.json" });
-    }
+
+    // Get routes data from MongoDB
+    const routesData = await BusRoute.find();
 
     // Flatten all stops (unique by name)
     const allStops = [];
@@ -112,21 +97,8 @@ router.post("/estimate-fare", (req, res) => {
       console.log("Straight-line distance calculated:", totalDistance);
     }
 
-    // Fare logic (same as before)
-    let fare;
-    if (totalDistance < 1) {
-      fare = 10;
-    } else if (totalDistance < 5) {
-      fare = 20;
-    } else if (totalDistance < 10) {
-      fare = 25;
-    } else if (totalDistance < 15) {
-      fare = 30;
-    } else if (totalDistance < 20) {
-      fare = 35;
-    } else {
-      fare = 40;
-    }
+    // Get fare from database based on distance
+    const fare = await getFareForDistance(totalDistance);
 
     return res.json({
       route: `${startStop.name} → ${endStop.name}`,

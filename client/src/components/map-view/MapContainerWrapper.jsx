@@ -28,7 +28,7 @@ export default function MapContainerWrapper({
 
   // Custom hooks for data and UI state management
   const {
-    
+    userLocation,
     fareData,
     allStops,
     predefinedRoutes,

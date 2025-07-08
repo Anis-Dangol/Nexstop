@@ -2,7 +2,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useSelector } from "react-redux";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Bookmark, ChartNoAxesCombined, Search } from "lucide-react";
-import routesData from "../../assets/routes.json";
+import { fetchBusRoutes } from "../../services/busRoutes";
 import ClientMenuItems from "./ClientMenuItems";
 import FavouriteMenu from "./FavouriteMenu";
 import favouriteRoutesService from "../../services/favouriteRoutes";
@@ -18,12 +18,31 @@ export default function ClientSideBar({
   setRoute,
 }) {
   const [tab, setTab] = useState("search");
+  const [routesData, setRoutesData] = useState([]);
+  const [routesLoading, setRoutesLoading] = useState(true);
   const [history, setHistory] = useState([]);
   const [favourites, setFavourites] = useState([]);
   const [isLoadingFavourites, setIsLoadingFavourites] = useState(false);
 
   // Get user from Redux store
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+  // Load routes data from MongoDB
+  useEffect(() => {
+    const loadRoutes = async () => {
+      try {
+        setRoutesLoading(true);
+        const routes = await fetchBusRoutes();
+        setRoutesData(routes);
+      } catch (error) {
+        console.error("Failed to load routes:", error);
+        setRoutesData([]);
+      } finally {
+        setRoutesLoading(false);
+      }
+    };
+    loadRoutes();
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("routeHistory");
@@ -246,6 +265,8 @@ export default function ClientSideBar({
                 setRoute={setRoute}
                 allStops={allStops}
                 addToFavourites={addToFavourites}
+                routesData={routesData}
+                routesLoading={routesLoading}
               />
             ) : (
               <FavouriteMenu
@@ -257,6 +278,8 @@ export default function ClientSideBar({
                 setRoute={setRoute}
                 setOpen={setOpen}
                 isLoading={isLoadingFavourites}
+                routesData={routesData}
+                routesLoading={routesLoading}
               />
             )}
           </div>

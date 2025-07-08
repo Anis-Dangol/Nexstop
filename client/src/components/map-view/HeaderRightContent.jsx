@@ -1,4 +1,4 @@
-import { AlignJustify, LogOut, MapPin } from "lucide-react";
+import { AlignJustify, LogOut, MapPin, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,9 +16,20 @@ import { logoutUser } from "@/map/auth-slice/AuthSlice";
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   function handleLogout() {
     dispatch(logoutUser());
+  }
+
+  function handleSwitchToAdmin() {
+    // Check if user is admin before allowing switch
+    if (user?.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      // You can show a toast or alert here if needed
+      console.log("Access denied: Admin privileges required");
+    }
   }
 
   return (
@@ -39,6 +50,15 @@ function HeaderRightContent() {
         >
           <DropdownMenuLabel>Logged in as {user?.userName}</DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-[#070f18]" />
+          {user?.role === "admin" && (
+            <>
+              <DropdownMenuItem onClick={handleSwitchToAdmin}>
+                <Settings className="mr-2 h-4 w-4" />
+                Switch to Admin
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#070f18]" />
+            </>
+          )}
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout

@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import routesData from "../../assets/routes.json";
+import {
+  fetchBusStops,
+  deleteBusStop,
+  updateBusStop,
+} from "../../services/busRoutes";
+import { useToast } from "../../components/ui/use-toast";
 
 function AdminBusStops() {
   const [busStops, setBusStops] = useState([]);
@@ -12,40 +17,37 @@ function AdminBusStops() {
     latitude: "",
     longitude: "",
   });
-  const [updatedRoutesData, setUpdatedRoutesData] = useState(routesData);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Extract all unique bus stops from routes data
-    const extractBusStops = () => {
-      const allStops = [];
-      const uniqueStops = new Map(); // Use Map to avoid duplicates based on name and coordinates
-
-      updatedRoutesData.forEach((route) => {
-        route.stops.forEach((stop) => {
-          const stopKey = `${stop.name}-${stop.lat}-${stop.lon}`; // Create unique key
-          if (!uniqueStops.has(stopKey)) {
-            uniqueStops.set(stopKey, {
-              id: uniqueStops.size + 1, // Generate sequential ID
-              name: stop.name,
-              latitude: stop.lat,
-              longitude: stop.lon,
-            });
-          }
-        });
-      });
-
-      return Array.from(uniqueStops.values());
+    // Load bus stops from MongoDB via API
+    const loadBusStops = async () => {
+      try {
+        setLoading(true);
+        const stops = await fetchBusStops();
+        // Use the actual MongoDB _id from the API response
+        const transformedStops = stops.map((stop) => ({
+          id: stop.id, // Use the actual MongoDB _id
+          name: stop.name,
+          latitude: stop.lat,
+          longitude: stop.lon,
+          routeId: stop.routeId,
+          routeName: stop.routeName,
+          routeNumber: stop.routeNumber,
+        }));
+        setBusStops(transformedStops);
+      } catch (error) {
+        console.error("Failed to load bus stops:", error);
+        setBusStops([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    try {
-      const stops = extractBusStops();
-      setBusStops(stops);
-    } catch (error) {
-      console.error("Error loading bus stops:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [updatedRoutesData]);
+    loadBusStops();
+  }, []);
 
   // Format coordinates to show limited decimal places
   const formatCoordinate = (coord) => {
@@ -81,7 +83,7 @@ function AdminBusStops() {
   };
 
   // Save changes to bus stop
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const originalStop = busStops.find((stop) => stop.id === editingStop);
     if (!originalStop) return;
 
@@ -90,63 +92,98 @@ function AdminBusStops() {
     const newLon = parseFloat(editForm.longitude);
 
     if (isNaN(newLat) || isNaN(newLon)) {
-      alert("Please enter valid latitude and longitude values.");
+      toast({
+        title: "Invalid input",
+        description: "Please enter valid latitude and longitude values.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (newLat < -90 || newLat > 90) {
-      alert("Latitude must be between -90 and 90 degrees.");
+      toast({
+        title: "Invalid latitude",
+        description: "Latitude must be between -90 and 90 degrees.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (newLon < -180 || newLon > 180) {
-      alert("Longitude must be between -180 and 180 degrees.");
+      toast({
+        title: "Invalid longitude",
+        description: "Longitude must be between -180 and 180 degrees.",
+        variant: "destructive",
+      });
       return;
     }
 
-    // Update all bus stops with the same original name in routes data
-    const newUpdatedRoutesData = updatedRoutesData.map((route) => ({
-      ...route,
-      stops: route.stops.map((stop) => {
-        if (stop.name === originalStop.name) {
-          return {
-            ...stop,
-            name: editForm.name.trim(),
-            lat: newLat,
-            lon: newLon,
-          };
-        }
-        return stop;
-      }),
-    }));
+    try {
+      await updateBusStop(editingStop, {
+        name: editForm.name,
+        lat: newLat,
+        lon: newLon,
+      });
 
-    // Update the routes data state
-    setUpdatedRoutesData(newUpdatedRoutesData);
+      // Update the local state
+      setBusStops((prevStops) =>
+        prevStops.map((stop) =>
+          stop.id === editingStop
+            ? {
+                ...stop,
+                name: editForm.name,
+                latitude: newLat,
+                longitude: newLon,
+              }
+            : stop
+        )
+      );
 
-    // Show success message with download option
-    const confirmed = window.confirm(
-      `Successfully updated all bus stops with name "${originalStop.name}" across all routes!\n\nWould you like to download the updated routes.json file?`
-    );
+      toast({
+        title: "Success",
+        description: `Bus stop "${editForm.name}" updated successfully!`,
+      });
 
-    if (confirmed) {
-      downloadUpdatedJSON(newUpdatedRoutesData);
+      handleCancelEdit();
+    } catch (error) {
+      console.error("Error updating bus stop:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update bus stop. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    handleCancelEdit();
   };
 
-  // Function to download updated JSON file
-  const downloadUpdatedJSON = (data) => {
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "routes_updated.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  // Handle delete bus stop
+  const handleDeleteBusStop = async (stopId) => {
+    const stopToDelete = busStops.find((stop) => stop.id === stopId);
+    if (!stopToDelete) return;
+
+    if (
+      window.confirm(`Are you sure you want to delete "${stopToDelete.name}"?`)
+    ) {
+      try {
+        await deleteBusStop(stopId);
+
+        // Remove from local state
+        setBusStops((prevStops) =>
+          prevStops.filter((stop) => stop.id !== stopId)
+        );
+
+        toast({
+          title: "Success",
+          description: `Bus stop "${stopToDelete.name}" deleted successfully!`,
+        });
+      } catch (error) {
+        console.error("Error deleting bus stop:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete bus stop. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   // Filter bus stops based on search term
@@ -180,6 +217,81 @@ function AdminBusStops() {
     return sorted;
   }, [filteredBusStops, sortOrder]);
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBusStops = sortedAndFilteredBusStops.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(sortedAndFilteredBusStops.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Previous button
+    if (currentPage > 1) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(currentPage - 1)}
+          className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Previous
+        </button>
+      );
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 mx-1 rounded ${
+            i === currentPage
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(currentPage + 1)}
+          className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Next
+        </button>
+      );
+    }
+
+    return pages;
+  };
+
+  // Reset page to 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOrder]);
+
   if (loading) {
     return (
       <div className="w-full bg-gray-50 min-h-screen p-6">
@@ -200,30 +312,11 @@ function AdminBusStops() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">
                 Bus Stops
               </h1>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
-              <button
-                onClick={() => downloadUpdatedJSON(updatedRoutesData)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
-                title="Download updated routes.json file"
-              >
-                📥 Download JSON
-              </button>
-              <button
-                onClick={() => {
-                  setUpdatedRoutesData(routesData);
-                  alert("Routes data has been reset to original values.");
-                }}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
-                title="Reset to original routes data"
-              >
-                🔄 Reset Data
-              </button>
             </div>
           </div>
         </div>
@@ -232,9 +325,6 @@ function AdminBusStops() {
         <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Search Bus Stops
-              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -259,9 +349,6 @@ function AdminBusStops() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort by Name
-              </label>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
@@ -284,40 +371,6 @@ function AdminBusStops() {
             </div>
           </div>
         </div>
-
-        {/* Edit Warning Message */}
-        {editingStop && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Bulk Update Warning
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  <p>
-                    Editing this bus stop will update{" "}
-                    <strong>all bus stops</strong> with the same name across all
-                    routes. This ensures consistency across the entire
-                    transportation network.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Bus Stops Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -343,7 +396,7 @@ function AdminBusStops() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {sortedAndFilteredBusStops.map((stop, index) => (
+                {currentBusStops.map((stop, index) => (
                   <tr
                     key={stop.id}
                     className={`hover:bg-gray-50 transition-colors ${
@@ -419,17 +472,30 @@ function AdminBusStops() {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleEdit(stop)}
-                          disabled={editingStop !== null}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            editingStop !== null
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                          }`}
-                        >
-                          Edit
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEdit(stop)}
+                            disabled={editingStop !== null}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              editingStop !== null
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-yellow-500 hover:bg-yellow-600 text-white"
+                            }`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBusStop(stop.id)}
+                            disabled={editingStop !== null}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              editingStop !== null
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 text-white"
+                            }`}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -450,6 +516,26 @@ function AdminBusStops() {
             )}
           </div>
         </div>
+
+        {/* Pagination Controls */}
+        {sortedAndFilteredBusStops.length > itemsPerPage && (
+          <div className="flex justify-between items-center mt-6 px-6 py-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="text-sm text-gray-700">
+              Showing{" "}
+              {Math.min(
+                (currentPage - 1) * itemsPerPage + 1,
+                sortedAndFilteredBusStops.length
+              )}{" "}
+              to{" "}
+              {Math.min(
+                currentPage * itemsPerPage,
+                sortedAndFilteredBusStops.length
+              )}{" "}
+              of {sortedAndFilteredBusStops.length} results
+            </div>
+            <div className="flex space-x-1">{renderPagination()}</div>
+          </div>
+        )}
       </div>
     </div>
   );

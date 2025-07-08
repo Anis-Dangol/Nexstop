@@ -11,6 +11,8 @@ import AdminUsers from "./pages/admin-page/AdminUsers";
 import AdminBusStops from "./pages/admin-page/AdminBusStops";
 import AdminBusRoutes from "./pages/admin-page/AdminBusRoutes";
 import AdminTransfers from "./pages/admin-page/AdminTransfers";
+import AdminBusNames from "./pages/admin-page/AdminBusNames";
+import FareConfigPage from "./pages/admin-page/FareConfigPage";
 
 import NotFound from "./pages/not-found/NotFound";
 import MappingHome from "./pages/map-home/MappingHome";
@@ -22,6 +24,7 @@ import { useEffect } from "react";
 import { checkAuth } from "./map/auth-slice/AuthSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 import MappingLayout from "./components/map-view/MappingLayout";
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -75,6 +78,8 @@ function App() {
           <Route path="bus-stops" element={<AdminBusStops />} />
           <Route path="bus-routes" element={<AdminBusRoutes />} />
           <Route path="transfers" element={<AdminTransfers />} />
+          <Route path="bus-names" element={<AdminBusNames />} />
+          <Route path="fare-config" element={<FareConfigPage />} />
         </Route>
 
         <Route
@@ -90,6 +95,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/unauth-page" element={<UnauthPage />} />
       </Routes>
+      <Toaster />
     </div>
   );
 }
