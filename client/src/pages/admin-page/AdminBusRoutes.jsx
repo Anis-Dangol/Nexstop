@@ -26,14 +26,12 @@ function AdminBusRoutes() {
   const [newRoute, setNewRoute] = useState({
     routeNumber: "",
     name: "",
-    color: "#FF0000",
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
   const [editRoute, setEditRoute] = useState({
     routeNumber: "",
     name: "",
-    color: "#FF0000",
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
@@ -70,7 +68,6 @@ function AdminBusRoutes() {
     const exportData = busRoutes.map((route) => ({
       routeNumber: route.routeNumber,
       name: route.name,
-      color: route.color,
       stops: route.stops.map((stop) => ({
         name: stop.name,
         lat: stop.lat,
@@ -363,7 +360,6 @@ function AdminBusRoutes() {
       const routeData = {
         routeNumber: parseInt(newRoute.routeNumber),
         name: newRoute.name,
-        color: newRoute.color,
         stops: newRoute.stops.map((stop) => ({
           name: stop.name,
           lat: parseFloat(stop.lat),
@@ -398,7 +394,6 @@ function AdminBusRoutes() {
         setNewRoute({
           routeNumber: "",
           name: "",
-          color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
         setDraggedIndex(null);
@@ -419,7 +414,6 @@ function AdminBusRoutes() {
     setEditRoute({
       routeNumber: route.routeNumber,
       name: route.name,
-      color: route.color,
       stops: route.stops.map((stop) => ({
         name: stop.name,
         lat: stop.lat.toString(),
@@ -443,7 +437,6 @@ function AdminBusRoutes() {
       const routeData = {
         routeNumber: parseInt(editRoute.routeNumber),
         name: editRoute.name,
-        color: editRoute.color,
         stops: editRoute.stops.map((stop) => ({
           name: stop.name,
           lat: parseFloat(stop.lat),
@@ -479,7 +472,6 @@ function AdminBusRoutes() {
         setEditRoute({
           routeNumber: "",
           name: "",
-          color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
         setDraggedIndex(null);
@@ -610,7 +602,6 @@ function AdminBusRoutes() {
     setEditRoute({
       routeNumber: "",
       name: "",
-      color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
     setDraggedIndex(null);
@@ -622,7 +613,6 @@ function AdminBusRoutes() {
     setNewRoute({
       routeNumber: "",
       name: "",
-      color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
     setDraggedIndex(null);
@@ -830,9 +820,6 @@ function AdminBusRoutes() {
                       Route Name
                     </th>
                     <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Color
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
                       Total Stops
                     </th>
                     <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
@@ -861,17 +848,6 @@ function AdminBusRoutes() {
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-900">
                         {route.name}
-                      </td>
-                      <td className="py-4 px-6 text-sm">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full border-2 border-white shadow-sm`}
-                            style={{ backgroundColor: route.color }}
-                          ></div>
-                          <span className="text-gray-700 capitalize">
-                            {route.color}
-                          </span>
-                        </div>
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-700">
                         {route.totalStops}
@@ -965,39 +941,6 @@ function AdminBusRoutes() {
                         placeholder="Ratnapark and Kirtipur"
                         required
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Color:
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={newRoute.color}
-                          onChange={(e) =>
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
-                          title="Select route color"
-                        />
-                        <input
-                          type="text"
-                          value={newRoute.color}
-                          onChange={(e) =>
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="#FF0000"
-                          pattern="^#[0-9A-Fa-f]{6}$"
-                          title="Enter hex color code (e.g., #FF0000)"
-                        />
-                      </div>
                     </div>
                   </div>
 
@@ -1273,39 +1216,6 @@ function AdminBusRoutes() {
                         placeholder="Ratnapark and Kirtipur"
                         required
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Color:
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={editRoute.color}
-                          onChange={(e) =>
-                            setEditRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
-                          title="Select route color"
-                        />
-                        <input
-                          type="text"
-                          value={editRoute.color}
-                          onChange={(e) =>
-                            setEditRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="#FF0000"
-                          pattern="^#[0-9A-Fa-f]{6}$"
-                          title="Enter hex color code (e.g., #FF0000)"
-                        />
-                      </div>
                     </div>
                   </div>
 

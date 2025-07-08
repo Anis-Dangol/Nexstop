@@ -164,3 +164,49 @@ export const importBusRoutes = async (routesData, replaceExisting = false) => {
     throw error;
   }
 };
+
+// Delete bus stop (admin only)
+export const deleteBusStop = async (id) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bus/stops/${id}`, {
+      method: "DELETE",
+      credentials: "include", // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to delete bus stop");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error deleting bus stop:", error);
+    throw error;
+  }
+};
+
+// Update bus stop (admin only)
+export const updateBusStop = async (id, stopData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bus/stops/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Include cookies for authentication
+      body: JSON.stringify(stopData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to update bus stop");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating bus stop:", error);
+    throw error;
+  }
+};

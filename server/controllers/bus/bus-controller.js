@@ -98,7 +98,7 @@ export const createBusRoute = async (req, res) => {
         .json({ success: false, message: "Forbidden: Admins only" });
     }
 
-    const { routeNumber, name, color, stops } = req.body;
+    const { routeNumber, name, stops } = req.body;
 
     // Check if route number already exists
     const existingRoute = await BusRoute.findOne({ routeNumber });
@@ -130,7 +130,6 @@ export const createBusRoute = async (req, res) => {
     const newRoute = new BusRoute({
       routeNumber,
       name,
-      color,
       stops,
     });
 
@@ -160,7 +159,7 @@ export const updateBusRoute = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { routeNumber, name, color, stops } = req.body;
+    const { routeNumber, name, stops } = req.body;
 
     // Check if route exists
     const existingRoute = await BusRoute.findById(id);
@@ -203,7 +202,7 @@ export const updateBusRoute = async (req, res) => {
 
     const updatedRoute = await BusRoute.findByIdAndUpdate(
       id,
-      { routeNumber, name, color, stops },
+      { routeNumber, name, stops },
       { new: true, runValidators: true }
     );
 
@@ -362,7 +361,6 @@ export const importBusRoutes = async (req, res) => {
           // Update existing route
           await BusRoute.findByIdAndUpdate(existingRoute._id, {
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           updatedCount++;
@@ -371,7 +369,6 @@ export const importBusRoutes = async (req, res) => {
           const newRoute = new BusRoute({
             routeNumber: routeData.routeNumber,
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           await newRoute.save();
@@ -381,7 +378,6 @@ export const importBusRoutes = async (req, res) => {
           const newRoute = new BusRoute({
             routeNumber: routeData.routeNumber,
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           await newRoute.save();
@@ -410,6 +406,99 @@ export const importBusRoutes = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to import bus routes",
+    });
+  }
+};
+
+// Delete bus stop by ID
+export const deleteBusStop = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { id } = req.params;
+
+    // Find the route containing this stop
+    const route = await BusRoute.findOne({ "stops._id": id });
+
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        message: "Bus stop not found",
+      });
+    }
+
+    // Remove the stop from the route
+    route.stops = route.stops.filter((stop) => stop._id.toString() !== id);
+    await route.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Bus stop deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting bus stop:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete bus stop",
+    });
+  }
+};
+
+// Update bus stop by ID
+export const updateBusStop = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { id } = req.params;
+    const { name, lat, lon } = req.body;
+
+    // Validate required fields
+    if (!name || lat === undefined || lon === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, latitude, and longitude are required",
+      });
+    }
+
+    // Find the route containing this stop
+    const route = await BusRoute.findOne({ "stops._id": id });
+
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        message: "Bus stop not found",
+      });
+    }
+
+    // Update the stop
+    const stopIndex = route.stops.findIndex(
+      (stop) => stop._id.toString() === id
+    );
+    if (stopIndex !== -1) {
+      route.stops[stopIndex].name = name;
+      route.stops[stopIndex].lat = parseFloat(lat);
+      route.stops[stopIndex].lon = parseFloat(lon);
+      await route.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Bus stop updated successfully",
+      data: route.stops[stopIndex],
+    });
+  } catch (error) {
+    console.error("Error updating bus stop:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update bus stop",
     });
   }
 };

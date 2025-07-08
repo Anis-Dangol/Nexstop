@@ -26,11 +26,6 @@ const BusRouteSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    color: {
-      type: String,
-      required: true,
-      default: "#FF0000",
-    },
     stops: [BusStopSchema],
     totalStops: {
       type: Number,

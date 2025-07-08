@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { fetchBusStops } from "../../services/busRoutes";
+import {
+  fetchBusStops,
+  deleteBusStop,
+  updateBusStop,
+} from "../../services/busRoutes";
+import { useToast } from "../../components/ui/use-toast";
 
 function AdminBusStops() {
   const [busStops, setBusStops] = useState([]);
@@ -12,6 +17,9 @@ function AdminBusStops() {
     latitude: "",
     longitude: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Load bus stops from MongoDB via API
@@ -19,9 +27,9 @@ function AdminBusStops() {
       try {
         setLoading(true);
         const stops = await fetchBusStops();
-        // Transform the API response to match the expected structure
-        const transformedStops = stops.map((stop, index) => ({
-          id: index + 1,
+        // Use the actual MongoDB _id from the API response
+        const transformedStops = stops.map((stop) => ({
+          id: stop.id, // Use the actual MongoDB _id
           name: stop.name,
           latitude: stop.lat,
           longitude: stop.lon,
@@ -75,7 +83,7 @@ function AdminBusStops() {
   };
 
   // Save changes to bus stop
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     const originalStop = busStops.find((stop) => stop.id === editingStop);
     if (!originalStop) return;
 
@@ -84,25 +92,98 @@ function AdminBusStops() {
     const newLon = parseFloat(editForm.longitude);
 
     if (isNaN(newLat) || isNaN(newLon)) {
-      alert("Please enter valid latitude and longitude values.");
+      toast({
+        title: "Invalid input",
+        description: "Please enter valid latitude and longitude values.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (newLat < -90 || newLat > 90) {
-      alert("Latitude must be between -90 and 90 degrees.");
+      toast({
+        title: "Invalid latitude",
+        description: "Latitude must be between -90 and 90 degrees.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (newLon < -180 || newLon > 180) {
-      alert("Longitude must be between -180 and 180 degrees.");
+      toast({
+        title: "Invalid longitude",
+        description: "Longitude must be between -180 and 180 degrees.",
+        variant: "destructive",
+      });
       return;
     }
 
-    // TODO: Implement API call to update bus stop in MongoDB
-    // For now, just show a success message
-    alert(`Bus stop "${originalStop.name}" coordinates updated successfully!`);
+    try {
+      await updateBusStop(editingStop, {
+        name: editForm.name,
+        lat: newLat,
+        lon: newLon,
+      });
 
-    handleCancelEdit();
+      // Update the local state
+      setBusStops((prevStops) =>
+        prevStops.map((stop) =>
+          stop.id === editingStop
+            ? {
+                ...stop,
+                name: editForm.name,
+                latitude: newLat,
+                longitude: newLon,
+              }
+            : stop
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `Bus stop "${editForm.name}" updated successfully!`,
+      });
+
+      handleCancelEdit();
+    } catch (error) {
+      console.error("Error updating bus stop:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update bus stop. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle delete bus stop
+  const handleDeleteBusStop = async (stopId) => {
+    const stopToDelete = busStops.find((stop) => stop.id === stopId);
+    if (!stopToDelete) return;
+
+    if (
+      window.confirm(`Are you sure you want to delete "${stopToDelete.name}"?`)
+    ) {
+      try {
+        await deleteBusStop(stopId);
+
+        // Remove from local state
+        setBusStops((prevStops) =>
+          prevStops.filter((stop) => stop.id !== stopId)
+        );
+
+        toast({
+          title: "Success",
+          description: `Bus stop "${stopToDelete.name}" deleted successfully!`,
+        });
+      } catch (error) {
+        console.error("Error deleting bus stop:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete bus stop. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   // Filter bus stops based on search term
@@ -135,6 +216,81 @@ function AdminBusStops() {
 
     return sorted;
   }, [filteredBusStops, sortOrder]);
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBusStops = sortedAndFilteredBusStops.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(sortedAndFilteredBusStops.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Previous button
+    if (currentPage > 1) {
+      pages.push(
+        <button
+          key="prev"
+          onClick={() => handlePageChange(currentPage - 1)}
+          className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Previous
+        </button>
+      );
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 mx-1 rounded ${
+            i === currentPage
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      pages.push(
+        <button
+          key="next"
+          onClick={() => handlePageChange(currentPage + 1)}
+          className="px-3 py-1 mx-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Next
+        </button>
+      );
+    }
+
+    return pages;
+  };
+
+  // Reset page to 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOrder]);
 
   if (loading) {
     return (
@@ -240,7 +396,7 @@ function AdminBusStops() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {sortedAndFilteredBusStops.map((stop, index) => (
+                {currentBusStops.map((stop, index) => (
                   <tr
                     key={stop.id}
                     className={`hover:bg-gray-50 transition-colors ${
@@ -316,17 +472,30 @@ function AdminBusStops() {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleEdit(stop)}
-                          disabled={editingStop !== null}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            editingStop !== null
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                          }`}
-                        >
-                          Edit
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEdit(stop)}
+                            disabled={editingStop !== null}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              editingStop !== null
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-yellow-500 hover:bg-yellow-600 text-white"
+                            }`}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBusStop(stop.id)}
+                            disabled={editingStop !== null}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              editingStop !== null
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 text-white"
+                            }`}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -347,6 +516,26 @@ function AdminBusStops() {
             )}
           </div>
         </div>
+
+        {/* Pagination Controls */}
+        {sortedAndFilteredBusStops.length > itemsPerPage && (
+          <div className="flex justify-between items-center mt-6 px-6 py-4 bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="text-sm text-gray-700">
+              Showing{" "}
+              {Math.min(
+                (currentPage - 1) * itemsPerPage + 1,
+                sortedAndFilteredBusStops.length
+              )}{" "}
+              to{" "}
+              {Math.min(
+                currentPage * itemsPerPage,
+                sortedAndFilteredBusStops.length
+              )}{" "}
+              of {sortedAndFilteredBusStops.length} results
+            </div>
+            <div className="flex space-x-1">{renderPagination()}</div>
+          </div>
+        )}
       </div>
     </div>
   );
