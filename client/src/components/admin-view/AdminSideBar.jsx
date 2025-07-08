@@ -5,6 +5,7 @@ import {
   Route,
   ArrowLeftRight,
   Bus,
+  Banknote,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -26,6 +27,7 @@ function AdminSideBar({ collapsed, setCollapsed }) {
     { label: "Bus Routes", icon: Route, path: "/admin/bus-routes" },
     { label: "Transfers", icon: ArrowLeftRight, path: "/admin/transfers" },
     { label: "Bus Names", icon: Bus, path: "/admin/bus-names" },
+    { label: "Fare Estimatation", icon: Banknote, path: "/admin/fare-config" },
   ];
 
   const handleLogout = () => {

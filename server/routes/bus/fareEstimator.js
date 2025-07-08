@@ -1,5 +1,6 @@
 import express from "express";
 import BusRoute from "../../models/BusRoute.js";
+import { getFareForDistance } from "../../controllers/fare/fare-controller.js";
 
 const router = express.Router();
 
@@ -96,21 +97,8 @@ router.post("/estimate-fare", async (req, res) => {
       console.log("Straight-line distance calculated:", totalDistance);
     }
 
-    // Fare logic (same as before)
-    let fare;
-    if (totalDistance < 1) {
-      fare = 10;
-    } else if (totalDistance < 5) {
-      fare = 20;
-    } else if (totalDistance < 10) {
-      fare = 25;
-    } else if (totalDistance < 15) {
-      fare = 30;
-    } else if (totalDistance < 20) {
-      fare = 35;
-    } else {
-      fare = 40;
-    }
+    // Get fare from database based on distance
+    const fare = await getFareForDistance(totalDistance);
 
     return res.json({
       route: `${startStop.name} → ${endStop.name}`,

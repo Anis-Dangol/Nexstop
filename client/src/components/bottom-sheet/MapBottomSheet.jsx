@@ -8,9 +8,32 @@ export default function MapBottomSheet({
   setActiveTab,
   fareData,
   route = [],
+  onFareTabClick, // Add callback for fare tab click
 }) {
   const [transferData, setTransferData] = useState([]);
   const [busNamesData, setBusNamesData] = useState({});
+  const [lastRouteHash, setLastRouteHash] = useState("");
+
+  // Create route hash for tracking changes
+  const routeHash = route
+    .map((stop) => `${stop.name}_${stop.lat}_${stop.lon}`)
+    .join("|");
+
+  // Auto-refresh fare data when route changes (if fare tab is active)
+  useEffect(() => {
+    if (
+      activeTab === "fare" &&
+      route.length > 1 &&
+      onFareTabClick &&
+      routeHash !== lastRouteHash
+    ) {
+      console.log(
+        "MapBottomSheet: Route changed while fare tab is active, refreshing fare data"
+      );
+      setLastRouteHash(routeHash);
+      onFareTabClick();
+    }
+  }, [routeHash, activeTab, onFareTabClick, lastRouteHash]);
 
   // Load transfer data from MongoDB
   useEffect(() => {
@@ -64,7 +87,13 @@ export default function MapBottomSheet({
           className={`flex flex-col items-center focus:outline-none ${
             activeTab === "fare" ? "text-blue-600" : "text-gray-600"
           }`}
-          onClick={() => setActiveTab("fare")}
+          onClick={() => {
+            setActiveTab("fare");
+            // Trigger fare data refresh when switching to fare tab
+            if (onFareTabClick) {
+              onFareTabClick();
+            }
+          }}
         >
           <HandCoins size={24} />
           <span className="text-xs mt-1">Fare</span>

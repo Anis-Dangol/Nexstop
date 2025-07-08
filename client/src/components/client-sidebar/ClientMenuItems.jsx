@@ -173,7 +173,11 @@ export default function ClientMenuItems({
       return;
     }
 
-    if (typeof setRoute === "function") setRoute(foundRoute || []);
+    if (typeof setRoute === "function") {
+      console.log("ClientMenuItems: Setting route:", foundRoute || []);
+      // Force a new array reference to ensure React detects the change
+      setRoute(foundRoute ? [...foundRoute] : []);
+    }
     const newEntry = `${trimmedStart} → ${trimmedEnd}`;
     if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
       setHistory([newEntry, ...history]);

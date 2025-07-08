@@ -1,5 +1,5 @@
 import { AlignJustify, LogOut, MapPin } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import {

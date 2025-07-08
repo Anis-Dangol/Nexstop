@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { fetchRouteFromAPI, fetchUserToStart } from "../map/MapAPISlice";
 import { fetchBusRoutes } from "../services/busRoutes";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
@@ -63,11 +63,24 @@ export const useMapData = (routeProp) => {
     setAllStops(allStopsArr);
   }, [routesData]); // Add routesData as dependency
 
+  // Create a route hash to force re-evaluation
+  const routeHash = useMemo(() => {
+    if (!routeProp || routeProp.length === 0) return "";
+    return routeProp
+      .map((stop) => `${stop.name}_${stop.lat}_${stop.lon}`)
+      .join("|");
+  }, [routeProp]);
+
   // Effect: Fetch fare data when route changes
   useEffect(() => {
+    console.log("useMapData: Route changed, routeProp:", routeProp);
+    console.log("useMapData: Route hash:", routeHash);
     if (routeProp && routeProp.length > 1) {
       const start = routeProp[0].name;
       const end = routeProp[routeProp.length - 1].name;
+      console.log("useMapData: Fetching fare data for:", start, "→", end);
+      console.log("useMapData: Route data:", routeProp);
+
       fetch("http://localhost:5000/api/bus/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,12 +91,21 @@ export const useMapData = (routeProp) => {
         }),
       })
         .then((res) => res.json())
-        .then((data) => setFareData(data))
-        .catch(() => setFareData(null));
+        .then((data) => {
+          console.log("useMapData: Fare data received:", data);
+          setFareData(data);
+        })
+        .catch((error) => {
+          console.error("useMapData: Error fetching fare data:", error);
+          setFareData(null);
+        });
     } else {
+      console.log(
+        "useMapData: No route or route too short, clearing fare data"
+      );
       setFareData(null);
     }
-  }, [routeProp]);
+  }, [routeHash]); // Use route hash for more reliable change detection
 
   // Effect: Fetch API route when routeProp changes
   useEffect(() => {
@@ -183,6 +205,38 @@ export const useMapData = (routeProp) => {
     };
   }, []);
 
+  // Function to force refresh fare data
+  const refreshFareData = useCallback(() => {
+    console.log("useMapData: Force refreshing fare data");
+    if (routeProp && routeProp.length > 1) {
+      const start = routeProp[0].name;
+      const end = routeProp[routeProp.length - 1].name;
+      console.log("useMapData: Force fetching fare data for:", start, "→", end);
+
+      fetch("http://localhost:5000/api/bus/estimate-fare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start,
+          end,
+          route: routeProp,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("useMapData: Force refresh - Fare data received:", data);
+          setFareData(data);
+        })
+        .catch((error) => {
+          console.error(
+            "useMapData: Force refresh - Error fetching fare data:",
+            error
+          );
+          setFareData(null);
+        });
+    }
+  }, [routeProp]);
+
   return {
     userLocation,
     fareData,
@@ -196,5 +250,6 @@ export const useMapData = (routeProp) => {
     nearestStopMarker,
     center,
     setSelectedStops,
+    refreshFareData, // Add the refresh function
   };
 };
