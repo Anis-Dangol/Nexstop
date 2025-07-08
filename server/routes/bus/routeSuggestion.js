@@ -1,10 +1,5 @@
 import express from "express";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import BusRoute from "../../models/BusRoute.js";
 
 const router = express.Router();
 
@@ -12,13 +7,8 @@ router.post("/route", async (req, res) => {
   const { start, end } = req.body;
 
   try {
-    // Read from the correct routes.json location
-    const dataPath = path.resolve(
-      __dirname,
-      "../../../client/src/assets/routes.json"
-    );
-    const file = await fs.readFile(dataPath, "utf-8");
-    const routes = JSON.parse(file);
+    // Get routes data from MongoDB
+    const routes = await BusRoute.find();
 
     console.log(`Looking for route from "${start}" to "${end}"`);
 

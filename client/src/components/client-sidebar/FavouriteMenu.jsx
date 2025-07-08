@@ -1,5 +1,5 @@
-import routesData from "../../assets/routes.json";
-import transferData from "../../assets/transfer.json";
+import { useState, useEffect } from "react";
+import { fetchTransfers } from "../../services/transfers";
 
 export default function FavouriteMenu({
   favourites,
@@ -10,7 +10,25 @@ export default function FavouriteMenu({
   setRoute,
   setOpen,
   isLoading,
+  routesData = [],
+  routesLoading = false,
 }) {
+  const [transferData, setTransferData] = useState([]);
+
+  // Load transfer data from MongoDB
+  useEffect(() => {
+    const loadTransferData = async () => {
+      try {
+        const transfers = await fetchTransfers();
+        setTransferData(transfers);
+      } catch (error) {
+        console.error("Error loading transfer data:", error);
+        setTransferData([]);
+      }
+    };
+    loadTransferData();
+  }, []);
+
   const handleDeleteFavourite = (idx) => {
     const routeToDelete = favourites[idx];
     if (removeFromFavourites) {
@@ -42,14 +60,14 @@ export default function FavouriteMenu({
     // Try to find if there's a transfer route
     for (const transfer of transferData) {
       // Check if we need to go from start to transfer point 1, then transfer point 1 to transfer point 2, then to destination
-      const route1 = findDirectRoute(startName, transfer.Transfer1);
-      const route2 = findDirectRoute(transfer.Transfer2, endName);
+      const route1 = findDirectRoute(startName, transfer.transfer1);
+      const route2 = findDirectRoute(transfer.transfer2, endName);
 
       if (route1 && route2) {
         // Combine routes: start -> Transfer1, Transfer1 -> Transfer2 (transfer), Transfer2 -> end
         const transferConnection =
-          findDirectRoute(transfer.Transfer1, transfer.Transfer2) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer2)].filter(
+          findDirectRoute(transfer.transfer1, transfer.transfer2) ||
+          [getAllStops().find((s) => s.name === transfer.transfer2)].filter(
             Boolean
           );
         const combinedRoute = [
@@ -58,19 +76,19 @@ export default function FavouriteMenu({
           ...route2.slice(1), // Remove duplicate transfer point
         ];
         console.log(
-          `Transfer route found via ${transfer.Transfer1} -> ${transfer.Transfer2}`
+          `Transfer route found via ${transfer.transfer1} -> ${transfer.transfer2}`
         );
         return combinedRoute.filter(Boolean); // Remove any null/undefined stops
       }
 
-      // Also try the reverse: start -> Transfer2, Transfer2 -> Transfer1, Transfer1 -> end
-      const route3 = findDirectRoute(startName, transfer.Transfer2);
-      const route4 = findDirectRoute(transfer.Transfer1, endName);
+      // Also try the reverse: start -> transfer2, transfer2 -> transfer1, transfer1 -> end
+      const route3 = findDirectRoute(startName, transfer.transfer2);
+      const route4 = findDirectRoute(transfer.transfer1, endName);
 
       if (route3 && route4) {
         const transferConnection =
-          findDirectRoute(transfer.Transfer2, transfer.Transfer1) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer1)].filter(
+          findDirectRoute(transfer.transfer2, transfer.transfer1) ||
+          [getAllStops().find((s) => s.name === transfer.transfer1)].filter(
             Boolean
           );
         const combinedRoute = [
@@ -79,7 +97,7 @@ export default function FavouriteMenu({
           ...route4.slice(1),
         ];
         console.log(
-          `Transfer route found via ${transfer.Transfer2} -> ${transfer.Transfer1}`
+          `Transfer route found via ${transfer.transfer2} -> ${transfer.transfer1}`
         );
         return combinedRoute.filter(Boolean);
       }
@@ -158,8 +176,8 @@ export default function FavouriteMenu({
 
       setRoute(foundRoute || []);
     }
-    // Keep sidebar open after route selection
-    // if (setOpen) setOpen(false);
+    // Close sidebar after route selection (like the search functionality)
+    if (setOpen) setOpen(false);
   };
 
   return (

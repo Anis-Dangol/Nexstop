@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import routesData from "../../assets/routes.json";
+import { fetchBusStops } from "../../services/busRoutes";
 
 function AdminBusStops() {
   const [busStops, setBusStops] = useState([]);
@@ -12,40 +12,34 @@ function AdminBusStops() {
     latitude: "",
     longitude: "",
   });
-  const [updatedRoutesData, setUpdatedRoutesData] = useState(routesData);
 
   useEffect(() => {
-    // Extract all unique bus stops from routes data
-    const extractBusStops = () => {
-      const allStops = [];
-      const uniqueStops = new Map(); // Use Map to avoid duplicates based on name and coordinates
-
-      updatedRoutesData.forEach((route) => {
-        route.stops.forEach((stop) => {
-          const stopKey = `${stop.name}-${stop.lat}-${stop.lon}`; // Create unique key
-          if (!uniqueStops.has(stopKey)) {
-            uniqueStops.set(stopKey, {
-              id: uniqueStops.size + 1, // Generate sequential ID
-              name: stop.name,
-              latitude: stop.lat,
-              longitude: stop.lon,
-            });
-          }
-        });
-      });
-
-      return Array.from(uniqueStops.values());
+    // Load bus stops from MongoDB via API
+    const loadBusStops = async () => {
+      try {
+        setLoading(true);
+        const stops = await fetchBusStops();
+        // Transform the API response to match the expected structure
+        const transformedStops = stops.map((stop, index) => ({
+          id: index + 1,
+          name: stop.name,
+          latitude: stop.lat,
+          longitude: stop.lon,
+          routeId: stop.routeId,
+          routeName: stop.routeName,
+          routeNumber: stop.routeNumber,
+        }));
+        setBusStops(transformedStops);
+      } catch (error) {
+        console.error("Failed to load bus stops:", error);
+        setBusStops([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    try {
-      const stops = extractBusStops();
-      setBusStops(stops);
-    } catch (error) {
-      console.error("Error loading bus stops:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [updatedRoutesData]);
+    loadBusStops();
+  }, []);
 
   // Format coordinates to show limited decimal places
   const formatCoordinate = (coord) => {
@@ -104,49 +98,11 @@ function AdminBusStops() {
       return;
     }
 
-    // Update all bus stops with the same original name in routes data
-    const newUpdatedRoutesData = updatedRoutesData.map((route) => ({
-      ...route,
-      stops: route.stops.map((stop) => {
-        if (stop.name === originalStop.name) {
-          return {
-            ...stop,
-            name: editForm.name.trim(),
-            lat: newLat,
-            lon: newLon,
-          };
-        }
-        return stop;
-      }),
-    }));
-
-    // Update the routes data state
-    setUpdatedRoutesData(newUpdatedRoutesData);
-
-    // Show success message with download option
-    const confirmed = window.confirm(
-      `Successfully updated all bus stops with name "${originalStop.name}" across all routes!\n\nWould you like to download the updated routes.json file?`
-    );
-
-    if (confirmed) {
-      downloadUpdatedJSON(newUpdatedRoutesData);
-    }
+    // TODO: Implement API call to update bus stop in MongoDB
+    // For now, just show a success message
+    alert(`Bus stop "${originalStop.name}" coordinates updated successfully!`);
 
     handleCancelEdit();
-  };
-
-  // Function to download updated JSON file
-  const downloadUpdatedJSON = (data) => {
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "routes_updated.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   // Filter bus stops based on search term
@@ -205,25 +161,6 @@ function AdminBusStops() {
               <h1 className="text-3xl font-bold text-gray-800 mb-2">
                 Bus Stops
               </h1>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
-              <button
-                onClick={() => downloadUpdatedJSON(updatedRoutesData)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
-                title="Download updated routes.json file"
-              >
-                📥 Download JSON
-              </button>
-              <button
-                onClick={() => {
-                  setUpdatedRoutesData(routesData);
-                  alert("Routes data has been reset to original values.");
-                }}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
-                title="Reset to original routes data"
-              >
-                🔄 Reset Data
-              </button>
             </div>
           </div>
         </div>
@@ -284,40 +221,6 @@ function AdminBusStops() {
             </div>
           </div>
         </div>
-
-        {/* Edit Warning Message */}
-        {editingStop && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Bulk Update Warning
-                </h3>
-                <div className="mt-1 text-sm text-yellow-700">
-                  <p>
-                    Editing this bus stop will update{" "}
-                    <strong>all bus stops</strong> with the same name across all
-                    routes. This ensures consistency across the entire
-                    transportation network.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Bus Stops Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

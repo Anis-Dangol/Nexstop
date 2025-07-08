@@ -1,9 +1,5 @@
 import express from "express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import BusRoute from "../../models/BusRoute.js";
 
 const router = express.Router();
 
@@ -20,25 +16,13 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-router.post("/estimate-fare", (req, res) => {
+router.post("/estimate-fare", async (req, res) => {
   try {
     const { start, end, route } = req.body;
     console.log("Estimate fare request:", { start, end, route });
-    const filePath = path.resolve(
-      __dirname,
-      "../../../client/src/assets/routes.json"
-    );
-    if (!fs.existsSync(filePath)) {
-      console.error("routes.json file not found at:", filePath);
-      return res.status(500).json({ error: "routes.json file not found" });
-    }
-    let routesData;
-    try {
-      routesData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch (err) {
-      console.error("Error parsing routes.json:", err);
-      return res.status(500).json({ error: "Error parsing routes.json" });
-    }
+
+    // Get routes data from MongoDB
+    const routesData = await BusRoute.find();
 
     // Flatten all stops (unique by name)
     const allStops = [];

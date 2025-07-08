@@ -4,6 +4,7 @@ import {
   MapPin,
   Route,
   ArrowLeftRight,
+  Bus,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -25,6 +26,7 @@ function AdminSideBar({ collapsed, setCollapsed }) {
     { label: "Bus Stops", icon: MapPin, path: "/admin/bus-stops" },
     { label: "Bus Routes", icon: Route, path: "/admin/bus-routes" },
     { label: "Transfers", icon: ArrowLeftRight, path: "/admin/transfers" },
+    { label: "Bus Names", icon: Bus, path: "/admin/bus-names" },
   ];
 
   const handleLogout = () => {

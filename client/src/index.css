@@ -67,3 +67,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Map marker styles */
+.nearest-stop-marker {
+  z-index: 1000 !important;
+}
+
+.nearest-stop-icon {
+  color: red;
+  font-size: 40px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  width: 30px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000 !important;
+}
+
+.leaflet-marker-pane .nearest-stop-marker {
+  z-index: 1000 !important;
+}
