@@ -11,6 +11,7 @@ import AdminUsers from "./pages/admin-page/AdminUsers";
 import AdminBusStops from "./pages/admin-page/AdminBusStops";
 import AdminBusRoutes from "./pages/admin-page/AdminBusRoutes";
 import AdminTransfers from "./pages/admin-page/AdminTransfers";
+import AdminBusNames from "./pages/admin-page/AdminBusNames";
 
 import NotFound from "./pages/not-found/NotFound";
 import MappingHome from "./pages/map-home/MappingHome";
@@ -75,6 +76,7 @@ function App() {
           <Route path="bus-stops" element={<AdminBusStops />} />
           <Route path="bus-routes" element={<AdminBusRoutes />} />
           <Route path="transfers" element={<AdminTransfers />} />
+          <Route path="bus-names" element={<AdminBusNames />} />
         </Route>
 
         <Route

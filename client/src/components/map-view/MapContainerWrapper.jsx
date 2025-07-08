@@ -19,10 +19,7 @@ import TransferInfoButton from "../transfer/TransferInfoButton";
 import TransferPopup from "../transfer/TransferPopup";
 import { useMapData } from "../../hooks/useMapData";
 import { useBottomSheet } from "../../hooks/useBottomSheet";
-import {
-  getBusNamesForStop,
-  getRouteNumberForSegment,
-} from "../../utils/mapUtils";
+import { getRouteNumberForSegment } from "../../utils/mapUtils";
 
 export default function MapContainerWrapper({
   route: routeProp,
@@ -174,7 +171,6 @@ export default function MapContainerWrapper({
           setActiveTab={setActiveTab}
           fareData={fareData}
           route={routeProp}
-          getBusNamesForStop={getBusNamesForStop}
         />
       </BottomSheet>
     </div>

@@ -1,4 +1,25 @@
-import busNameArray from "../assets/busNameArray.json";
+import { fetchBusNames } from "../services/busNames";
+
+// Cache for bus names data
+let busNamesCache = null;
+
+// Helper: Load bus names from API and cache them
+async function loadBusNames() {
+  if (!busNamesCache) {
+    try {
+      busNamesCache = await fetchBusNames();
+    } catch (error) {
+      console.error("Failed to load bus names:", error);
+      busNamesCache = [];
+    }
+  }
+  return busNamesCache;
+}
+
+// Helper: Clear bus names cache (call this when bus names are updated)
+export function clearBusNamesCache() {
+  busNamesCache = null;
+}
 
 // Helper: Find routeNumber for a stop
 export function getRouteNumberForStop(stop, predefinedRoutes) {
@@ -26,7 +47,8 @@ export function getRouteChangeIndices(routeProp, predefinedRoutes) {
 }
 
 // Helper: Get bus names for a stop
-export function getBusNamesForStop(stopName) {
+export async function getBusNamesForStop(stopName) {
+  const busNameArray = await loadBusNames();
   const busNames = busNameArray
     .filter((entry) => entry.stops.includes(stopName))
     .map((entry) => entry.busname);

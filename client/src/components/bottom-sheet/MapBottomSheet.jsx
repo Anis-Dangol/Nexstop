@@ -1,15 +1,16 @@
 import { HandCoins, BusFront, ArrowLeftRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchTransfers } from "../../services/transfers";
+import { getBusNamesForStop } from "../../utils/mapUtils";
 
 export default function MapBottomSheet({
   activeTab,
   setActiveTab,
   fareData,
   route = [],
-  getBusNamesForStop,
 }) {
   const [transferData, setTransferData] = useState([]);
+  const [busNamesData, setBusNamesData] = useState({});
 
   // Load transfer data from MongoDB
   useEffect(() => {
@@ -24,6 +25,27 @@ export default function MapBottomSheet({
     };
     loadTransferData();
   }, []);
+
+  // Load bus names for all stops in the route
+  useEffect(() => {
+    const loadBusNamesForRoute = async () => {
+      const busNamesMap = {};
+      for (const stop of route) {
+        try {
+          const busNames = await getBusNamesForStop(stop.name);
+          busNamesMap[stop.name] = busNames || [];
+        } catch (error) {
+          console.error(`Error loading bus names for ${stop.name}:`, error);
+          busNamesMap[stop.name] = [];
+        }
+      }
+      setBusNamesData(busNamesMap);
+    };
+
+    if (route.length > 0) {
+      loadBusNamesForRoute();
+    }
+  }, [route]);
 
   // Helper function to check if a transfer is valid (both transfer points exist in route)
   const isValidTransferInRoute = (transfer1, transfer2, routeStops) => {
@@ -102,7 +124,9 @@ export default function MapBottomSheet({
               <>
                 {/* Summary at top */}
                 {route.some(
-                  (stop) => getBusNamesForStop && getBusNamesForStop(stop.name)
+                  (stop) =>
+                    busNamesData[stop.name] &&
+                    busNamesData[stop.name].length > 0
                 ) && (
                   <div className="mb-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="text-sm text-blue-800 font-bold">
@@ -111,8 +135,8 @@ export default function MapBottomSheet({
                         {
                           route.filter(
                             (stop) =>
-                              getBusNamesForStop &&
-                              getBusNamesForStop(stop.name)
+                              busNamesData[stop.name] &&
+                              busNamesData[stop.name].length > 0
                           ).length
                         }
                       </span>
@@ -123,11 +147,7 @@ export default function MapBottomSheet({
                         {[
                           ...new Set(
                             route
-                              .flatMap((stop) =>
-                                getBusNamesForStop
-                                  ? getBusNamesForStop(stop.name)
-                                  : []
-                              )
+                              .flatMap((stop) => busNamesData[stop.name] || [])
                               .filter(Boolean)
                           ),
                         ].join(", ")}
@@ -140,9 +160,7 @@ export default function MapBottomSheet({
                   {(() => {
                     const busNameMap = {};
                     route.forEach((stop, idx) => {
-                      const busNames = getBusNamesForStop
-                        ? getBusNamesForStop(stop.name)
-                        : [];
+                      const busNames = busNamesData[stop.name] || [];
                       if (!busNames || busNames.length === 0) return;
                       busNames.forEach((busName) => {
                         if (!busNameMap[busName]) {
@@ -273,7 +291,8 @@ export default function MapBottomSheet({
                   {/* Show message if no buses found */}
                   {route.every(
                     (stop) =>
-                      !getBusNamesForStop || !getBusNamesForStop(stop.name)
+                      !busNamesData[stop.name] ||
+                      busNamesData[stop.name].length === 0
                   ) && (
                     <div className="text-center py-4 text-gray-500">
                       No bus information available for this route.

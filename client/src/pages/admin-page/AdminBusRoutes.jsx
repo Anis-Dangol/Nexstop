@@ -30,6 +30,13 @@ function AdminBusRoutes() {
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
+  const [editRoute, setEditRoute] = useState({
+    routeNumber: "",
+    name: "",
+    color: "#FF0000",
+    stops: [{ name: "", lat: "", lon: "" }],
+  });
+
   const { user } = useSelector((state) => state.auth);
 
   // Fetch bus routes on component mount
@@ -89,60 +96,136 @@ function AdminBusRoutes() {
     return 0;
   });
 
-  // Helper functions for modal
-  const addNewStop = (afterIndex = null) => {
-    setNewRoute((prev) => {
-      const newStops = [...prev.stops];
-      const newStop = { name: "", lat: "", lon: "" };
+  // Helper function to get next available route number
+  const getNextAvailableRouteNumber = () => {
+    if (busRoutes.length === 0) return 1;
 
-      if (afterIndex !== null) {
-        // Insert after the specified index
-        newStops.splice(afterIndex + 1, 0, newStop);
-      } else {
-        // Add at the end (default behavior)
-        newStops.push(newStop);
+    const existingNumbers = busRoutes
+      .map((route) => route.routeNumber)
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    for (let i = 1; i <= existingNumbers.length + 1; i++) {
+      if (!existingNumbers.includes(i)) {
+        return i;
       }
+    }
 
-      return {
+    // If no gaps, return the next number after the highest
+    return Math.max(...existingNumbers) + 1;
+  };
+
+  // Helper functions for modal
+  const addNewStop = (afterIndex = null, formType = "new") => {
+    if (formType === "edit") {
+      setEditRoute((prev) => {
+        const newStops = [...prev.stops];
+        const newStop = { name: "", lat: "", lon: "" };
+
+        if (afterIndex !== null) {
+          // Insert after the specified index
+          newStops.splice(afterIndex + 1, 0, newStop);
+        } else {
+          // Add at the end (default behavior)
+          newStops.push(newStop);
+        }
+
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    } else {
+      setNewRoute((prev) => {
+        const newStops = [...prev.stops];
+        const newStop = { name: "", lat: "", lon: "" };
+
+        if (afterIndex !== null) {
+          // Insert after the specified index
+          newStops.splice(afterIndex + 1, 0, newStop);
+        } else {
+          // Add at the end (default behavior)
+          newStops.push(newStop);
+        }
+
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    }
+  };
+
+  const addStopAfter = (index, formType = "new") => {
+    if (formType === "edit") {
+      setEditRoute((prev) => {
+        const newStops = [...prev.stops];
+        newStops.splice(index + 1, 0, { name: "", lat: "", lon: "" });
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    } else {
+      setNewRoute((prev) => {
+        const newStops = [...prev.stops];
+        newStops.splice(index + 1, 0, { name: "", lat: "", lon: "" });
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    }
+  };
+
+  const removeStop = (index, formType = "new") => {
+    if (formType === "edit") {
+      setEditRoute((prev) => ({
         ...prev,
-        stops: newStops,
-      };
-    });
+        stops: prev.stops.filter((_, i) => i !== index),
+      }));
+    } else {
+      setNewRoute((prev) => ({
+        ...prev,
+        stops: prev.stops.filter((_, i) => i !== index),
+      }));
+    }
   };
 
-  const removeStop = (index) => {
-    setNewRoute((prev) => ({
-      ...prev,
-      stops: prev.stops.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateStop = (index, field, value) => {
-    setNewRoute((prev) => ({
-      ...prev,
-      stops: prev.stops.map((stop, i) =>
-        i === index ? { ...stop, [field]: value } : stop
-      ),
-    }));
+  const updateStop = (index, field, value, formType = "new") => {
+    if (formType === "edit") {
+      setEditRoute((prev) => ({
+        ...prev,
+        stops: prev.stops.map((stop, i) =>
+          i === index ? { ...stop, [field]: value } : stop
+        ),
+      }));
+    } else {
+      setNewRoute((prev) => ({
+        ...prev,
+        stops: prev.stops.map((stop, i) =>
+          i === index ? { ...stop, [field]: value } : stop
+        ),
+      }));
+    }
   };
 
   // Drag and drop functions
   const handleDragStart = (e, index) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+
     // Create a custom drag image
     const dragElement = e.target.closest(".drag-container");
-    e.dataTransfer.setDragImage(dragElement, 0, 0);
+    if (dragElement) {
+      e.dataTransfer.setDragImage(dragElement, 0, 0);
+    }
   };
 
-  const handleDragOver = (e, index) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-
-    // Only set drag over index if it's different from dragged index
-    if (draggedIndex !== null && draggedIndex !== index) {
-      setDragOverIndex(index);
-    }
   };
 
   const handleDragEnter = (e, index) => {
@@ -153,13 +236,18 @@ function AdminBusRoutes() {
   };
 
   const handleDragLeave = (e) => {
-    // Only clear drag over index if we're leaving the container entirely
-    if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.preventDefault();
+    // Check if we're leaving the container entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
       setDragOverIndex(null);
     }
   };
 
-  const handleDrop = (e, dropIndex) => {
+  const handleDrop = (e, dropIndex, formType = "new") => {
     e.preventDefault();
     setDragOverIndex(null);
 
@@ -168,34 +256,65 @@ function AdminBusRoutes() {
       return;
     }
 
-    setNewRoute((prev) => {
-      const newStops = [...prev.stops];
-      const draggedItem = newStops[draggedIndex];
+    if (formType === "edit") {
+      setEditRoute((prev) => {
+        const newStops = [...prev.stops];
+        const draggedItem = newStops[draggedIndex];
 
-      // Remove the dragged item from its current position
-      newStops.splice(draggedIndex, 1);
+        // Remove the dragged item from its current position
+        newStops.splice(draggedIndex, 1);
 
-      // Calculate the correct drop position
-      let finalDropIndex;
-      if (dropIndex >= newStops.length) {
-        // Dropping at the end
-        finalDropIndex = newStops.length;
-      } else if (dropIndex > draggedIndex) {
-        // Dropping after the original position (index already adjusted by removal)
-        finalDropIndex = dropIndex - 1;
-      } else {
-        // Dropping before the original position
-        finalDropIndex = dropIndex;
-      }
+        // Calculate the correct drop position
+        let finalDropIndex;
+        if (dropIndex >= newStops.length) {
+          // Dropping at the end
+          finalDropIndex = newStops.length;
+        } else if (dropIndex > draggedIndex) {
+          // Dropping after the original position (index already adjusted by removal)
+          finalDropIndex = dropIndex - 1;
+        } else {
+          // Dropping before the original position
+          finalDropIndex = dropIndex;
+        }
 
-      // Insert at new position
-      newStops.splice(finalDropIndex, 0, draggedItem);
+        // Insert at new position
+        newStops.splice(finalDropIndex, 0, draggedItem);
 
-      return {
-        ...prev,
-        stops: newStops,
-      };
-    });
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    } else {
+      setNewRoute((prev) => {
+        const newStops = [...prev.stops];
+        const draggedItem = newStops[draggedIndex];
+
+        // Remove the dragged item from its current position
+        newStops.splice(draggedIndex, 1);
+
+        // Calculate the correct drop position
+        let finalDropIndex;
+        if (dropIndex >= newStops.length) {
+          // Dropping at the end
+          finalDropIndex = newStops.length;
+        } else if (dropIndex > draggedIndex) {
+          // Dropping after the original position (index already adjusted by removal)
+          finalDropIndex = dropIndex - 1;
+        } else {
+          // Dropping before the original position
+          finalDropIndex = dropIndex;
+        }
+
+        // Insert at new position
+        newStops.splice(finalDropIndex, 0, draggedItem);
+
+        return {
+          ...prev,
+          stops: newStops,
+        };
+      });
+    }
 
     setDraggedIndex(null);
   };
@@ -233,6 +352,17 @@ function AdminBusRoutes() {
         return;
       }
 
+      // Check for duplicate route number
+      const isDuplicate = busRoutes.some(
+        (route) => route.routeNumber === routeData.routeNumber
+      );
+      if (isDuplicate) {
+        alert(
+          `Route number ${routeData.routeNumber} is already in use. Please choose a different number.`
+        );
+        return;
+      }
+
       // Check if any stop has invalid coordinates
       for (const stop of routeData.stops) {
         if (!stop.name || isNaN(stop.lat) || isNaN(stop.lon)) {
@@ -253,6 +383,8 @@ function AdminBusRoutes() {
           color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
+        setDraggedIndex(null);
+        setDragOverIndex(null);
         alert("Bus route created successfully!");
       }
     } catch (error) {
@@ -266,7 +398,7 @@ function AdminBusRoutes() {
   // Edit route function
   const handleEditRoute = (route) => {
     setEditingRoute(route);
-    setNewRoute({
+    setEditRoute({
       routeNumber: route.routeNumber,
       name: route.name,
       color: route.color,
@@ -277,6 +409,9 @@ function AdminBusRoutes() {
       })),
     });
     setShowEditModal(true);
+    // Reset drag states
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   // Update route function
@@ -288,10 +423,10 @@ function AdminBusRoutes() {
 
       // Prepare data for API
       const routeData = {
-        routeNumber: parseInt(newRoute.routeNumber),
-        name: newRoute.name,
-        color: newRoute.color,
-        stops: newRoute.stops.map((stop) => ({
+        routeNumber: parseInt(editRoute.routeNumber),
+        name: editRoute.name,
+        color: editRoute.color,
+        stops: editRoute.stops.map((stop) => ({
           name: stop.name,
           lat: parseFloat(stop.lat),
           lon: parseFloat(stop.lon),
@@ -323,12 +458,14 @@ function AdminBusRoutes() {
         await loadBusRoutes();
         setShowEditModal(false);
         setEditingRoute(null);
-        setNewRoute({
+        setEditRoute({
           routeNumber: "",
           name: "",
           color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
+        setDraggedIndex(null);
+        setDragOverIndex(null);
         alert("Bus route updated successfully!");
       }
     } catch (error) {
@@ -452,12 +589,14 @@ function AdminBusRoutes() {
   const closeEditModal = () => {
     setShowEditModal(false);
     setEditingRoute(null);
-    setNewRoute({
+    setEditRoute({
       routeNumber: "",
       name: "",
       color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const closeModal = () => {
@@ -468,6 +607,8 @@ function AdminBusRoutes() {
       color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -483,7 +624,18 @@ function AdminBusRoutes() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  const nextRouteNumber = getNextAvailableRouteNumber();
+                  setNewRoute({
+                    routeNumber: nextRouteNumber.toString(),
+                    name: "",
+                    color: "#FF0000",
+                    stops: [{ name: "", lat: "", lon: "" }],
+                  });
+                  setShowAddModal(true);
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 + Add New Route
@@ -669,19 +821,61 @@ function AdminBusRoutes() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Route Number:
                       </label>
-                      <input
-                        type="number"
-                        value={newRoute.routeNumber}
-                        onChange={(e) =>
-                          setNewRoute((prev) => ({
-                            ...prev,
-                            routeNumber: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="1"
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={newRoute.routeNumber}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const routeNumber = parseInt(value);
+                            const isDuplicate = busRoutes.some(
+                              (route) => route.routeNumber === routeNumber
+                            );
+
+                            setNewRoute((prev) => ({
+                              ...prev,
+                              routeNumber: value,
+                            }));
+                          }}
+                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:border-blue-500 ${
+                            busRoutes.some(
+                              (route) =>
+                                route.routeNumber ===
+                                parseInt(newRoute.routeNumber)
+                            )
+                              ? "border-red-300 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
+                          placeholder={`Suggested: ${getNextAvailableRouteNumber()}`}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRoute((prev) => ({
+                              ...prev,
+                              routeNumber:
+                                getNextAvailableRouteNumber().toString(),
+                            }));
+                          }}
+                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          title="Use next available route number"
+                        >
+                          Auto
+                        </button>
+                      </div>
+                      {busRoutes.some(
+                        (route) =>
+                          route.routeNumber === parseInt(newRoute.routeNumber)
+                      ) && (
+                        <p className="text-red-500 text-xs mt-1">
+                          ⚠️ Route number {newRoute.routeNumber} is already in
+                          use
+                        </p>
+                      )}
+                      <p className="text-gray-500 text-xs mt-1">
+                        💡 Next available: {getNextAvailableRouteNumber()}
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -746,39 +940,51 @@ function AdminBusRoutes() {
                         💡 Drag the ⋮⋮ button to reorder stops
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
                       {newRoute.stops.map((stop, index) => (
-                        <React.Fragment key={index}>
-                          {/* Drop zone indicator */}
-                          {draggedIndex !== null && draggedIndex !== index && (
-                            <div
-                              className={`h-2 transition-all duration-200 ${
-                                dragOverIndex === index
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                setDragOverIndex(index);
-                              }}
-                              onDrop={(e) => handleDrop(e, index)}
-                            />
-                          )}
+                        <div key={index}>
+                          {/* Drop zone before each item */}
+                          <div
+                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
+                              draggedIndex !== null &&
+                              draggedIndex !== index &&
+                              dragOverIndex === index
+                                ? "bg-green-300 rounded-full opacity-100"
+                                : "opacity-0"
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragEnter={(e) => handleDragEnter(e, index)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, index, "new")}
+                          >
+                            {draggedIndex !== null &&
+                              draggedIndex !== index &&
+                              dragOverIndex === index && (
+                                <span className="text-xs text-green-700 font-medium">
+                                  Drop here
+                                </span>
+                              )}
+                          </div>
 
                           <div
-                            className={`drag-container flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
+                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
                               draggedIndex === index
                                 ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-gray-50 border-2 border-transparent hover:bg-gray-100"
+                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
                             }`}
                           >
-                            {/* ...existing code... */}
-                            <div className="flex items-center gap-2">
+                            {/* Stop Number */}
+                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
+                              {index + 1}
+                            </div>
+
+                            {/* Add and Drag Controls */}
+                            <div className="flex flex-col items-center gap-1">
                               <button
                                 type="button"
-                                onClick={() => addNewStop(index)}
-                                className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-blue-600 transition-colors"
-                                title="Add new bus stop after this one"
+                                onClick={() => addStopAfter(index, "new")}
+                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
+                                title="Add new stop after this one"
                               >
                                 +
                               </button>
@@ -791,12 +997,13 @@ function AdminBusRoutes() {
                                     ? "bg-blue-500 text-white shadow-lg transform scale-110"
                                     : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
                                 }`}
-                                title="Drag to reorder bus stops"
+                                title="Drag to reorder stops"
                               >
-                                <span className="text-xs font-bold">⋮⋮</span>{" "}
+                                <span className="text-sm font-bold">⋮⋮</span>
                               </div>
                             </div>
-                            {/* ...existing code... */}
+
+                            {/* Stop Inputs */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -806,7 +1013,12 @@ function AdminBusRoutes() {
                                   type="text"
                                   value={stop.name}
                                   onChange={(e) =>
-                                    updateStop(index, "name", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "name",
+                                      e.target.value,
+                                      "new"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -826,7 +1038,12 @@ function AdminBusRoutes() {
                                   step="any"
                                   value={stop.lat}
                                   onChange={(e) =>
-                                    updateStop(index, "lat", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "lat",
+                                      e.target.value,
+                                      "new"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -846,7 +1063,12 @@ function AdminBusRoutes() {
                                   step="any"
                                   value={stop.lon}
                                   onChange={(e) =>
-                                    updateStop(index, "lon", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "lon",
+                                      e.target.value,
+                                      "new"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -858,46 +1080,47 @@ function AdminBusRoutes() {
                                 />
                               </div>
                             </div>
+
+                            {/* Remove Button */}
                             {newRoute.stops.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => removeStop(index)}
-                                className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-red-600"
+                                onClick={() => removeStop(index, "new")}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
                               >
-                                ×
+                                ✕
                               </button>
                             )}
                           </div>
-                        </React.Fragment>
-                      ))}
 
-                      {/* Drop zone at the end */}
-                      {draggedIndex !== null && (
-                        <div
-                          className={`h-3 transition-all duration-200 ${
-                            dragOverIndex === newRoute.stops.length
-                              ? "bg-green-300 rounded-full opacity-100"
-                              : "opacity-0"
-                          }`}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setDragOverIndex(newRoute.stops.length);
-                          }}
-                          onDrop={(e) => handleDrop(e, newRoute.stops.length)}
-                        />
-                      )}
-                      {/* 
-                      // Stop at End Button 
-                      <div className="flex justify-center mt-4">
-                        <button
-                          type="button"
-                          onClick={() => addNewStop()}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                        >
-                          <span className="text-lg">+</span>
-                          Add Stop at End
-                        </button>
-                      </div> */}
+                          {/* Drop zone after the last item */}
+                          {index === newRoute.stops.length - 1 && (
+                            <div
+                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
+                                draggedIndex !== null &&
+                                dragOverIndex === newRoute.stops.length
+                                  ? "bg-green-300 rounded-full opacity-100"
+                                  : "opacity-0"
+                              }`}
+                              onDragOver={handleDragOver}
+                              onDragEnter={(e) =>
+                                handleDragEnter(e, newRoute.stops.length)
+                              }
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) =>
+                                handleDrop(e, newRoute.stops.length, "new")
+                              }
+                            >
+                              {draggedIndex !== null &&
+                                dragOverIndex === newRoute.stops.length && (
+                                  <span className="text-xs text-green-700 font-medium">
+                                    Drop here
+                                  </span>
+                                )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -950,9 +1173,9 @@ function AdminBusRoutes() {
                       </label>
                       <input
                         type="number"
-                        value={newRoute.routeNumber}
+                        value={editRoute.routeNumber}
                         onChange={(e) =>
-                          setNewRoute((prev) => ({
+                          setEditRoute((prev) => ({
                             ...prev,
                             routeNumber: e.target.value,
                           }))
@@ -968,9 +1191,9 @@ function AdminBusRoutes() {
                       </label>
                       <input
                         type="text"
-                        value={newRoute.name}
+                        value={editRoute.name}
                         onChange={(e) =>
-                          setNewRoute((prev) => ({
+                          setEditRoute((prev) => ({
                             ...prev,
                             name: e.target.value,
                           }))
@@ -987,9 +1210,9 @@ function AdminBusRoutes() {
                       <div className="flex items-center gap-3">
                         <input
                           type="color"
-                          value={newRoute.color}
+                          value={editRoute.color}
                           onChange={(e) =>
-                            setNewRoute((prev) => ({
+                            setEditRoute((prev) => ({
                               ...prev,
                               color: e.target.value,
                             }))
@@ -999,9 +1222,9 @@ function AdminBusRoutes() {
                         />
                         <input
                           type="text"
-                          value={newRoute.color}
+                          value={editRoute.color}
                           onChange={(e) =>
-                            setNewRoute((prev) => ({
+                            setEditRoute((prev) => ({
                               ...prev,
                               color: e.target.value,
                             }))
@@ -1025,39 +1248,51 @@ function AdminBusRoutes() {
                         💡 Drag the ⋮⋮ button to reorder stops
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      {newRoute.stops.map((stop, index) => (
-                        <React.Fragment key={index}>
-                          {/* Drop zone indicator */}
-                          {draggedIndex !== null && draggedIndex !== index && (
-                            <div
-                              className={`h-2 transition-all duration-200 ${
-                                dragOverIndex === index
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                setDragOverIndex(index);
-                              }}
-                              onDrop={(e) => handleDrop(e, index)}
-                            />
-                          )}
+                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      {editRoute.stops.map((stop, index) => (
+                        <div key={index}>
+                          {/* Drop zone before each item */}
+                          <div
+                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
+                              draggedIndex !== null &&
+                              draggedIndex !== index &&
+                              dragOverIndex === index
+                                ? "bg-green-300 rounded-full opacity-100"
+                                : "opacity-0"
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragEnter={(e) => handleDragEnter(e, index)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, index, "edit")}
+                          >
+                            {draggedIndex !== null &&
+                              draggedIndex !== index &&
+                              dragOverIndex === index && (
+                                <span className="text-xs text-green-700 font-medium">
+                                  Drop here
+                                </span>
+                              )}
+                          </div>
 
                           <div
-                            className={`drag-container flex items-center gap-4 p-4 rounded-lg transition-all duration-200 ${
+                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
                               draggedIndex === index
                                 ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-gray-50 border-2 border-transparent hover:bg-gray-100"
+                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
                             }`}
                           >
-                            {/* ...existing code... */}
-                            <div className="flex items-center gap-2">
+                            {/* Stop Number */}
+                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
+                              {index + 1}
+                            </div>
+
+                            {/* Add and Drag Controls */}
+                            <div className="flex flex-col items-center gap-1">
                               <button
                                 type="button"
-                                onClick={() => addNewStop(index)}
-                                className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-blue-600 transition-colors"
-                                title="Add new bus stop after this one"
+                                onClick={() => addStopAfter(index, "edit")}
+                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
+                                title="Add new stop after this one"
                               >
                                 +
                               </button>
@@ -1070,12 +1305,13 @@ function AdminBusRoutes() {
                                     ? "bg-blue-500 text-white shadow-lg transform scale-110"
                                     : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
                                 }`}
-                                title="Drag to reorder bus stops"
+                                title="Drag to reorder stops"
                               >
-                                <span className="text-xs font-bold">⋮⋮</span>{" "}
+                                <span className="text-sm font-bold">⋮⋮</span>
                               </div>
                             </div>
-                            {/* ...existing code... */}
+
+                            {/* Stop Inputs */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1085,7 +1321,12 @@ function AdminBusRoutes() {
                                   type="text"
                                   value={stop.name}
                                   onChange={(e) =>
-                                    updateStop(index, "name", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "name",
+                                      e.target.value,
+                                      "edit"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -1105,7 +1346,12 @@ function AdminBusRoutes() {
                                   step="any"
                                   value={stop.lat}
                                   onChange={(e) =>
-                                    updateStop(index, "lat", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "lat",
+                                      e.target.value,
+                                      "edit"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -1125,7 +1371,12 @@ function AdminBusRoutes() {
                                   step="any"
                                   value={stop.lon}
                                   onChange={(e) =>
-                                    updateStop(index, "lon", e.target.value)
+                                    updateStop(
+                                      index,
+                                      "lon",
+                                      e.target.value,
+                                      "edit"
+                                    )
                                   }
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                   placeholder={
@@ -1137,46 +1388,47 @@ function AdminBusRoutes() {
                                 />
                               </div>
                             </div>
-                            {newRoute.stops.length > 1 && (
+
+                            {/* Remove Button */}
+                            {editRoute.stops.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => removeStop(index)}
-                                className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-red-600"
+                                onClick={() => removeStop(index, "edit")}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
                               >
-                                ×
+                                ✕
                               </button>
                             )}
                           </div>
-                        </React.Fragment>
-                      ))}
 
-                      {/* Drop zone at the end */}
-                      {draggedIndex !== null && (
-                        <div
-                          className={`h-3 transition-all duration-200 ${
-                            dragOverIndex === newRoute.stops.length
-                              ? "bg-green-300 rounded-full opacity-100"
-                              : "opacity-0"
-                          }`}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setDragOverIndex(newRoute.stops.length);
-                          }}
-                          onDrop={(e) => handleDrop(e, newRoute.stops.length)}
-                        />
-                      )}
-                      {/* 
-                      // Stop at End Button 
-                      <div className="flex justify-center mt-4">
-                        <button
-                          type="button"
-                          onClick={() => addNewStop()}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                        >
-                          <span className="text-lg">+</span>
-                          Add Stop at End
-                        </button>
-                      </div> */}
+                          {/* Drop zone after the last item */}
+                          {index === editRoute.stops.length - 1 && (
+                            <div
+                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
+                                draggedIndex !== null &&
+                                dragOverIndex === editRoute.stops.length
+                                  ? "bg-green-300 rounded-full opacity-100"
+                                  : "opacity-0"
+                              }`}
+                              onDragOver={handleDragOver}
+                              onDragEnter={(e) =>
+                                handleDragEnter(e, editRoute.stops.length)
+                              }
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) =>
+                                handleDrop(e, editRoute.stops.length, "edit")
+                              }
+                            >
+                              {draggedIndex !== null &&
+                                dragOverIndex === editRoute.stops.length && (
+                                  <span className="text-xs text-green-700 font-medium">
+                                    Drop here
+                                  </span>
+                                )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
