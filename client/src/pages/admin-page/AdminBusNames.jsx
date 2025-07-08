@@ -25,6 +25,11 @@ function AdminBusNames() {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
+  // Bulk selection states
+  const [selectedBusNames, setSelectedBusNames] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   const [newBusName, setNewBusName] = useState({
     busname: "",
     stops: [""],
@@ -44,6 +49,9 @@ function AdminBusNames() {
       setLoading(true);
       const data = await fetchBusNames();
       setBusNames(data);
+      // Reset bulk selection when bus names are reloaded
+      setSelectedBusNames([]);
+      setSelectAll(false);
     } catch (error) {
       console.error("Failed to load bus names:", error);
       alert("Failed to load bus names. Please try again.");
@@ -419,6 +427,76 @@ function AdminBusNames() {
     }
   };
 
+  // Bulk selection functions
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedBusNames([]);
+      setSelectAll(false);
+    } else {
+      const allVisibleIds = sortedAndFilteredBusNames.map(
+        (busName) => busName._id
+      );
+      setSelectedBusNames(allVisibleIds);
+      setSelectAll(true);
+    }
+  };
+
+  const handleSelectBusName = (busNameId) => {
+    setSelectedBusNames((prev) => {
+      if (prev.includes(busNameId)) {
+        const newSelection = prev.filter((id) => id !== busNameId);
+        setSelectAll(false);
+        return newSelection;
+      } else {
+        const newSelection = [...prev, busNameId];
+        // Check if all visible bus names are now selected
+        const allVisibleIds = sortedAndFilteredBusNames.map(
+          (busName) => busName._id
+        );
+        if (
+          newSelection.length === allVisibleIds.length &&
+          allVisibleIds.every((id) => newSelection.includes(id))
+        ) {
+          setSelectAll(true);
+        }
+        return newSelection;
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedBusNames.length === 0) return;
+
+    const confirmMessage = `Are you sure you want to delete ${
+      selectedBusNames.length
+    } bus name${
+      selectedBusNames.length > 1 ? "s" : ""
+    }? This action cannot be undone.`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      setBulkDeleteLoading(true);
+
+      // Delete all selected bus names
+      await Promise.all(selectedBusNames.map((id) => deleteBusName(id)));
+
+      clearBusNamesCache(); // Clear cache after bulk delete
+      await loadBusNames();
+
+      alert(
+        `Successfully deleted ${selectedBusNames.length} bus name${
+          selectedBusNames.length > 1 ? "s" : ""
+        }!`
+      );
+    } catch (error) {
+      console.error("Error deleting bus names:", error);
+      alert("Failed to delete some bus names. Please try again.");
+    } finally {
+      setBulkDeleteLoading(false);
+    }
+  };
+
   // Filter and sort bus names
   const filteredBusNames = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -452,6 +530,42 @@ function AdminBusNames() {
 
     return sorted;
   }, [filteredBusNames, sortOrder]);
+
+  // Clean up selections when filtered bus names change
+  useEffect(() => {
+    const visibleBusNameIds = sortedAndFilteredBusNames.map(
+      (busName) => busName._id
+    );
+    setSelectedBusNames((prev) =>
+      prev.filter((id) => visibleBusNameIds.includes(id))
+    );
+    setSelectAll(false);
+  }, [searchTerm, sortOrder]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Delete key for bulk delete
+      if (
+        e.key === "Delete" &&
+        selectedBusNames.length > 0 &&
+        !showAddModal &&
+        !showEditModal
+      ) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+
+      // Ctrl+A for select all
+      if (e.ctrlKey && e.key === "a" && !showAddModal && !showEditModal) {
+        e.preventDefault();
+        handleSelectAll();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedBusNames, showAddModal, showEditModal]);
 
   if (loading) {
     return (
@@ -503,6 +617,20 @@ function AdminBusNames() {
               >
                 📤 Export Bus Names
               </button>
+              {selectedBusNames.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteLoading}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  title={`Delete ${selectedBusNames.length} selected bus name${
+                    selectedBusNames.length > 1 ? "s" : ""
+                  }`}
+                >
+                  {bulkDeleteLoading
+                    ? "Deleting..."
+                    : `🗑️ Delete ${selectedBusNames.length}`}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -511,9 +639,6 @@ function AdminBusNames() {
         <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Bus Names or Stops
-              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -538,9 +663,6 @@ function AdminBusNames() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort by Name
-              </label>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
@@ -561,12 +683,31 @@ function AdminBusNames() {
                 <>Total Bus Names: {busNames.length}</>
               )}
             </div>
+            <div>
+              {selectedBusNames.length > 0 && (
+                <div className="text-sm text-orange-700 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200 whitespace-nowrap">
+                  {selectedBusNames.length} bus name
+                  {selectedBusNames.length > 1 ? "s" : ""} selected
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Bus Names List */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Bus Names</h3>
+              {sortedAndFilteredBusNames.length > 0 && (
+                <button
+                  onClick={handleSelectAll}
+                  className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md transition-colors"
+                >
+                  {selectAll ? "Deselect All" : "Select All"}
+                </button>
+              )}
+            </div>
             {sortedAndFilteredBusNames.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 {searchTerm.trim()
@@ -578,16 +719,28 @@ function AdminBusNames() {
                 {sortedAndFilteredBusNames.map((busName) => (
                   <div
                     key={busName._id}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
+                    className={`border border-gray-200 rounded-lg p-4 transition-colors ${
+                      selectedBusNames.includes(busName._id)
+                        ? "bg-blue-50 border-blue-300"
+                        : "hover:bg-gray-50"
+                    }`}
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {busName.busname}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {busName.stops.length} stops
-                        </p>
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedBusNames.includes(busName._id)}
+                          onChange={() => handleSelectBusName(busName._id)}
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 mt-1"
+                        />
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {busName.busname}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {busName.stops.length} stops
+                          </p>
+                        </div>
                       </div>
                       <div className="flex space-x-2">
                         <button

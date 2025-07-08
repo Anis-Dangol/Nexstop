@@ -37,6 +37,11 @@ function AdminBusRoutes() {
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
+  // Bulk selection states
+  const [selectedRoutes, setSelectedRoutes] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   const { user } = useSelector((state) => state.auth);
 
   // Fetch bus routes on component mount
@@ -49,6 +54,9 @@ function AdminBusRoutes() {
       setLoading(true);
       const routes = await fetchBusRoutes();
       setBusRoutes(routes);
+      // Reset bulk selection when routes are reloaded
+      setSelectedRoutes([]);
+      setSelectAll(false);
     } catch (error) {
       console.error("Failed to load bus routes:", error);
       // You might want to show a toast notification here
@@ -96,24 +104,45 @@ function AdminBusRoutes() {
     return 0;
   });
 
-  // Helper function to get next available route number
-  const getNextAvailableRouteNumber = () => {
-    if (busRoutes.length === 0) return 1;
+  // Clean up selections when filtered routes change
+  useEffect(() => {
+    const visibleRouteIds = sortedRoutes.map((route) => route._id);
+    setSelectedRoutes((prev) =>
+      prev.filter((id) => visibleRouteIds.includes(id))
+    );
+    setSelectAll(false);
+  }, [searchTerm, sortOrder]);
 
-    const existingNumbers = busRoutes
-      .map((route) => route.routeNumber)
-      .sort((a, b) => a - b);
-
-    // Find the first gap in the sequence
-    for (let i = 1; i <= existingNumbers.length + 1; i++) {
-      if (!existingNumbers.includes(i)) {
-        return i;
+  // Keyboard shortcuts for bulk actions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+A to select all
+      if (
+        e.ctrlKey &&
+        e.key === "a" &&
+        !showAddModal &&
+        !showEditModal &&
+        !showImportModal
+      ) {
+        e.preventDefault();
+        handleSelectAll();
       }
-    }
+      // Delete key to delete selected routes
+      if (
+        e.key === "Delete" &&
+        selectedRoutes.length > 0 &&
+        !showAddModal &&
+        !showEditModal &&
+        !showImportModal
+      ) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+    };
 
-    // If no gaps, return the next number after the highest
-    return Math.max(...existingNumbers) + 1;
-  };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedRoutes, showAddModal, showEditModal, showImportModal]);
 
   // Helper functions for modal
   const addNewStop = (afterIndex = null, formType = "new") => {
@@ -349,17 +378,6 @@ function AdminBusRoutes() {
         routeData.stops.length === 0
       ) {
         alert("Please fill in all required fields");
-        return;
-      }
-
-      // Check for duplicate route number
-      const isDuplicate = busRoutes.some(
-        (route) => route.routeNumber === routeData.routeNumber
-      );
-      if (isDuplicate) {
-        alert(
-          `Route number ${routeData.routeNumber} is already in use. Please choose a different number.`
-        );
         return;
       }
 
@@ -611,6 +629,76 @@ function AdminBusRoutes() {
     setDragOverIndex(null);
   };
 
+  // Bulk selection functions
+  const handleSelectRoute = (routeId) => {
+    setSelectedRoutes((prev) => {
+      if (prev.includes(routeId)) {
+        // Remove from selection
+        const newSelection = prev.filter((id) => id !== routeId);
+        setSelectAll(
+          newSelection.length === sortedRoutes.length && sortedRoutes.length > 0
+        );
+        return newSelection;
+      } else {
+        // Add to selection
+        const newSelection = [...prev, routeId];
+        setSelectAll(newSelection.length === sortedRoutes.length);
+        return newSelection;
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // Deselect all
+      setSelectedRoutes([]);
+      setSelectAll(false);
+    } else {
+      // Select all visible routes
+      const allRouteIds = sortedRoutes.map((route) => route._id);
+      setSelectedRoutes(allRouteIds);
+      setSelectAll(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedRoutes.length === 0) {
+      alert("Please select routes to delete.");
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${
+      selectedRoutes.length
+    } route${
+      selectedRoutes.length > 1 ? "s" : ""
+    }? This action cannot be undone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        setBulkDeleteLoading(true);
+
+        // Delete routes one by one
+        const deletionPromises = selectedRoutes.map((routeId) =>
+          deleteBusRoute(routeId)
+        );
+        await Promise.all(deletionPromises);
+
+        // Reload routes and reset selection
+        await loadBusRoutes();
+        alert(
+          `Successfully deleted ${selectedRoutes.length} route${
+            selectedRoutes.length > 1 ? "s" : ""
+          }!`
+        );
+      } catch (error) {
+        console.error("Error deleting routes:", error);
+        alert("Failed to delete some routes. Please try again.");
+      } finally {
+        setBulkDeleteLoading(false);
+      }
+    }
+  };
+
   return (
     <div className="w-full bg-gray-50 min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
@@ -625,13 +713,6 @@ function AdminBusRoutes() {
             <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
               <button
                 onClick={() => {
-                  const nextRouteNumber = getNextAvailableRouteNumber();
-                  setNewRoute({
-                    routeNumber: nextRouteNumber.toString(),
-                    name: "",
-                    color: "#FF0000",
-                    stops: [{ name: "", lat: "", lon: "" }],
-                  });
                   setShowAddModal(true);
                   setDraggedIndex(null);
                   setDragOverIndex(null);
@@ -653,6 +734,20 @@ function AdminBusRoutes() {
               >
                 📤 Export Routes
               </button>
+              {selectedRoutes.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteLoading}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  title={`Delete ${selectedRoutes.length} selected route${
+                    selectedRoutes.length > 1 ? "s" : ""
+                  }`}
+                >
+                  {bulkDeleteLoading
+                    ? "Deleting..."
+                    : `🗑️ Delete ${selectedRoutes.length}`}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -661,9 +756,6 @@ function AdminBusRoutes() {
         <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Routes
-              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -688,9 +780,6 @@ function AdminBusRoutes() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort by Name
-              </label>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
@@ -701,8 +790,16 @@ function AdminBusRoutes() {
                 <option value="desc">Z-A</option>
               </select>
             </div>
-            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 whitespace-nowrap">
               Showing {sortedRoutes.length} of {busRoutes.length} routes
+            </div>
+            <div>
+              {selectedRoutes.length > 0 && (
+                <div className="text-sm text-orange-700 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200 whitespace-nowrap">
+                  {selectedRoutes.length} route
+                  {selectedRoutes.length > 1 ? "s" : ""} selected
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -718,6 +815,14 @@ function AdminBusRoutes() {
               <table className="min-w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
+                    <th className="py-3 px-6 text-sm font-medium text-gray-900">
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </th>
                     <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
                       S.N.
                     </th>
@@ -743,6 +848,14 @@ function AdminBusRoutes() {
                         index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                       }`}
                     >
+                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
+                        <input
+                          type="checkbox"
+                          checked={selectedRoutes.includes(route._id)}
+                          onChange={() => handleSelectRoute(route._id)}
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                      </td>
                       <td className="py-4 px-6 text-sm font-medium text-gray-900">
                         {route.routeNumber}
                       </td>
@@ -821,61 +934,19 @@ function AdminBusRoutes() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Route Number:
                       </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={newRoute.routeNumber}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            const routeNumber = parseInt(value);
-                            const isDuplicate = busRoutes.some(
-                              (route) => route.routeNumber === routeNumber
-                            );
-
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              routeNumber: value,
-                            }));
-                          }}
-                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:border-blue-500 ${
-                            busRoutes.some(
-                              (route) =>
-                                route.routeNumber ===
-                                parseInt(newRoute.routeNumber)
-                            )
-                              ? "border-red-300 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-blue-500"
-                          }`}
-                          placeholder={`Suggested: ${getNextAvailableRouteNumber()}`}
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              routeNumber:
-                                getNextAvailableRouteNumber().toString(),
-                            }));
-                          }}
-                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
-                          title="Use next available route number"
-                        >
-                          Auto
-                        </button>
-                      </div>
-                      {busRoutes.some(
-                        (route) =>
-                          route.routeNumber === parseInt(newRoute.routeNumber)
-                      ) && (
-                        <p className="text-red-500 text-xs mt-1">
-                          ⚠️ Route number {newRoute.routeNumber} is already in
-                          use
-                        </p>
-                      )}
-                      <p className="text-gray-500 text-xs mt-1">
-                        💡 Next available: {getNextAvailableRouteNumber()}
-                      </p>
+                      <input
+                        type="number"
+                        value={newRoute.routeNumber}
+                        onChange={(e) =>
+                          setNewRoute((prev) => ({
+                            ...prev,
+                            routeNumber: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="1"
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

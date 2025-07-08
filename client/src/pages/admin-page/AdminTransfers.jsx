@@ -28,6 +28,11 @@ function AdminTransfers() {
     transfer2: "",
   });
 
+  // Bulk selection states
+  const [selectedTransfers, setSelectedTransfers] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
   // Load transfers from MongoDB
   useEffect(() => {
     loadTransfers();
@@ -45,11 +50,87 @@ function AdminTransfers() {
         transfer2: transfer.transfer2,
       }));
       setTransfers(formattedTransfers);
+      // Reset bulk selection when transfers are reloaded
+      setSelectedTransfers([]);
+      setSelectAll(false);
     } catch (error) {
       console.error("Error loading transfers:", error);
       alert("Failed to load transfers. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Bulk selection functions
+  const handleSelectTransfer = (transferId) => {
+    setSelectedTransfers((prev) => {
+      if (prev.includes(transferId)) {
+        // Remove from selection
+        const newSelection = prev.filter((id) => id !== transferId);
+        setSelectAll(
+          newSelection.length === sortedAndFilteredTransfers.length &&
+            sortedAndFilteredTransfers.length > 0
+        );
+        return newSelection;
+      } else {
+        // Add to selection
+        const newSelection = [...prev, transferId];
+        setSelectAll(newSelection.length === sortedAndFilteredTransfers.length);
+        return newSelection;
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // Deselect all
+      setSelectedTransfers([]);
+      setSelectAll(false);
+    } else {
+      // Select all visible transfers
+      const allTransferIds = sortedAndFilteredTransfers.map(
+        (transfer) => transfer.id
+      );
+      setSelectedTransfers(allTransferIds);
+      setSelectAll(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedTransfers.length === 0) {
+      alert("Please select transfers to delete.");
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${
+      selectedTransfers.length
+    } transfer${
+      selectedTransfers.length > 1 ? "s" : ""
+    }? This action cannot be undone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        setBulkDeleteLoading(true);
+
+        // Delete transfers one by one
+        const deletionPromises = selectedTransfers.map((transferId) =>
+          deleteTransfer(transferId)
+        );
+        await Promise.all(deletionPromises);
+
+        // Reload transfers and reset selection
+        await loadTransfers();
+        alert(
+          `Successfully deleted ${selectedTransfers.length} transfer${
+            selectedTransfers.length > 1 ? "s" : ""
+          }!`
+        );
+      } catch (error) {
+        console.error("Error deleting transfers:", error);
+        alert("Failed to delete some transfers. Please try again.");
+      } finally {
+        setBulkDeleteLoading(false);
+      }
     }
   };
 
@@ -305,6 +386,41 @@ function AdminTransfers() {
     return sorted;
   }, [filteredTransfers, sortOrder]);
 
+  // Clean up selections when filtered transfers change
+  useEffect(() => {
+    const visibleTransferIds = sortedAndFilteredTransfers.map(
+      (transfer) => transfer.id
+    );
+    setSelectedTransfers((prev) =>
+      prev.filter((id) => visibleTransferIds.includes(id))
+    );
+    setSelectAll(false);
+  }, [searchTerm, sortOrder]);
+
+  // Keyboard shortcuts for bulk actions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+A to select all
+      if (e.ctrlKey && e.key === "a" && !showAddModal && !editingTransfer) {
+        e.preventDefault();
+        handleSelectAll();
+      }
+      // Delete key to delete selected transfers
+      if (
+        e.key === "Delete" &&
+        selectedTransfers.length > 0 &&
+        !showAddModal &&
+        !editingTransfer
+      ) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedTransfers, showAddModal, editingTransfer]);
+
   if (loading) {
     return (
       <div className="w-full bg-gray-50 min-h-screen p-6">
@@ -355,6 +471,20 @@ function AdminTransfers() {
               >
                 📥 Export Transfers
               </button>
+              {selectedTransfers.length > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteLoading}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  title={`Delete ${selectedTransfers.length} selected transfer${
+                    selectedTransfers.length > 1 ? "s" : ""
+                  }`}
+                >
+                  {bulkDeleteLoading
+                    ? "Deleting..."
+                    : `🗑️ Delete ${selectedTransfers.length}`}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -363,9 +493,6 @@ function AdminTransfers() {
         <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Search Transfers
-              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -391,9 +518,6 @@ function AdminTransfers() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort by Name
-                </label>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
@@ -414,6 +538,14 @@ function AdminTransfers() {
                   <>Total Transfers: {transfers.length}</>
                 )}
               </div>
+              <div>
+                {selectedTransfers.length > 0 && (
+                  <div className="text-sm text-orange-700 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200 whitespace-nowrap self-end">
+                    {selectedTransfers.length} transfer
+                    {selectedTransfers.length > 1 ? "s" : ""} selected
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -424,6 +556,14 @@ function AdminTransfers() {
             <table className="min-w-full text-left">
               <thead className="sticky top-0 bg-gray-50 z-50 border-b border-gray-200">
                 <tr>
+                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50 w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </th>
                   <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
                     S.N.
                   </th>
@@ -446,9 +586,21 @@ function AdminTransfers() {
                   <tr
                     key={transfer.id}
                     className={`hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                      selectedTransfers.includes(transfer.id)
+                        ? "bg-blue-50 border-blue-200"
+                        : index % 2 === 0
+                        ? "bg-white"
+                        : "bg-gray-50/50"
                     }`}
                   >
+                    <td className="py-4 px-6">
+                      <input
+                        type="checkbox"
+                        checked={selectedTransfers.includes(transfer.id)}
+                        onChange={() => handleSelectTransfer(transfer.id)}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
                     <td className="py-4 px-6 text-sm font-medium text-gray-900">
                       {transfer.number}
                     </td>
