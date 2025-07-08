@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Map,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
@@ -32,6 +33,10 @@ function AdminSideBar({ collapsed, setCollapsed }) {
 
   const handleLogout = () => {
     dispatch(logoutUser());
+  };
+
+  const handleSwitchToClient = () => {
+    navigate("/map/home");
   };
 
   return (
@@ -79,8 +84,20 @@ function AdminSideBar({ collapsed, setCollapsed }) {
         </nav>
       </div>
 
-      {/* Logout */}
-      <div className="mb-4">
+      {/* Bottom Part */}
+      <div className="mb-4 space-y-2">
+        {/* Switch to Client View */}
+        <button
+          onClick={handleSwitchToClient}
+          className={`flex items-center w-full text-left py-2 hover:bg-blue-600 bg-blue-500 transition-colors ${
+            collapsed ? "justify-center px-2" : "gap-3 px-4"
+          }`}
+        >
+          <Map size={20} />
+          {!collapsed && <span>Switch to Client</span>}
+        </button>
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
           className={`flex items-center w-full text-left py-2 hover:bg-[#1f1f1f] transition-colors ${
