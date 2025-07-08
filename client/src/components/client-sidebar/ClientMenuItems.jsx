@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
-import routesData from "../../assets/routes.json";
-import transferData from "../../assets/transfer.json";
+import { fetchTransfers } from "../../services/transfers";
 
 export default function ClientMenuItems({
   setOpen,
@@ -15,14 +14,31 @@ export default function ClientMenuItems({
   setRoute,
   allStops,
   addToFavourites,
+  routesData = [],
+  routesLoading = false,
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
   const [isToggleOn, setIsToggleOn] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStop, setNearestStop] = useState(null);
+  const [transferData, setTransferData] = useState([]);
   const startRef = useRef();
   const endRef = useRef();
+
+  // Load transfer data from MongoDB
+  useEffect(() => {
+    const loadTransferData = async () => {
+      try {
+        const transfers = await fetchTransfers();
+        setTransferData(transfers);
+      } catch (error) {
+        console.error("Error loading transfer data:", error);
+        setTransferData([]);
+      }
+    };
+    loadTransferData();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -150,10 +166,18 @@ export default function ClientMenuItems({
       setEnd("");
       if (typeof setRoute === "function") setRoute([]);
       if (window.clearMapSelectedStops) window.clearMapSelectedStops();
+      // Clear nearest stop marker when route is cleared
+      if (window.removeNearestStopMarker) {
+        window.removeNearestStopMarker();
+      }
       return;
     }
 
-    if (typeof setRoute === "function") setRoute(foundRoute || []);
+    if (typeof setRoute === "function") {
+      console.log("ClientMenuItems: Setting route:", foundRoute || []);
+      // Force a new array reference to ensure React detects the change
+      setRoute(foundRoute ? [...foundRoute] : []);
+    }
     const newEntry = `${trimmedStart} → ${trimmedEnd}`;
     if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
       setHistory([newEntry, ...history]);
@@ -176,19 +200,19 @@ export default function ClientMenuItems({
     return allStops;
   };
 
-  // Function to find route with transfers using transfer.json data
+  // Function to find route with transfers using MongoDB data
   const findRouteWithTransfers = (startName, endName) => {
     // Try to find if there's a transfer route
     for (const transfer of transferData) {
       // Check if we need to go from start to transfer point 1, then transfer point 1 to transfer point 2, then to destination
-      const route1 = findDirectRoute(startName, transfer.Transfer1);
-      const route2 = findDirectRoute(transfer.Transfer2, endName);
+      const route1 = findDirectRoute(startName, transfer.transfer1);
+      const route2 = findDirectRoute(transfer.transfer2, endName);
 
       if (route1 && route2) {
         // Combine routes: start -> Transfer1, Transfer1 -> Transfer2 (transfer), Transfer2 -> end
         const transferConnection =
-          findDirectRoute(transfer.Transfer1, transfer.Transfer2) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer2)].filter(
+          findDirectRoute(transfer.transfer1, transfer.transfer2) ||
+          [getAllStops().find((s) => s.name === transfer.transfer2)].filter(
             Boolean
           );
         const combinedRoute = [
@@ -197,19 +221,19 @@ export default function ClientMenuItems({
           ...route2.slice(1), // Remove duplicate transfer point
         ];
         console.log(
-          `Transfer route found via ${transfer.Transfer1} -> ${transfer.Transfer2}`
+          `Transfer route found via ${transfer.transfer1} -> ${transfer.transfer2}`
         );
         return combinedRoute.filter(Boolean); // Remove any null/undefined stops
       }
 
-      // Also try the reverse: start -> Transfer2, Transfer2 -> Transfer1, Transfer1 -> end
-      const route3 = findDirectRoute(startName, transfer.Transfer2);
-      const route4 = findDirectRoute(transfer.Transfer1, endName);
+      // Also try the reverse: start -> transfer2, transfer2 -> transfer1, transfer1 -> end
+      const route3 = findDirectRoute(startName, transfer.transfer2);
+      const route4 = findDirectRoute(transfer.transfer1, endName);
 
       if (route3 && route4) {
         const transferConnection =
-          findDirectRoute(transfer.Transfer2, transfer.Transfer1) ||
-          [getAllStops().find((s) => s.name === transfer.Transfer1)].filter(
+          findDirectRoute(transfer.transfer2, transfer.transfer1) ||
+          [getAllStops().find((s) => s.name === transfer.transfer1)].filter(
             Boolean
           );
         const combinedRoute = [
@@ -218,7 +242,7 @@ export default function ClientMenuItems({
           ...route4.slice(1),
         ];
         console.log(
-          `Transfer route found via ${transfer.Transfer2} -> ${transfer.Transfer1}`
+          `Transfer route found via ${transfer.transfer2} -> ${transfer.transfer1}`
         );
         return combinedRoute.filter(Boolean);
       }
@@ -599,6 +623,10 @@ export default function ClientMenuItems({
             setStart("");
             setEnd("");
             if (typeof setRoute === "function") setRoute([]);
+            // Clear nearest stop marker when route is cleared
+            if (window.removeNearestStopMarker) {
+              window.removeNearestStopMarker();
+            }
           }}
           disabled={!start && !end}
         >

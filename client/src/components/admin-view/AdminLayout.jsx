@@ -1,6 +1,5 @@
 import { Outlet } from "react-router-dom";
 import AdminSideBar from "./AdminSideBar";
-import AdminHeader from "./AdminHeader";
 import { useState } from "react";
 
 function AdminLayout() {
@@ -14,7 +13,6 @@ function AdminLayout() {
           collapsed ? "ml-20" : "ml-64"
         }`}
       >
-        <AdminHeader />
         <main className="flex-1 p-4 md:p-2 overflow-auto">
           <Outlet />
         </main>

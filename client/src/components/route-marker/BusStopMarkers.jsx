@@ -13,12 +13,30 @@ const busStopIcon = L.icon({
 
 export default function BusStopMarkers({
   busStops,
+  routesData = [], // Add routesData prop
   show,
   onStopClick,
   onSetStart,
   onSetEnd,
 }) {
   if (!show) return null;
+
+  // Helper function to get route numbers for a bus stop
+  const getRouteNumbersForStop = (stopName, stopLat, stopLon) => {
+    const routes = [];
+    routesData.forEach((route) => {
+      const hasStop = route.stops.some(
+        (stop) =>
+          stop.name === stopName &&
+          Math.abs(stop.lat - stopLat) < 0.0001 &&
+          Math.abs(stop.lon - stopLon) < 0.0001
+      );
+      if (hasStop) {
+        routes.push(route.routeNumber);
+      }
+    });
+    return routes;
+  };
 
   // Helper to close popup after click
   function handleSet(type, stopName, markerRef) {
@@ -36,6 +54,12 @@ export default function BusStopMarkers({
     <>
       {busStops.map((stop, idx) => {
         const markerRef = useRef();
+        const routeNumbers = getRouteNumbersForStop(
+          stop.name,
+          stop.lat,
+          stop.lon
+        );
+
         return (
           <Marker
             key={idx}
