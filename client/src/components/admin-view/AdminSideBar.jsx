@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Map,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
@@ -29,6 +30,16 @@ function AdminSideBar({ collapsed, setCollapsed }) {
   const handleLogout = () => {
     dispatch(logoutUser());
   };
+
+  // Show "User View" if admin and not already in /map
+  const showUserView =
+    location.pathname &&
+    !location.pathname.startsWith("/map") &&
+    (JSON.parse(localStorage.getItem("persist:root") || "{}")?.auth
+      ? JSON.parse(
+          JSON.parse(localStorage.getItem("persist:root")).auth
+        )?.user?.role === "admin"
+      : true);
 
   return (
     <div
@@ -80,8 +91,21 @@ function AdminSideBar({ collapsed, setCollapsed }) {
         </nav>
       </div>
 
-      {/* Logout */}
-      <div className="mb-4 flex justify-center">
+      {/* User View Button & Logout */}
+      <div className="mb-4 flex flex-col items-center gap-2">
+        {showUserView && (
+          <button
+            onClick={() => navigate("/map/home")}
+            className={clsx(
+              "flex items-center rounded-md px-4 py-2 text-sm font-medium shadow bg-blue-600 text-white hover:bg-blue-700 transition",
+              collapsed ? "justify-center px-2" : "gap-2"
+            )}
+            title="Switch to User View"
+          >
+            <Map />
+            {!collapsed && <span>User View</span>}
+          </button>
+        )}
         <button
           onClick={handleLogout}
           className={`flex items-center text-left py-2 hover:bg-[#1f1f1f] transition-colors ${
