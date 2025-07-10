@@ -502,3 +502,71 @@ export const updateBusStop = async (req, res) => {
     });
   }
 };
+
+// Delete bus stop from all routes by name and coordinates
+export const deleteBusStopFromAllRoutes = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { name, lat, lon } = req.body;
+
+    // Validate required fields
+    if (!name || lat === undefined || lon === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, latitude, and longitude are required",
+      });
+    }
+
+    // Find all routes that contain this bus stop
+    const routes = await BusRoute.find({
+      "stops.name": name,
+      "stops.lat": lat,
+      "stops.lon": lon,
+    });
+
+    if (routes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No routes found containing this bus stop",
+      });
+    }
+
+    let totalStopsRemoved = 0;
+    let routesModified = 0;
+
+    // Remove the stop from all routes
+    for (const route of routes) {
+      const originalStopsCount = route.stops.length;
+      route.stops = route.stops.filter(
+        (stop) => !(stop.name === name && stop.lat === lat && stop.lon === lon)
+      );
+
+      const stopsRemoved = originalStopsCount - route.stops.length;
+      if (stopsRemoved > 0) {
+        totalStopsRemoved += stopsRemoved;
+        routesModified++;
+        await route.save();
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Bus stop "${name}" deleted from all routes successfully`,
+      data: {
+        routesModified,
+        totalStopsRemoved,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting bus stop from all routes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete bus stop from all routes",
+    });
+  }
+};

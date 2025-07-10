@@ -316,6 +316,7 @@ export default function ClientMenuItems({
     let minDistance = Infinity;
 
     // Filter stops that have routes to the destination (if destination is provided)
+    // If no destination, use all stops
     const candidateStops = destinationName
       ? allStops.filter((stop) => {
           // Exclude the destination stop itself
@@ -352,13 +353,17 @@ export default function ClientMenuItems({
             return false;
           });
         })
-      : allStops;
+      : allStops; // Use all stops if no destination specified
 
     // Debug logging
-    console.log(`Finding nearest stop for destination: ${destinationName}`);
+    console.log(
+      `Finding nearest stop for destination: ${destinationName || "any"}`
+    );
     console.log(`User location: ${userLat}, ${userLon}`);
     console.log(`Candidate stops count: ${candidateStops.length}`);
-    console.log(`Destination "${destinationName}" excluded from candidates`);
+    if (destinationName) {
+      console.log(`Destination "${destinationName}" excluded from candidates`);
+    }
 
     candidateStops.forEach((stop) => {
       const distance = calculateDistance(userLat, userLon, stop.lat, stop.lon);
@@ -414,15 +419,14 @@ export default function ClientMenuItems({
           // Show toast to inform user about location source
           toast({
             title: "Using your custom location",
-            description:
-              "Using your manually set location to find nearest stop.",
+            description: `Found nearest stop: ${nearest.name}`,
             variant: "default",
           });
-        } else if (destinationName) {
-          // If no stop found with route to destination, show message
+        } else {
+          // If no stop found, show message
           toast({
-            title: "No suitable stop found",
-            description: `No nearby bus stops have routes to "${destinationName}". Please select destination first or choose manually.`,
+            title: "No bus stops found",
+            description: "No bus stops found near your location.",
             variant: "destructive",
           });
           setIsToggleOn(false);
@@ -467,12 +471,18 @@ export default function ClientMenuItems({
               "GPS not available. Using your static location to find nearest stop.",
             variant: "default",
           });
+        } else {
+          toast({
+            title: "Using GPS location",
+            description: `Found nearest stop: ${nearest.name}`,
+            variant: "default",
+          });
         }
-      } else if (destinationName) {
-        // If no stop found with route to destination, show message
+      } else {
+        // If no stop found, show message
         toast({
-          title: "No suitable stop found",
-          description: `No nearby bus stops have routes to "${destinationName}". Please select destination first or choose manually.`,
+          title: "No bus stops found",
+          description: "No bus stops found near your location.",
           variant: "destructive",
         });
         setIsToggleOn(false);
@@ -515,18 +525,6 @@ export default function ClientMenuItems({
     const newToggleState = !isToggleOn;
 
     if (newToggleState) {
-      // Check if destination is provided
-      const destinationName = end.trim();
-      if (!destinationName) {
-        toast({
-          title: "Please select destination first",
-          description:
-            "To find the best starting point, please enter your destination before enabling auto-detect.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       setIsToggleOn(newToggleState);
       // Toggle is turned ON - get location and nearest stop
       getUserLocationAndNearestStop();

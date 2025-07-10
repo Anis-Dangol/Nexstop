@@ -210,3 +210,33 @@ export const updateBusStop = async (id, stopData) => {
     throw error;
   }
 };
+
+// Delete bus stop from all routes (admin only)
+export const deleteBusStopFromAllRoutes = async (stopData) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/bus/stops/delete-from-all-routes`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies for authentication
+        body: JSON.stringify(stopData),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || "Failed to delete bus stop from all routes"
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error deleting bus stop from all routes:", error);
+    throw error;
+  }
+};
