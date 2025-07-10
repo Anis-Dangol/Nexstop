@@ -2,6 +2,7 @@ import { AlignJustify, LogOut, MapPin, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { logoutUser } from "@/map/auth-slice/AuthSlice";
+import UserLocationInput from "./UserLocationInput";
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
@@ -69,34 +71,85 @@ function HeaderRightContent() {
   );
 }
 
-export function MappingHeader({ setOpen }) {
+export function MappingHeader({
+  setOpen,
+  customUserLocation,
+  setCustomUserLocation,
+  isMapPickMode,
+  startMapPickMode,
+}) {
   const { user } = useSelector((state) => state.auth);
+  const [showLocationInput, setShowLocationInput] = useState(false);
+
+  const handleLocationSet = (location) => {
+    setCustomUserLocation(location);
+    setShowLocationInput(false);
+    console.log("Location set:", location);
+  };
+
   console.log(user, "useruseruser");
 
   return (
-    <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 shadow-lg">
-      {" "}
-      {/* Added shadow */}
-      <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6 pt-5">
-        <Button onClick={() => setOpen(true)} className="sm:block">
-          <AlignJustify />
-          <span className="sr-only">Toggle Menu</span>
-        </Button>
-        <Link to="/map/home" className="flex items-center gap-2">
-          <MapPin size={30} color="#E6E0D3" /> {/* Updated icon color */}
-          <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1>{" "}
-          {/* Updated design */}
-        </Link>
+    <>
+      {/* Map Pick Mode Indicator */}
+      {isMapPickMode && (
+        <div className="absolute top-16 left-4 right-4 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <span className="font-medium">
+            Click anywhere on the map to set your location
+          </span>
+        </div>
+      )}
 
-        {/* Desktop */}
-        <div className="hidden sm:block">
-          <HeaderRightContent />
+      <header className="bg-[#070f18] sticky top-0 z-40 w-full border-b border-[#070f18] pt-3 shadow-lg">
+        {" "}
+        {/* Added shadow */}
+        <div className="flex h-1/6 text-xl items-center justify-between px-4 sm:px-6 pt-5">
+          <Button onClick={() => setOpen(true)} className="sm:block">
+            <AlignJustify />
+            <span className="sr-only">Toggle Menu</span>
+          </Button>
+          <Link to="/map/home" className="flex items-center gap-2">
+            <MapPin size={30} color="#E6E0D3" /> {/* Updated icon color */}
+            <h1 className="font-bold text-[#E6E0D3] text-2xl">Nexstop</h1>{" "}
+            {/* Updated design */}
+          </Link>
+
+          {/* Desktop */}
+          <div className="hidden sm:flex sm:items-center sm:gap-3">
+            {/* User Location Button */}
+            <button
+              onClick={() => setShowLocationInput(true)}
+              className="bg-[#E6E0D3] hover:bg-gray-200 text-[#070f18] p-2 rounded-full shadow-lg border border-gray-200 transition-colors"
+              title="Set User Location"
+            >
+              <MapPin size={18} />
+            </button>
+            <HeaderRightContent />
+          </div>
+          {/* Mobile */}
+          <div className="flex sm:hidden items-center gap-2">
+            {/* User Location Button */}
+            <button
+              onClick={() => setShowLocationInput(true)}
+              className="bg-[#E6E0D3] hover:bg-gray-200 text-[#070f18] p-2 rounded-full shadow-lg border border-gray-200 transition-colors"
+              title="Set User Location"
+            >
+              <MapPin size={16} />
+            </button>
+            <HeaderRightContent />
+          </div>
         </div>
-        {/* Mobile */}
-        <div className="block sm:hidden">
-          <HeaderRightContent />
-        </div>
-      </div>
-    </header>
+      </header>
+
+      {/* User Location Input Modal */}
+      <UserLocationInput
+        isOpen={showLocationInput}
+        onClose={() => setShowLocationInput(false)}
+        onLocationSet={handleLocationSet}
+        currentLocation={customUserLocation}
+        startMapPickMode={startMapPickMode}
+      />
+    </>
   );
 }

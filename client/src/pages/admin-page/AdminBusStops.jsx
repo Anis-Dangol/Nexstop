@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   fetchBusStops,
   deleteBusStop,
+  deleteBusStopFromAllRoutes,
   updateBusStop,
 } from "../../services/busRoutes";
 import { useToast } from "../../components/ui/use-toast";
@@ -161,10 +162,17 @@ function AdminBusStops() {
     if (!stopToDelete) return;
 
     if (
-      window.confirm(`Are you sure you want to delete "${stopToDelete.name}"?`)
+      window.confirm(
+        `Are you sure you want to delete "${stopToDelete.name}"?\n\nThis will remove the bus stop from ALL routes that contain it. This action cannot be undone.`
+      )
     ) {
       try {
-        await deleteBusStop(stopId);
+        // Use the comprehensive delete function that removes the stop from all routes
+        await deleteBusStopFromAllRoutes({
+          name: stopToDelete.name,
+          lat: stopToDelete.latitude,
+          lon: stopToDelete.longitude,
+        });
 
         // Remove from local state
         setBusStops((prevStops) =>
@@ -173,7 +181,7 @@ function AdminBusStops() {
 
         toast({
           title: "Success",
-          description: `Bus stop "${stopToDelete.name}" deleted successfully!`,
+          description: `Bus stop "${stopToDelete.name}" deleted from all routes successfully!`,
         });
       } catch (error) {
         console.error("Error deleting bus stop:", error);

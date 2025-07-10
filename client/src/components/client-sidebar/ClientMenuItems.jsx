@@ -16,10 +16,13 @@ export default function ClientMenuItems({
   addToFavourites,
   routesData = [],
   routesLoading = false,
+  isToggleOn, // Receive from props
+  setIsToggleOn, // Receive from props
+  customUserLocation, // Add custom user location prop
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
-  const [isToggleOn, setIsToggleOn] = useState(false);
+  // Remove local toggle state since it's now coming from props
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStop, setNearestStop] = useState(null);
   const [transferData, setTransferData] = useState([]);
@@ -313,6 +316,7 @@ export default function ClientMenuItems({
     let minDistance = Infinity;
 
     // Filter stops that have routes to the destination (if destination is provided)
+    // If no destination, use all stops
     const candidateStops = destinationName
       ? allStops.filter((stop) => {
           // Exclude the destination stop itself
@@ -349,13 +353,17 @@ export default function ClientMenuItems({
             return false;
           });
         })
-      : allStops;
+      : allStops; // Use all stops if no destination specified
 
     // Debug logging
-    console.log(`Finding nearest stop for destination: ${destinationName}`);
+    console.log(
+      `Finding nearest stop for destination: ${destinationName || "any"}`
+    );
     console.log(`User location: ${userLat}, ${userLon}`);
     console.log(`Candidate stops count: ${candidateStops.length}`);
-    console.log(`Destination "${destinationName}" excluded from candidates`);
+    if (destinationName) {
+      console.log(`Destination "${destinationName}" excluded from candidates`);
+    }
 
     candidateStops.forEach((stop) => {
       const distance = calculateDistance(userLat, userLon, stop.lat, stop.lon);
@@ -381,7 +389,55 @@ export default function ClientMenuItems({
 
   // Function to get user location and find nearest stop
   const getUserLocationAndNearestStop = () => {
-    // Static fallback location (Your specific location)
+    // Check if custom user location is available first
+    if (
+      customUserLocation &&
+      Array.isArray(customUserLocation) &&
+      customUserLocation.length === 2
+    ) {
+      const [lat, lng] = customUserLocation;
+      const processCustomLocation = (latitude, longitude) => {
+        setUserLocation({ lat: latitude, lon: longitude });
+
+        // Pass destination to filter nearest stops
+        const destinationName = end.trim();
+        const nearest = findNearestBusStop(
+          latitude,
+          longitude,
+          destinationName || null
+        );
+
+        if (nearest) {
+          setNearestStop(nearest);
+          setStart(nearest.name);
+
+          // Add red marker to map if window function exists
+          if (window.addNearestStopMarker) {
+            window.addNearestStopMarker(nearest);
+          }
+
+          // Show toast to inform user about location source
+          toast({
+            title: "Using your custom location",
+            description: `Found nearest stop: ${nearest.name}`,
+            variant: "default",
+          });
+        } else {
+          // If no stop found, show message
+          toast({
+            title: "No bus stops found",
+            description: "No bus stops found near your location.",
+            variant: "destructive",
+          });
+          setIsToggleOn(false);
+        }
+      };
+
+      processCustomLocation(lat, lng);
+      return;
+    }
+
+    // Fall back to GPS or static location if no custom location
     const fallbackLocation = {
       latitude: 27.686262,
       longitude: 85.303635,
@@ -415,12 +471,18 @@ export default function ClientMenuItems({
               "GPS not available. Using your static location to find nearest stop.",
             variant: "default",
           });
+        } else {
+          toast({
+            title: "Using GPS location",
+            description: `Found nearest stop: ${nearest.name}`,
+            variant: "default",
+          });
         }
-      } else if (destinationName) {
-        // If no stop found with route to destination, show message
+      } else {
+        // If no stop found, show message
         toast({
-          title: "No suitable stop found",
-          description: `No nearby bus stops have routes to "${destinationName}". Please select destination first or choose manually.`,
+          title: "No bus stops found",
+          description: "No bus stops found near your location.",
           variant: "destructive",
         });
         setIsToggleOn(false);
@@ -463,18 +525,6 @@ export default function ClientMenuItems({
     const newToggleState = !isToggleOn;
 
     if (newToggleState) {
-      // Check if destination is provided
-      const destinationName = end.trim();
-      if (!destinationName) {
-        toast({
-          title: "Please select destination first",
-          description:
-            "To find the best starting point, please enter your destination before enabling auto-detect.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       setIsToggleOn(newToggleState);
       // Toggle is turned ON - get location and nearest stop
       getUserLocationAndNearestStop();
@@ -496,14 +546,14 @@ export default function ClientMenuItems({
     if (isToggleOn) {
       getUserLocationAndNearestStop();
     }
-  }, [isToggleOn]);
+  }, [isToggleOn, customUserLocation]); // Add customUserLocation as dependency
 
   // Re-detect nearest stop when destination changes while toggle is on
   useEffect(() => {
     if (isToggleOn && end.trim()) {
       getUserLocationAndNearestStop();
     }
-  }, [end, isToggleOn]);
+  }, [end, isToggleOn, customUserLocation]); // Add customUserLocation as dependency
 
   return (
     <nav className="flex-col flex gap-4">

@@ -8,6 +8,7 @@ import {
   deleteBusRoute,
   getAllBusStops,
   deleteBusStop,
+  deleteBusStopFromAllRoutes,
   updateBusStop,
   importBusRoutes,
 } from "../../controllers/bus/bus-controller.js";
@@ -27,6 +28,11 @@ router.post("/routes/import", authMiddleware, importBusRoutes);
 router.put("/routes/:id", authMiddleware, updateBusRoute);
 router.delete("/routes/:id", authMiddleware, deleteBusRoute);
 router.put("/stops/:id", authMiddleware, updateBusStop);
+router.delete(
+  "/stops/delete-from-all-routes",
+  authMiddleware,
+  deleteBusStopFromAllRoutes
+);
 router.delete("/stops/:id", authMiddleware, deleteBusStop);
 
 export default router;

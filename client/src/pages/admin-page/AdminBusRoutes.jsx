@@ -619,6 +619,48 @@ function AdminBusRoutes() {
     setDragOverIndex(null);
   };
 
+  // Function to get the next available route number
+  const getNextAvailableRouteNumber = () => {
+    if (busRoutes.length === 0) return 1;
+
+    // Get all existing route numbers and sort them
+    const existingNumbers = busRoutes
+      .map((route) => parseInt(route.routeNumber))
+      .filter((num) => !isNaN(num))
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    for (let i = 0; i < existingNumbers.length; i++) {
+      const expectedNumber = i + 1;
+      if (existingNumbers[i] !== expectedNumber) {
+        return expectedNumber;
+      }
+    }
+
+    // If no gaps found, return the next number after the highest
+    return existingNumbers.length > 0
+      ? existingNumbers[existingNumbers.length - 1] + 1
+      : 1;
+  };
+
+  // Function to auto-fill route number
+  const handleAutoRouteNumber = () => {
+    const nextNumber = getNextAvailableRouteNumber();
+    setNewRoute((prev) => ({
+      ...prev,
+      routeNumber: nextNumber.toString(),
+    }));
+  };
+
+  // Function to auto-fill route number for edit form
+  const handleAutoRouteNumberEdit = () => {
+    const nextNumber = getNextAvailableRouteNumber();
+    setEditRoute((prev) => ({
+      ...prev,
+      routeNumber: nextNumber.toString(),
+    }));
+  };
+
   // Bulk selection functions
   const handleSelectRoute = (routeId) => {
     setSelectedRoutes((prev) => {
@@ -910,19 +952,29 @@ function AdminBusRoutes() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Route Number:
                       </label>
-                      <input
-                        type="number"
-                        value={newRoute.routeNumber}
-                        onChange={(e) =>
-                          setNewRoute((prev) => ({
-                            ...prev,
-                            routeNumber: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="1"
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={newRoute.routeNumber}
+                          onChange={(e) =>
+                            setNewRoute((prev) => ({
+                              ...prev,
+                              routeNumber: e.target.value,
+                            }))
+                          }
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="1"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAutoRouteNumber}
+                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+                          title="Auto-generate next available route number"
+                        >
+                          Auto
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1185,19 +1237,29 @@ function AdminBusRoutes() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Route Number:
                       </label>
-                      <input
-                        type="number"
-                        value={editRoute.routeNumber}
-                        onChange={(e) =>
-                          setEditRoute((prev) => ({
-                            ...prev,
-                            routeNumber: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="1"
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={editRoute.routeNumber}
+                          onChange={(e) =>
+                            setEditRoute((prev) => ({
+                              ...prev,
+                              routeNumber: e.target.value,
+                            }))
+                          }
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="1"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAutoRouteNumberEdit}
+                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+                          title="Auto-generate next available route number"
+                        >
+                          Auto
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

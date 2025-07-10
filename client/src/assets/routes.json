@@ -40,8 +40,8 @@
       },
       {
         "name": "Balkhu Stop",
-        "lat": 27.685911,
-        "lon": 85.298217
+         "lat": 27.684794,
+        "lon": 85.296967
       },
       {
         "name": "Balkhu Wari",
@@ -467,7 +467,7 @@
           "lon": 85.32135013
         },
         {
-          "name": "Putalisakad Bus Stand",
+          "name": "putalisadak Bus Stand",
           "lat": 27.69668484,
           "lon": 85.32108318
         },
@@ -640,8 +640,8 @@
       },
       {
         "name": "Sano Bus Stop",
-        "lat": 27.70734452,
-        "lon": 85.28262391
+         "lat": 27.70783195,
+        "lon": 85.282539
       },
       {
         "name": "Soaltee Dobato Bus Stop",
@@ -650,8 +650,8 @@
       },
       {
         "name": "Bafal Bus Stop",
-        "lat": 27.7013995,
-        "lon": 85.28193192
+      "lat": 27.70199895,
+        "lon": 85.28175819
       },
       {
         "name": "Kalanki Stop",
@@ -758,11 +758,7 @@
         "lat": 27.67165284,
         "lon": 85.34019028
       },
-      {
-        "name": "Balkumari Bus Stand",
-        "lat": 27.67392542,
-        "lon": 85.34247896
-      },
+    
       {
         "name": "Koteshwor Bus Stand",
         "lat": 27.67988404,
@@ -1302,6 +1298,8 @@
         "lon": 85.30819588
       }
     ]
+  
+
   },
   {
     "routeNumber": 8,
@@ -2083,9 +2081,9 @@
         "lon": 85.32135013
       },
       {
-        "name": "Putalisakad Bus Stand",
+        "name": "putalisadak Bus Stand",
         "lat": 27.69668484,
-        "lon": 85.3210831
+        "lon": 85.32108318
       },
       {
         "name": "Singha Durbar Bus Stand",
@@ -2425,11 +2423,7 @@
         "lat": 27.69405934,
         "lon": 85.31939134
       },
-      {
-        "name": "Kupondol Bus Stop",
-        "lat": 27.68760532,
-        "lon": 85.31676665
-      },
+      
       {
         "name": "Jwagal Stop",
         "lat": 27.68544375,
@@ -2592,7 +2586,7 @@
         "lon": 85.32135013
       },
       {
-        "name": "Putalisakad Bus Stand",
+        "name": "putalisadak Bus Stand",
         "lat": 27.69668484,
         "lon": 85.32108318
       },
@@ -2904,7 +2898,7 @@
         "lon": 85.32135013
       },
       {
-        "name": "Putalisakad Bus Stand",
+        "name": "putalisadak Bus Stand",
         "lat": 27.69668484,
         "lon": 85.32108318
       },
