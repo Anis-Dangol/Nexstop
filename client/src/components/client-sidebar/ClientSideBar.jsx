@@ -23,6 +23,11 @@ export default function ClientSideBar({
   const [history, setHistory] = useState([]);
   const [favourites, setFavourites] = useState([]);
   const [isLoadingFavourites, setIsLoadingFavourites] = useState(false);
+  const [isToggleOn, setIsToggleOn] = useState(() => {
+    // Initialize from localStorage if available
+    const savedToggle = localStorage.getItem("routeSearchToggle");
+    return savedToggle ? JSON.parse(savedToggle) : false;
+  });
 
   // Get user from Redux store
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -83,6 +88,11 @@ export default function ClientSideBar({
   useEffect(() => {
     localStorage.setItem("routeHistory", JSON.stringify(history));
   }, [history]);
+
+  useEffect(() => {
+    // Save toggle state to localStorage
+    localStorage.setItem("routeSearchToggle", JSON.stringify(isToggleOn));
+  }, [isToggleOn]);
 
   useEffect(() => {
     // Only save to localStorage if user is not authenticated
@@ -267,6 +277,8 @@ export default function ClientSideBar({
                 addToFavourites={addToFavourites}
                 routesData={routesData}
                 routesLoading={routesLoading}
+                isToggleOn={isToggleOn}
+                setIsToggleOn={setIsToggleOn}
               />
             ) : (
               <FavouriteMenu

@@ -16,10 +16,12 @@ export default function ClientMenuItems({
   addToFavourites,
   routesData = [],
   routesLoading = false,
+  isToggleOn, // Receive from props
+  setIsToggleOn, // Receive from props
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
-  const [isToggleOn, setIsToggleOn] = useState(false);
+  // Remove local toggle state since it's now coming from props
   const [userLocation, setUserLocation] = useState(null);
   const [nearestStop, setNearestStop] = useState(null);
   const [transferData, setTransferData] = useState([]);
