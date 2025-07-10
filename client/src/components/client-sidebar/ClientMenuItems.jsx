@@ -18,6 +18,7 @@ export default function ClientMenuItems({
   routesLoading = false,
   isToggleOn, // Receive from props
   setIsToggleOn, // Receive from props
+  customUserLocation, // Add custom user location prop
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
@@ -383,7 +384,56 @@ export default function ClientMenuItems({
 
   // Function to get user location and find nearest stop
   const getUserLocationAndNearestStop = () => {
-    // Static fallback location (Your specific location)
+    // Check if custom user location is available first
+    if (
+      customUserLocation &&
+      Array.isArray(customUserLocation) &&
+      customUserLocation.length === 2
+    ) {
+      const [lat, lng] = customUserLocation;
+      const processCustomLocation = (latitude, longitude) => {
+        setUserLocation({ lat: latitude, lon: longitude });
+
+        // Pass destination to filter nearest stops
+        const destinationName = end.trim();
+        const nearest = findNearestBusStop(
+          latitude,
+          longitude,
+          destinationName || null
+        );
+
+        if (nearest) {
+          setNearestStop(nearest);
+          setStart(nearest.name);
+
+          // Add red marker to map if window function exists
+          if (window.addNearestStopMarker) {
+            window.addNearestStopMarker(nearest);
+          }
+
+          // Show toast to inform user about location source
+          toast({
+            title: "Using your custom location",
+            description:
+              "Using your manually set location to find nearest stop.",
+            variant: "default",
+          });
+        } else if (destinationName) {
+          // If no stop found with route to destination, show message
+          toast({
+            title: "No suitable stop found",
+            description: `No nearby bus stops have routes to "${destinationName}". Please select destination first or choose manually.`,
+            variant: "destructive",
+          });
+          setIsToggleOn(false);
+        }
+      };
+
+      processCustomLocation(lat, lng);
+      return;
+    }
+
+    // Fall back to GPS or static location if no custom location
     const fallbackLocation = {
       latitude: 27.686262,
       longitude: 85.303635,
@@ -498,14 +548,14 @@ export default function ClientMenuItems({
     if (isToggleOn) {
       getUserLocationAndNearestStop();
     }
-  }, [isToggleOn]);
+  }, [isToggleOn, customUserLocation]); // Add customUserLocation as dependency
 
   // Re-detect nearest stop when destination changes while toggle is on
   useEffect(() => {
     if (isToggleOn && end.trim()) {
       getUserLocationAndNearestStop();
     }
-  }, [end, isToggleOn]);
+  }, [end, isToggleOn, customUserLocation]); // Add customUserLocation as dependency
 
   return (
     <nav className="flex-col flex gap-4">

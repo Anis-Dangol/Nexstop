@@ -16,6 +16,7 @@ export default function ClientSideBar({
   end,
   setEnd,
   setRoute,
+  customUserLocation, // Add custom user location prop
 }) {
   const [tab, setTab] = useState("search");
   const [routesData, setRoutesData] = useState([]);
@@ -279,6 +280,7 @@ export default function ClientSideBar({
                 routesLoading={routesLoading}
                 isToggleOn={isToggleOn}
                 setIsToggleOn={setIsToggleOn}
+                customUserLocation={customUserLocation} // Pass custom user location
               />
             ) : (
               <FavouriteMenu

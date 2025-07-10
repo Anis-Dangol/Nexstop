@@ -3,7 +3,7 @@ import { fetchRouteFromAPI, fetchUserToStart } from "../map/MapAPISlice";
 import { fetchBusRoutes } from "../services/busRoutes";
 import { GetTransferMessage } from "@/lib/GetTransferMessage";
 
-export const useMapData = (routeProp) => {
+export const useMapData = (routeProp, customUserLocation = null) => {
   const [userLocation, setUserLocation] = useState(null);
   const [fareData, setFareData] = useState(null);
   const [allStops, setAllStops] = useState([]);
@@ -16,7 +16,7 @@ export const useMapData = (routeProp) => {
   const [nearestStopMarker, setNearestStopMarker] = useState(null);
   const [routesData, setRoutesData] = useState([]);
 
-  const center = [27.686262, 85.303635];
+  const center = customUserLocation || userLocation || [27.686262, 85.303635];
 
   // Load routes data from MongoDB
   useEffect(() => {
@@ -123,15 +123,20 @@ export const useMapData = (routeProp) => {
   // Effect: Fetch OSM route from user location to start bus stop
   useEffect(() => {
     async function fetchUserToStartCoords() {
-      if (userLocation && selectedStops.length > 0) {
-        const coords = await fetchUserToStart(userLocation, selectedStops);
+      // Use custom user location if available, otherwise use GPS location
+      const effectiveUserLocation = customUserLocation || userLocation;
+      if (effectiveUserLocation && selectedStops.length > 0) {
+        const coords = await fetchUserToStart(
+          effectiveUserLocation,
+          selectedStops
+        );
         setUserToStartCoords(coords);
       } else {
         setUserToStartCoords([]);
       }
     }
     fetchUserToStartCoords();
-  }, [userLocation, selectedStops]);
+  }, [userLocation, selectedStops, customUserLocation]);
 
   // Effect: Check for transfer popup when route changes
   useEffect(() => {
@@ -237,8 +242,12 @@ export const useMapData = (routeProp) => {
     }
   }, [routeProp]);
 
+  // Calculate the effective user location
+  const effectiveUserLocation = customUserLocation || userLocation;
+
   return {
     userLocation,
+    effectiveUserLocation,
     fareData,
     allStops,
     selectedStops,
