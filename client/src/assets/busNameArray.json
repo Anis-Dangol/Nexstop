@@ -1,47 +1,52 @@
 [
   {
-    "busname": "Ultra Bus / Micro Bus",
+    "busname": "Ultra-bus/HI-ace/local bus ",
     "stops": [
-      "Ratnapark",
-      "Tudikhel Bus Stop",
-      "Bhirikuti Mandap Stop",
-      "Sahid Gate Bus Stop",
-      "Tripureshwar Bus Stop",
-      "Teku Bus Stop",
-      "Kalimati Bus Stop (Balkhu)",
-      "Balkhu Stop",
-      "Balkhu Wari",
-      "Kumari Club (Dashinkali)",
-      "TU Gate (Dashinkali)",
-      "Nayabato (Dashinkali)",
-      "Nayabato (Kirtipur)",
-      "Ayurbedhik Hospital Stop",
-      "Tin Kune Kirtipur",
-      "Nayabazar Gate",
-      "Panga Dobato Stop",
-      "Nagau Dobato Stop",
-      "Telecome Stop",
-      "Khasi Bazar Stop",
-      "Dhalpa Chowk",
-      "Devdhoka Stop",
-      "Dev Bus Stop",
-      "Bishnudevi Hospital Bus Stop",
-      "Nayabazar Gate",
-      "Tin Kune (Nayabato)",
-      "Ayurbedhik Hospital (Nayabato)",
-      "Nayabato (Balkhu)",
-      "TU Gate (Balkhu)",
-      "Kumari Club (Balkhu)",
-      "Balkhu Petro Stop",
-      "Balkhu Pari Stop",
-      "Kalimati Bus Stop (Teku)",
-      "Teku Stop",
-      "Tripureshwar (RNAC)",
-      "Ratnapark"
+      
+  "Ratnapark",
+  "Tudikhel Bus Stop",
+  "Bhirikuti Mandap Stop",
+  "Sahid Gate Bus Stop",
+  "Tripureshwar Bus Stop",
+  "Teku Bus Stop",
+  "Kalimati Bus Stop (Balkhu)",
+  "Balkhu Stop",
+  "Balkhu Wari",
+  "Kumari Club (Dashinkali)",
+  "TU Gate (Dashinkali)",
+  "Nayabato (Dashinkali)",
+  "Nayabato (Kirtipur)",
+  "Ayurbedhik Hospital Stop",
+  "Tin Kune Kirtipur",
+  "Nayabazar Gate",
+  "Panga Dobato Stop",
+  "Nagau Dobato Stop",
+  "Telecome Stop",
+  "Khasi Bazar Stop",
+  "Dhalpa Chowk",
+  "Devdhoka Stop",
+  "Dev Bus Stop",
+  "Bishnudevi Hospital Bus Stop",
+  "Nayabazar Gate",
+  "Tin Kune (Nayabato)",
+  "Ayurbedhik Hospital (Nayabato)",
+  "Nayabato (Balkhu)",
+  "TU Gate (Balkhu)",
+  "Kumari Club (Balkhu)",
+  "Balkhu Petro Stop",
+  "Balkhu Pari Stop",
+  "Kalimati Bus Stop (Teku)",
+  "Kalimati (Vegetable Market)",
+  "Teku Stop",
+  "Tripureshwar (RNAC)",
+  "Ratnapark"
+
+
     ]
   },
+ 
   {
-    "busname": "Yellow Force Bus",
+    "busname": "Yellow force micro bus ",
     "stops": [
       "Panga Dobato Stop",
       "Nagau Dobato Stop",
@@ -87,8 +92,12 @@
       "Panga Dobato Stop"
     ]
   },
+
+
+  
+ 
   {
-    "busname": "Bus",
+    "busname": "White force micro bus/HI-ace/local minibus  ",
     "stops": [
       "Chabahil Stop",
       "Mitra Park Stop",
@@ -101,7 +110,7 @@
       "New Baneshwor Bus Stop",
       "Babar Mahal Bus Stand",
       "Maitighar Bus Stand",
-      "Putalisakad Bus Stand",
+      "putalisadak Bus Stand",
       "Singha Durbar Bus Stand",
       "Ratnapark",
       "Tudikhel Bus Stop",
@@ -118,9 +127,13 @@
       "Chabahil Bus Stand",
       "Chabahil Stop"
     ]
+  
+
+
   },
+  
   {
-    "busname": "Ring Road Parikrama Bus",
+    "busname": "Red&Green Sajha yatayat,local minibus ",
     "stops": [
       "Chabahil Bus Stand",
       "Dhumbahari Bus Stop",
@@ -163,7 +176,6 @@
       "Gwarko Bus Stop",
       "Khari Boat Bus Stop",
       "Balkumari Bus Stop",
-      "Balkumari Bus Stand",
       "Koteshwor Bus Stand",
       "Sinamangal Bus Stand",
       "Bimansthal Stop",
@@ -174,11 +186,11 @@
       "Chabahil Bus Stand"
     ]
   },
+  
   {
-    "busname": "Bus",
+    "busname": "White force micro bus/local minibus  ",
     "stops": [
       "Kalanki",
-      "Kalanki Bus Stop (Kalimati)",
       "Soltimod",
       "Kalimati (Vegetable Market)",
       "Teku Stop",
@@ -194,5 +206,535 @@
       "Kalanki (Global IME)",
       "Kalanki"
     ]
+  },
+  
+  {
+    "busname": "Red&Green Sajha yatayat/White force micro bus/local minibus ",
+    "stops": [
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Putalisadak Bus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Koteswor Bus Stop (Bal Kumari Bridge)",
+      "Balkumari Bus Stand",
+      "Khariboat Bus Stand",
+      "Gwarko Bus Stand",
+      "B and B Bus Stand",
+      "Bodhigram Bus Stand",
+      "Satobato Stop (Ekantakuna)",
+      "Tikabhairav Chowk",
+      "Talchikhela Chowk",
+      "JRC Chok",
+      "Mahalaxmi Bus Stop (Ekantakuna)",
+      "Thasikhel Chowk",
+      "Kusunti Bus Stop (Sanepa)",
+      "Ekantakuna Bus Stop (Balkhu)",
+      "Star Hospital Bus Stop (Balkhu)",
+      "Sanepa Bus Stop (Balkhu)",
+      "Balkhu Bus Stop (Kalanki)",
+      "Sita Petrol Pump Stop (Kalanki)",
+      "Kalanki",
+      "Kalanki Bus Stop (Kalimati)",
+      "Soltimod",
+      "Kalimati (Vegetable Market)",
+      "Teku Stop",
+      "Tripureshwar (RNAC)",
+      "Ratnapark"
+    ]
+  },
+  
+  {
+    "busname": "Red&Green Sajha yatayat,local minibus ",
+    "stops": [
+      "Gongabu New Bus Park",
+      "Gongabu Bus Stand (Chakrapath)",
+      "Gongabu Chowk Stand",
+      "Samakhusi Bus Stand",
+      "Talim Khendra Stand",
+      "Basundhara Bus Stand",
+      "Basundhara Main",
+      "Narayan Gopal",
+      "Dhumbarahi Stand",
+      "Gopi Krishna Bus Stop",
+      "Chabahil Stop",
+      "Mitra Park Stop",
+      "Bageshwari Stop",
+      "Gaushala Stop",
+      "Bimansthal",
+      "Sinamangal Bus Stop",
+      "Koteswor Bus Stop (Bal Kumari Bridge)",
+      "Balkumari Bus Stand",
+      "Khariboat Bus Stand",
+      "Gwarko Bus Stand",
+      "B and B Bus Stand",
+      "Bodhigram Bus Stand",
+      "Satobato Stop (Ekantakuna)",
+      "Tikabhairav Chowk",
+      "Talchikhela Chowk",
+      "JRC Chok",
+      "Mahalaxmi Bus Stop (Ekantakuna)",
+      "Thasikhel Chowk",
+      "Kusunti Bus Stop (Sanepa)",
+      "Ekantakuna Bus Stop (Balkhu)",
+      "Star Hospital Bus Stop (Balkhu)",
+      "Sanepa Bus Stop (Balkhu)",
+      "Balkhu Bus Stop (Kalanki)",
+      "Sita Petrol Pump Stop (Kalanki)",
+      "Kalanki (Bafal)",
+      "Bafal Bus Stop",
+      "Soaltee Dobato Chowk",
+      "Sano Bus Stop",
+      "Swayambhu Bus Stop (Main Road)",
+      "Thulo Bharyang",
+      "Sano Bharyang Bus Stand",
+      "Dhunge Dhara Bus Stand",
+      "Banasthali Bus Stand",
+      "Balaju Bus Stand",
+      "Macha Pokhari Bus Stand",
+      "Gongabu New Bus Park"
+    ]
+  },
+  
+  {
+
+    "busname": "HI-ace/local minibus ",
+    "stops": [
+      "Ratnapark",
+      "Bir Hospital Bus Stand",
+      "Kanti Path Bus Stand",
+      "Laichaur Bus Stand",
+      "ASCOL Bus Stand",
+      "Thamel Bus Stand",
+      "Sorhakhutte Bus Stop",
+      "Balaju (Lekhnath Sadak)",
+      "Balaju Bus Stand (Nayabazar)",
+      "Sorhakhutte Nayabazar Bus Stop",
+      "Thamel Bus Stop",
+      "ASCOL (Amrit Campus)",
+      "Lainchur Bus Stop",
+      "Kantipath Bus Stop",
+      "Jamal Bus Stand",
+      "Bhirikuti Mandap Stop",
+      "Ratnapark"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus ",
+    "stops": [
+      "Ratnapark",
+      "Bir Hospital Bus Stand",
+      "Kanti Path Bus Stand",
+      "Laichaur Bus Stand",
+      "ASCOL Bus Stand",
+      "Thamel Bus Stand",
+      "Sorhakhutte Bus Stop",
+      "Balaju (Lekhnath Sadak)",
+      "Balaju Bus Stand (Nayabazar)",
+      "Sorhakhutte Nayabazar Bus Stop",
+      "Thamel Bus Stop",
+      "ASCOL (Amrit Campus)",
+      "Lainchur Bus Stop",
+      "Kantipath Bus Stop",
+      "Jamal Bus Stand",
+      "Bhirikuti Mandap Stop",
+      "Ratnapark"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus ",
+    "stops": [
+      "Patan Dhoka Bus Stand",
+      "Engineering Campus Bus Stop",
+      "Jwagal Chok",
+      "Kupondol Bus Stand",
+      "Thapathali Bus Stop",
+      "Thapathali Campus Stop",
+      "Ratnapark",
+      "Bir Hospital Bus Stand",
+      "Kanti Path Bus Stand",
+      "Lazimpath Bus Stop",
+      "Narayan Hiti Palace Bus Stop",
+      "Nag Pokhari Bus Stand",
+      "Jai Nepal Hall Bus Stop",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Thapathali Bus Stand",
+      "Kupondol Bus Stop",
+      "Engineering Campus Bus Stop",
+      "Patan Dhoka Bus Stand"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Narayangopal Chowk",
+      "Chakrapath Bus Stand",
+      "Teaching Bus Stop",
+      "Maharajgunj Bus Stop",
+      "Lazimpat Bus Stop",
+      "Kantipath Bus Stop",
+      "Jamal Bus Stand",
+      "Bhirikuti Mandap Stop",
+      "Ratnapark",
+      "Bir Hospital Bus Stand",
+      "Kanti Path Bus Stand",
+      "Lazimpath Bus Stand",
+      "Maharajgunj Bus Stand",
+      "Teaching Bus Stand",
+      "Chakrapath Bus Stop",
+      "Narayan Gopal Chowk",
+      "Narayangopal Chowk"
+    ]
+  },
+
+  {
+    "busname": "HI-ace/local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Gongabu Bus Stand (Chakrapath)",
+      "Gongabu Chowk Stand",
+      "Samakhusi Bus Stand",
+      "Talim Khendra Stand",
+      "Basundhara Bus Stand",
+      "Basundhara Main",
+      "Narayan Gopal",
+      "Chakrapath Bus Stand",
+      "Teaching Bus Stop",
+      "Maharajgunj Bus Stop",
+      "Lazimpat Bus Stop",
+      "Kantipath Bus Stop",
+      "Jamal Bus Stand",
+      "Bhirikuti Mandap Stop",
+      "Ratnapark",
+      "Bir Hospital Bus Stand",
+      "Kanti Path Bus Stand",
+      "Lazimpath Bus Stand",
+      "Maharajgunj Bus Stand",
+      "Teaching Bus Stand",
+      "Chakrapath Bus Stop",
+      "Narayan Gopal Bus Stop",
+      "Sajha Bus Stop",
+      "Basundhara Bus Stop",
+      "Basundhara Chauki Bus Stop",
+      "Taalim Kendram Bus Stop",
+      "Samakhusi Bus Stop",
+      "Gongabu Bus Stop",
+      "Gongabu New Bus Park",
+      "Gongabu Bus Stand (Chakrapath)"
+    ]
+  },
+
+  {
+    "busname": "HI-ace/local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Putalisadak Bus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Sinamangal Bus Stand",
+      "Bimansthal Stop",
+      "Gaushala Bus Stop",
+      "Jay Bageshwari Stop",
+      "Mitrapark Stand",
+      "Chabahil Bus Stand",
+      "Dhumbahari Bus Stop",
+      "Chapal Karkhana Bus Stop",
+      "Narayan Gopal Bus Stop",
+      "Sajha Bus Stop",
+      "Basundhara Bus Stop",
+      "Basundhara Chauki Bus Stop",
+      "Taalim Kendram Bus Stop",
+      "Samakhusi Bus Stop",
+      "Gongabu Bus Stop",
+      "Gongabu New Bus Park",
+      "Gongabu Bus Stand (Chakrapath)",
+      "Gongabu Chowk Stand",
+      "Samakhusi Bus Stand",
+      "Talim Khendra Stand",
+      "Basundhara Bus Stand",
+      "Basundhara Main",
+      "Narayan Gopal",
+      "Dhumbarahi Stand",
+      "Gopi Krishna Bus Stop",
+      "Chabahil Stop",
+      "Mitra Park Stop",
+      "Bageshwari Stop",
+      "Gaushala Stop",
+      "Bimansthal",
+      "Sinamangal Bus Stop",
+      "Tin Kune Madanbhandari",
+      "Min Bhawan Bus Stop",
+      "New Baneshwor Bus Stop",
+      "Babar Mahal Bus Stand",
+      "Maitighar Bus Stand",
+      "putalisadak Bus Stand",
+      "Singha Durbar Bus Stand",
+      "Ratnapark"
+    ]
+  },
+
+  
+  {
+    "busname": "HI-ace/local minibus ",
+    "stops": [
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Putalisadak Bus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Sinamangal Bus Stand",
+      "Tarahal Chowk Bus Stop",
+      "Seto Pool",
+      "Maitidevi Chowk",
+      "Dilibazar Pipal Ko Bot",
+      "Putalisadak",
+      "Bhaktapur Mini Bus Park",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop"
+    ]
+  },
+  
+  {
+    "busname": "local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Balkhu Stop",
+      "Sanepa Bus Stop (Chakrapath)",
+      "Star Hospital Bus Stop (Ekantakuna)",
+      "Ekantakuna Bus Stop (Kusunti)",
+      "Jawalakhel Bus Stand",
+      "Pulchowk",
+      "Harihar Bhawan Stop",
+      "Jwagal Chok",
+      "Kupondol Bus Stand",
+      "Thapathali Bus Stop",
+      "Thapathali Campus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Koteswor Bus Stop (Bal Kumari Bridge)",
+      "Tin Kune Madanbhandari",
+      "Min Bhawan Bus Stop",
+      "New Baneshwor Bus Stop",
+      "Babar Mahal Bus Stand",
+      "Maitighar Bus Stand",
+      "Thapathali Bus Stand",
+      "Tripureshwar Bus Stop",
+      "Teku Bus Stop",
+      "Kalimati Bus Stop (Balkhu)",
+      "Balkhu Stop"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Lagankhel",
+      "Patan Hospital Bus Stop",
+      "Kumaripati Agnishal",
+      "Manbhawan Bus Stop",
+      "Jawalakhel Bus Stop",
+      "Pulchowk",
+      "Harihar Bhawan Stop",
+      "Jwagal Chok",
+      "Kupondol Bus Stand",
+      "Thapathali Bus Stop",
+      "Thapathali Campus Stop",
+      "Singha Durbar Bus Stand",
+      "Ratnapark",
+      "Jamal Bus Stand",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Thapathali Bus Stand",
+      "Jwagal Stop",
+      "Harihar Bhawan Stand",
+      "Pulchowk Stop",
+      "Jawalakhel",
+      "Kumaripati Agnishal Stop",
+      "Patan Hospital Bus Stand",
+      "Lagankhel"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus ",
+    "stops": [
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Putalisadak Bus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Sinamangal Bus Stand",
+      "Bimansthal Stop",
+      "Gaushala Bus Stop",
+      "Jay Bageshwari Stop",
+      "Mitrapark Stand",
+      "Chabahil",
+      "Chabahil Stop",
+      "Mitra Park Stop",
+      "Bageshwari Stop",
+      "Gaushala (Battisputali)",
+      "New Baneshwor",
+      "New Baneshwor Near Pool",
+      "Babar Mahal Bus Stand",
+      "Maitighar Bus Stand",
+      "putalisadak Bus Stand",
+      "Singha Durbar Bus Stand",
+      "Ratnapark"
+    ]
+  },
+  
+  {
+    "busname": "local minibus ",
+    "stops": [
+      "Gongabu New Bus Park",
+      "Macha Pokhari Bus Stop",
+      "Balaju Bus Stop",
+      "Banasthali Bus Stop",
+      "Dhungedhara Bus Stop",
+      "Sano Bharyang Bus Stop",
+      "Swayambu Bus Stop",
+      "Sano Bus Stop (Global IME)",
+      "Soaltee Dobato Bus Stop",
+      "Bafal Bus Stop (Bearhardth)",
+      "Kalanki Bus Stop (Kalimati)",
+      "Soltimod",
+      "Kalimati (Vegetable Market)",
+      "Teku Stop",
+      "Tripureshwar (RNAC)",
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Sahid Gate Bus Stop",
+      "Tripureshwar Bus Stop",
+      "Teku Bus Stop",
+      "Kalimati Bus Stop (Kalanki)",
+      "Soltimod (Kalanki)",
+      "Kalanki (Global IME)",
+      "Kalanki (Bafal)",
+      "Bafal Bus Stop",
+      "Soaltee Dobato Chowk",
+      "Sano Bus Stop",
+      "Swayambhu Bus Stop (Main Road)",
+      "Thulo Bharyang",
+      "Sano Bharyang Bus Stand",
+      "Dhunge Dhara Bus Stand",
+      "Banasthali Bus Stand",
+      "Balaju Bus Stand",
+      "Macha Pokhari Bus Stand",
+      "Gongabu New Bus Park"
+    ]
+  },
+  
+  {
+    "busname": "HI-ace/local minibus/Red&Green Sajha yatayat",
+    "stops": [
+      "Gongabu Bus Stand (Chakrapath)",
+      "Gongabu Chowk Stand",
+      "Samakhusi Bus Stand",
+      "Talim Khendra Stand",
+      "Basundhara Bus Stand",
+      "Basundhara Main",
+      "Narayan Gopal",
+      "Dhumbarahi Stand",
+      "Gopi Krishna Bus Stop",
+      "Chabahil Stop",
+      "Mitra Park Stop",
+      "Bageshwari Stop",
+      "Gaushala Stop",
+      "Bimansthal",
+      "Sinamangal Bus Stop",
+      "Tin Kune Madanbhandari",
+      "Min Bhawan Bus Stop",
+      "New Baneshwor Bus Stop",
+      "Babar Mahal Bus Stand",
+      "Maitighar Bus Stand",
+      "putalisadak Bus Stand",
+      "Singha Durbar Bus Stand",
+      "Ratnapark",
+      "Tudikhel Bus Stop",
+      "Bhirikuti Mandap Stop",
+      "Singha Durbar Bus Stop",
+      "Putalisadak Bus Stop",
+      "Mitighar Bus Stop",
+      "Babar Mahal Bus Stop",
+      "New Baneshwor Bus Stand",
+      "Minibhawan Stop",
+      "Tin Kune Bus Stand",
+      "Sinamangal Bus Stand",
+      "Bimansthal Stop",
+      "Gaushala Bus Stop",
+      "Jay Bageshwari Stop",
+      "Mitrapark Stand",
+      "Chabahil Bus Stand",
+      "Dhumbahari Bus Stop",
+      "Chapal Karkhana Bus Stop",
+      "Narayan Gopal Bus Stop",
+      "Sajha Bus Stop",
+      "Basundhara Bus Stop",
+      "Basundhara Chauki Bus Stop",
+      "Taalim Kendram Bus Stop",
+      "Samakhusi Bus Stop",
+      "Gongabu Bus Stop",
+      "Gongabu New Bus Park",
+      "Gongabu Bus Stand (Chakrapath)"
+    ]
   }
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
