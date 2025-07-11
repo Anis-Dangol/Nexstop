@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { MappingHeader } from "./HeaderRightContent";
 import ClientSideBar from "../client-sidebar/ClientSideBar";
 import MapContainerWrapper from "./MapContainerWrapper";
 
 function MappingLayout() {
+  const { user } = useSelector((state) => state.auth);
   const [openSidebar, setOpenSidebar] = useState(false);
   // Lifted state for start and end
   const [start, setStart] = useState("");
@@ -84,6 +86,7 @@ function MappingLayout() {
             setCustomUserLocation={setCustomUserLocation}
             isMapPickMode={isMapPickMode}
             onMapLocationPick={handleMapLocationPick}
+            userRole={user?.role}
           />
           <Outlet />
         </main>

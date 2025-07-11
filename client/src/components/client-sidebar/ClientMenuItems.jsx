@@ -19,6 +19,7 @@ export default function ClientMenuItems({
   isToggleOn, // Receive from props
   setIsToggleOn, // Receive from props
   customUserLocation, // Add custom user location prop
+  userRole, // Add user role prop
 }) {
   const [startSuggestions, setStartSuggestions] = useState([]);
   const [endSuggestions, setEndSuggestions] = useState([]);
@@ -93,6 +94,7 @@ export default function ClientMenuItems({
     if (!trimmedStart || !trimmedEnd) return;
 
     let foundRoute = null;
+    let routeInfo = null; // Add route info to track route details
 
     // First, try to find a direct route
     for (const route of routesData) {
@@ -108,9 +110,19 @@ export default function ClientMenuItems({
         // Check for direct route (forward direction)
         if (startIndex < endIndex) {
           foundRoute = stops.slice(startIndex, endIndex + 1);
-          console.log(
-            `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
-          );
+          routeInfo = route; // Store route info
+          // Only show route number for admin users
+          if (userRole === "admin") {
+            console.log(
+              `Direct route found: ${foundRoute
+                .map((s) => s.name)
+                .join(" → ")} (Route: ${route.routeNumber || "N/A"})`
+            );
+          } else {
+            console.log(
+              `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
+            );
+          }
           break;
         }
         // Check for circular route (wrap around)
@@ -131,11 +143,21 @@ export default function ClientMenuItems({
               ...stops.slice(startIndex), // From start to end of route
               ...stops.slice(1, endIndex + 1), // From beginning to destination (skip first to avoid duplicate)
             ];
-            console.log(
-              `Circular route found: ${foundRoute
-                .map((s) => s.name)
-                .join(" → ")}`
-            );
+            routeInfo = route; // Store route info
+            // Only show route number for admin users
+            if (userRole === "admin") {
+              console.log(
+                `Circular route found: ${foundRoute
+                  .map((s) => s.name)
+                  .join(" → ")} (Route: ${route.routeNumber || "N/A"})`
+              );
+            } else {
+              console.log(
+                `Circular route found: ${foundRoute
+                  .map((s) => s.name)
+                  .join(" → ")}`
+              );
+            }
             break;
           }
         }
@@ -181,6 +203,12 @@ export default function ClientMenuItems({
       // Force a new array reference to ensure React detects the change
       setRoute(foundRoute ? [...foundRoute] : []);
     }
+
+    // Show route number popup only for admin users
+    if (userRole === "admin" && routeInfo && window.showRouteNumberPopup) {
+      window.showRouteNumberPopup(routeInfo);
+    }
+
     const newEntry = `${trimmedStart} → ${trimmedEnd}`;
     if (!history.some((h) => h.toLowerCase() === newEntry.toLowerCase())) {
       setHistory([newEntry, ...history]);

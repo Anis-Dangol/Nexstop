@@ -29,6 +29,7 @@ export default function MapContainerWrapper({
   setCustomUserLocation,
   isMapPickMode,
   onMapLocationPick,
+  userRole,
 }) {
   const [zoom, setZoom] = useState(13);
 
@@ -192,6 +193,7 @@ export default function MapContainerWrapper({
         <RouteMarkers
           routeProp={routeProp}
           predefinedRoutes={predefinedRoutes}
+          userRole={userRole}
         />
       </MapContainer>
 

@@ -281,6 +281,7 @@ export default function ClientSideBar({
                 isToggleOn={isToggleOn}
                 setIsToggleOn={setIsToggleOn}
                 customUserLocation={customUserLocation} // Pass custom user location
+                userRole={user?.role} // Pass user role
               />
             ) : (
               <FavouriteMenu
