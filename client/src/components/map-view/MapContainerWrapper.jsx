@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -17,12 +17,19 @@ import MapBottomSheet from "../bottom-sheet/MapBottomSheet";
 import RoutePopup from "./RoutePopup";
 import TransferInfoButton from "../transfer/TransferInfoButton";
 import TransferPopup from "../transfer/TransferPopup";
+import MapClickHandler from "./MapClickHandler";
 import { useMapData } from "../../hooks/useMapData";
 import { useBottomSheet } from "../../hooks/useBottomSheet";
+import { MapPin } from "lucide-react";
 
 export default function MapContainerWrapper({
   route: routeProp,
   triggerOpenBottomSheet,
+  customUserLocation,
+  setCustomUserLocation,
+  isMapPickMode,
+  onMapLocationPick,
+  userRole,
 }) {
   const [zoom, setZoom] = useState(13);
 
@@ -39,7 +46,7 @@ export default function MapContainerWrapper({
     nearestStopMarker,
     center,
     refreshFareData,
-  } = useMapData(routeProp);
+  } = useMapData(routeProp, customUserLocation);
 
   const {
     isBottomSheetOpen,
@@ -54,6 +61,40 @@ export default function MapContainerWrapper({
     openTransferPopup,
   } = useBottomSheet(routeProp, triggerOpenBottomSheet);
 
+  // Remove the old map pick mode logic since it's now handled by parent
+  const handleLocationSet = (location) => {
+    if (onMapLocationPick) {
+      onMapLocationPick(location);
+    }
+  };
+
+  // Calculate stable marker position
+  const markerPosition = useMemo(() => {
+    if (
+      customUserLocation &&
+      Array.isArray(customUserLocation) &&
+      customUserLocation.length === 2
+    ) {
+      const lat = parseFloat(customUserLocation[0]);
+      const lng = parseFloat(customUserLocation[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return [lat, lng];
+      }
+    }
+    if (
+      userLocation &&
+      Array.isArray(userLocation) &&
+      userLocation.length === 2
+    ) {
+      const lat = parseFloat(userLocation[0]);
+      const lng = parseFloat(userLocation[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return [lat, lng];
+      }
+    }
+    return center;
+  }, [customUserLocation, userLocation, center]);
+
   return (
     <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
       <MapContainer
@@ -66,7 +107,14 @@ export default function MapContainerWrapper({
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomLevelTracker onZoomChange={setZoom} />
-        <UserLocationMarker position={center} />
+        <MapClickHandler
+          onLocationSet={handleLocationSet}
+          isMapPickMode={isMapPickMode}
+        />
+        <UserLocationMarker
+          position={markerPosition}
+          isCustomLocation={!!customUserLocation}
+        />
 
         {/* Bus Stop Markers */}
         <BusStopMarkers
@@ -145,6 +193,7 @@ export default function MapContainerWrapper({
         <RouteMarkers
           routeProp={routeProp}
           predefinedRoutes={predefinedRoutes}
+          userRole={userRole}
         />
       </MapContainer>
 
