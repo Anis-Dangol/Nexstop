@@ -11,6 +11,8 @@ import {
   deleteBusStopFromAllRoutes,
   updateBusStop,
   importBusRoutes,
+  bulkUpdateRouteNumbers,
+  reorderRoutes,
 } from "../../controllers/bus/bus-controller.js";
 import { authMiddleware } from "../../controllers/auth/auth-controller.js";
 
@@ -25,6 +27,12 @@ router.get("/stops", getAllBusStops);
 router.get("/statistics", authMiddleware, getBusStatistics);
 router.post("/routes", authMiddleware, createBusRoute);
 router.post("/routes/import", authMiddleware, importBusRoutes);
+router.put(
+  "/routes/bulk-update-numbers",
+  authMiddleware,
+  bulkUpdateRouteNumbers
+);
+router.put("/routes/reorder", authMiddleware, reorderRoutes);
 router.put("/routes/:id", authMiddleware, updateBusRoute);
 router.delete("/routes/:id", authMiddleware, deleteBusRoute);
 router.put("/stops/:id", authMiddleware, updateBusStop);

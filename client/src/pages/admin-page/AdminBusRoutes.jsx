@@ -5,6 +5,8 @@ import {
   updateBusRoute,
   deleteBusRoute,
   importBusRoutes,
+  bulkUpdateRouteNumbers,
+  reorderRoutes,
 } from "../../services/busRoutes";
 import { useSelector } from "react-redux";
 
@@ -17,6 +19,7 @@ function AdminBusRoutes() {
   const [editingRoute, setEditingRoute] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragUpdateLoading, setDragUpdateLoading] = useState(false);
   const [busRoutes, setBusRoutes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -40,7 +43,16 @@ function AdminBusRoutes() {
   const [selectAll, setSelectAll] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+
   const { user } = useSelector((state) => state.auth);
+
+  // Toast notification function
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Fetch bus routes on component mount
   useEffect(() => {
@@ -731,6 +743,245 @@ function AdminBusRoutes() {
     }
   };
 
+  // Drag and drop functions for route reordering
+  const handleRoutesDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+
+    // Create a custom drag image
+    const dragElement = e.target.closest(".routes-drag-container");
+    if (dragElement) {
+      e.dataTransfer.setDragImage(dragElement, 0, 0);
+    }
+  };
+
+  const handleRoutesDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleRoutesDragEnter = (e, index) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleRoutesDragLeave = (e) => {
+    e.preventDefault();
+    // Check if we're leaving the container entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleRoutesDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setDragUpdateLoading(true);
+
+      // Create a copy of the current sorted routes
+      const reorderedRoutes = [...sortedRoutes];
+      const draggedRoute = reorderedRoutes[draggedIndex];
+
+      // Remove the dragged item from its current position
+      reorderedRoutes.splice(draggedIndex, 1);
+
+      // Calculate the correct drop position
+      let finalDropIndex;
+      if (dropIndex >= reorderedRoutes.length) {
+        finalDropIndex = reorderedRoutes.length;
+      } else if (dropIndex > draggedIndex) {
+        finalDropIndex = dropIndex - 1;
+      } else {
+        finalDropIndex = dropIndex;
+      }
+
+      // Insert at new position
+      reorderedRoutes.splice(finalDropIndex, 0, draggedRoute);
+
+      // Extract route IDs in the new order for the reorder API
+      const reorderedRouteIds = reorderedRoutes.map((route) => route._id);
+
+      console.log(`Reordering ${reorderedRoutes.length} routes in database...`);
+
+      try {
+        // Use the dedicated reorder endpoint (most reliable)
+        const reorderResult = await reorderRoutes(reorderedRouteIds);
+        console.log("Reorder successful:", reorderResult);
+
+        if (reorderResult.success) {
+          console.log(
+            `✅ Successfully reordered ${reorderResult.data.modifiedCount} routes in database`
+          );
+        } else {
+          throw new Error("Reorder operation failed");
+        }
+      } catch (reorderError) {
+        console.warn(
+          "Reorder endpoint failed, falling back to bulk update:",
+          reorderError.message
+        );
+
+        // Fallback to bulk update approach
+        const routeUpdates = reorderedRoutes
+          .map((route, index) => ({
+            id: route._id,
+            routeNumber: index + 1, // Start from 1
+          }))
+          .filter((update, index) => {
+            // Only include routes whose numbers actually changed
+            return reorderedRoutes[index].routeNumber !== update.routeNumber;
+          });
+
+        if (routeUpdates.length > 0) {
+          try {
+            // Try bulk update
+            const bulkResult = await bulkUpdateRouteNumbers(routeUpdates);
+            console.log("Bulk update successful:", bulkResult);
+
+            if (
+              bulkResult.success &&
+              bulkResult.data.modifiedCount === routeUpdates.length
+            ) {
+              console.log(
+                `✅ Successfully updated ${bulkResult.data.modifiedCount} routes via bulk update`
+              );
+            } else {
+              throw new Error(
+                `Bulk update partially failed. Expected ${routeUpdates.length}, got ${bulkResult.data.modifiedCount}`
+              );
+            }
+          } catch (bulkError) {
+            console.warn(
+              "Bulk update failed, using sequential update strategy:",
+              bulkError.message
+            );
+
+            // Sequential update strategy to avoid route number conflicts
+            // Step 1: Assign temporary route numbers to all routes being updated
+            const tempRouteNumbers = routeUpdates.map(
+              (_, index) => 9000 + index
+            ); // Use high numbers as temp
+
+            console.log("Step 1: Assigning temporary route numbers...");
+            for (let i = 0; i < routeUpdates.length; i++) {
+              const update = routeUpdates[i];
+              const route = reorderedRoutes.find((r) => r._id === update.id);
+              try {
+                await updateBusRoute(update.id, {
+                  ...route,
+                  routeNumber: tempRouteNumbers[i],
+                });
+                console.log(
+                  `🔄 Temp number ${tempRouteNumbers[i]} assigned to route ${route.name}`
+                );
+              } catch (error) {
+                console.error(
+                  `❌ Failed to assign temp number to route ${route.name}:`,
+                  error
+                );
+                throw new Error(
+                  `Failed to assign temporary route number to ${route.name}`
+                );
+              }
+            }
+
+            // Step 2: Assign final route numbers
+            console.log("Step 2: Assigning final route numbers...");
+            for (const update of routeUpdates) {
+              const route = reorderedRoutes.find((r) => r._id === update.id);
+              try {
+                await updateBusRoute(update.id, {
+                  ...route,
+                  routeNumber: update.routeNumber,
+                });
+                console.log(
+                  `✅ Final number ${update.routeNumber} assigned to route ${route.name}`
+                );
+              } catch (error) {
+                console.error(
+                  `❌ Failed to assign final number to route ${route.name}:`,
+                  error
+                );
+                throw new Error(
+                  `Failed to assign final route number to ${route.name}`
+                );
+              }
+            }
+
+            console.log(
+              `✅ Sequential updates completed: ${routeUpdates.length} routes updated`
+            );
+          }
+        }
+      }
+
+      // Reload routes from database to ensure consistency
+      console.log("Reloading routes from database to verify changes...");
+      await loadBusRoutes();
+
+      // Show success message
+      console.log(`✅ Route reordering completed successfully!`);
+
+      // Show toast notification
+      showToast(
+        `Successfully reordered routes and updated route numbers in database.`,
+        "success"
+      );
+    } catch (error) {
+      console.error("❌ Error reordering routes:", error);
+
+      // Show specific error message based on error type
+      let errorMessage = "Failed to reorder routes. Please try again.";
+
+      if (error.message?.includes("Route number already exists")) {
+        errorMessage = "Cannot reorder: Route number conflict detected.";
+      } else if (
+        error.message?.includes("network") ||
+        error.message?.includes("fetch")
+      ) {
+        errorMessage =
+          "Network error: Please check your connection and try again.";
+      } else if (
+        error.message?.includes("Forbidden") ||
+        error.message?.includes("403")
+      ) {
+        errorMessage = "Permission denied: Admin access required.";
+      }
+
+      // Show error message
+      showToast(errorMessage, "error");
+
+      // Reload routes to ensure consistency with database
+      console.log("Reloading routes from database after error...");
+      await loadBusRoutes();
+    } finally {
+      setLoading(false);
+      setDragUpdateLoading(false);
+    }
+
+    setDraggedIndex(null);
+  };
+
+  const handleRoutesDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div className="w-full bg-gray-50 min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
@@ -838,6 +1089,48 @@ function AdminBusRoutes() {
 
         {/* Routes Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* Drag and Drop Instructions */}
+          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="text-blue-600">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5 2a1 1 0 000 2h1v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2V4h1a1 1 0 100-2H5zM8 4v3h4V4H8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-700">
+                    <span className="font-medium">💡 Tip:</span> Drag and drop
+                    routes using the drag handle (☰) to reorder them. Route
+                    numbers will be automatically updated based on the new
+                    order.
+                    {sortOrder !== "none" && (
+                      <span className="block mt-1 text-orange-600">
+                        ⚠️ Note: Disable sorting to use drag and drop
+                        functionality.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {dragUpdateLoading && (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-600 font-medium">
+                    Updating database...
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-500">Loading routes...</div>
@@ -873,20 +1166,91 @@ function AdminBusRoutes() {
                   {sortedRoutes.map((route, index) => (
                     <tr
                       key={route._id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                      className={`routes-drag-container hover:bg-gray-50 transition-all duration-200 ${
+                        sortOrder === "none" ? "cursor-move" : "cursor-default"
+                      } ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} ${
+                        dragOverIndex === index && sortOrder === "none"
+                          ? "border-t-4 border-blue-500 shadow-lg transform scale-[1.02]"
+                          : ""
+                      } ${
+                        draggedIndex === index && sortOrder === "none"
+                          ? "opacity-50 transform rotate-1 shadow-2xl"
+                          : ""
                       }`}
+                      draggable={sortOrder === "none"}
+                      onDragStart={
+                        sortOrder === "none"
+                          ? (e) => handleRoutesDragStart(e, index)
+                          : undefined
+                      }
+                      onDragOver={
+                        sortOrder === "none" ? handleRoutesDragOver : undefined
+                      }
+                      onDragEnter={
+                        sortOrder === "none"
+                          ? (e) => handleRoutesDragEnter(e, index)
+                          : undefined
+                      }
+                      onDragLeave={
+                        sortOrder === "none" ? handleRoutesDragLeave : undefined
+                      }
+                      onDrop={
+                        sortOrder === "none"
+                          ? (e) => handleRoutesDrop(e, index)
+                          : undefined
+                      }
+                      onDragEnd={
+                        sortOrder === "none" ? handleRoutesDragEnd : undefined
+                      }
+                      style={{
+                        transition: "all 0.2s ease",
+                        ...(draggedIndex === index &&
+                          sortOrder === "none" && {
+                            transform: "rotate(2deg) scale(1.05)",
+                            zIndex: 1000,
+                            boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+                          }),
+                        ...(dragOverIndex === index &&
+                          sortOrder === "none" && {
+                            borderTopColor: "#3b82f6",
+                            borderTopWidth: "4px",
+                          }),
+                      }}
                     >
                       <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        <input
-                          type="checkbox"
-                          checked={selectedRoutes.includes(route._id)}
-                          onChange={() => handleSelectRoute(route._id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                        />
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`drag-handle group p-1 rounded transition-colors ${
+                              sortOrder === "none"
+                                ? "cursor-grab active:cursor-grabbing hover:bg-gray-200"
+                                : "cursor-not-allowed opacity-50"
+                            }`}
+                          >
+                            <svg
+                              className={`w-4 h-4 ${
+                                sortOrder === "none"
+                                  ? "text-gray-400 group-hover:text-gray-600"
+                                  : "text-gray-300"
+                              }`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M6 2a1 1 0 000 2h8a1 1 0 100-2H6zM6 7a1 1 0 000 2h8a1 1 0 100-2H6zM6 12a1 1 0 000 2h8a1 1 0 100-2H6zM6 17a1 1 0 000 2h8a1 1 0 100-2H6z" />
+                            </svg>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={selectedRoutes.includes(route._id)}
+                            onChange={() => handleSelectRoute(route._id)}
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
                       </td>
                       <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        {route.routeNumber}
+                        <span className="font-bold text-blue-600">
+                          {route.routeNumber}
+                        </span>
                       </td>
                       <td className="py-4 px-6 text-sm text-gray-900">
                         {route.name}
@@ -894,7 +1258,10 @@ function AdminBusRoutes() {
                       <td className="py-4 px-6 text-sm text-gray-700">
                         {route.totalStops}
                       </td>
-                      <td className="py-4 px-6 text-sm">
+                      <td
+                        className="py-4 px-6 text-sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleEditRoute(route)}
@@ -1557,6 +1924,48 @@ function AdminBusRoutes() {
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transition-all duration-500 ${
+            toast.type === "success"
+              ? "bg-green-50 border-green-400 text-green-700"
+              : "bg-red-50 border-red-400 text-red-700"
+          }`}
+        >
+          <div className="flex items-center">
+            <div className="mr-3">
+              {toast.type === "success" ? (
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
+            <p className="text-sm font-medium">{toast.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

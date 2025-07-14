@@ -80,11 +80,31 @@ export function MappingHeader({
 }) {
   const { user } = useSelector((state) => state.auth);
   const [showLocationInput, setShowLocationInput] = useState(false);
+  const [shouldReopenModal, setShouldReopenModal] = useState(false);
 
   const handleLocationSet = (location) => {
+    console.log("HeaderRightContent: Location received:", location);
     setCustomUserLocation(location);
-    setShowLocationInput(false);
-    console.log("Location set:", location);
+
+    // If we came from map picking, reopen the modal to show the coordinates
+    if (shouldReopenModal) {
+      setShouldReopenModal(false);
+      setTimeout(() => {
+        setShowLocationInput(true);
+      }, 100);
+    } else {
+      setShowLocationInput(false);
+    }
+    console.log("HeaderRightContent: Location set and modal state updated");
+  };
+
+  // Enhanced startMapPickMode that tracks if we should reopen modal
+  const enhancedStartMapPickMode = (callback) => {
+    setShouldReopenModal(true);
+    startMapPickMode((location) => {
+      callback(location);
+      // The modal will reopen automatically via handleLocationSet
+    });
   };
 
   console.log(user, "useruseruser");
@@ -98,6 +118,16 @@ export function MappingHeader({
           <span className="font-medium">
             Click anywhere on the map to set your location
           </span>
+          <button
+            onClick={() => {
+              console.log("HeaderRightContent: Canceling map pick mode");
+              setShouldReopenModal(false);
+              setShowLocationInput(true);
+            }}
+            className="ml-auto bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded text-sm"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
@@ -119,7 +149,13 @@ export function MappingHeader({
           <div className="hidden sm:flex sm:items-center sm:gap-3">
             {/* User Location Button */}
             <button
-              onClick={() => setShowLocationInput(true)}
+              onClick={() => {
+                console.log(
+                  "HeaderRightContent: Opening location input modal with current location:",
+                  customUserLocation
+                );
+                setShowLocationInput(true);
+              }}
               className="bg-[#E6E0D3] hover:bg-gray-200 text-[#070f18] p-2 rounded-full shadow-lg border border-gray-200 transition-colors"
               title="Set User Location"
             >
@@ -131,7 +167,13 @@ export function MappingHeader({
           <div className="flex sm:hidden items-center gap-2">
             {/* User Location Button */}
             <button
-              onClick={() => setShowLocationInput(true)}
+              onClick={() => {
+                console.log(
+                  "HeaderRightContent: Opening location input modal (mobile) with current location:",
+                  customUserLocation
+                );
+                setShowLocationInput(true);
+              }}
               className="bg-[#E6E0D3] hover:bg-gray-200 text-[#070f18] p-2 rounded-full shadow-lg border border-gray-200 transition-colors"
               title="Set User Location"
             >
@@ -148,7 +190,7 @@ export function MappingHeader({
         onClose={() => setShowLocationInput(false)}
         onLocationSet={handleLocationSet}
         currentLocation={customUserLocation}
-        startMapPickMode={startMapPickMode}
+        startMapPickMode={enhancedStartMapPickMode}
       />
     </>
   );

@@ -20,16 +20,20 @@ function MappingLayout() {
 
   // Handle map click location
   const handleMapLocationPick = (location) => {
+    console.log("MappingLayout: Map location picked:", location);
     if (pendingLocationHandler) {
+      console.log("MappingLayout: Calling pending location handler");
       pendingLocationHandler(location);
       setPendingLocationHandler(null);
     }
     setIsMapPickMode(false);
     setCustomUserLocation(location);
+    console.log("MappingLayout: Map pick mode disabled and location set");
   };
 
   // Start map pick mode
   const startMapPickMode = (onLocationPicked) => {
+    console.log("MappingLayout: Starting map pick mode");
     setIsMapPickMode(true);
     setPendingLocationHandler(() => onLocationPicked);
   };

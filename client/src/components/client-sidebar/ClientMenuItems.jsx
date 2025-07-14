@@ -96,77 +96,88 @@ export default function ClientMenuItems({
     let foundRoute = null;
     let routeInfo = null; // Add route info to track route details
 
-    // First, try to find a direct route
-    for (const route of routesData) {
-      const stops = route.stops;
-      const startIndex = stops.findIndex(
-        (stop) => stop.name.toLowerCase() === trimmedStart.toLowerCase()
-      );
-      const endIndex = stops.findIndex(
-        (stop) => stop.name.toLowerCase() === trimmedEnd.toLowerCase()
-      );
+    // Use optimal route finding when toggle is ON, otherwise use traditional method
+    if (isToggleOn) {
+      foundRoute = findOptimalRoute(trimmedStart, trimmedEnd);
+      if (foundRoute) {
+        console.log("Using optimal route finding algorithm");
+      }
+    } else {
+      // Traditional route finding logic
+      // First, try to find a direct route
+      for (const route of routesData) {
+        const stops = route.stops;
+        const startIndex = stops.findIndex(
+          (stop) => stop.name.toLowerCase() === trimmedStart.toLowerCase()
+        );
+        const endIndex = stops.findIndex(
+          (stop) => stop.name.toLowerCase() === trimmedEnd.toLowerCase()
+        );
 
-      if (startIndex !== -1 && endIndex !== -1) {
-        // Check for direct route (forward direction)
-        if (startIndex < endIndex) {
-          foundRoute = stops.slice(startIndex, endIndex + 1);
-          routeInfo = route; // Store route info
-          // Only show route number for admin users
-          if (userRole === "admin") {
-            console.log(
-              `Direct route found: ${foundRoute
-                .map((s) => s.name)
-                .join(" → ")} (Route: ${route.routeNumber || "N/A"})`
-            );
-          } else {
-            console.log(
-              `Direct route found: ${foundRoute.map((s) => s.name).join(" → ")}`
-            );
-          }
-          break;
-        }
-        // Check for circular route (wrap around)
-        else if (startIndex > endIndex) {
-          // For circular routes, check if the route loops back to the starting point
-          const firstStop = stops[0];
-          const lastStop = stops[stops.length - 1];
-
-          // Check if it's a circular route (first and last stops are the same or very close)
-          const isCircular =
-            firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
-            (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
-              Math.abs(firstStop.lon - lastStop.lon) < 0.001);
-
-          if (isCircular) {
-            // Create circular route: from start to end of array, then from beginning to end index
-            foundRoute = [
-              ...stops.slice(startIndex), // From start to end of route
-              ...stops.slice(1, endIndex + 1), // From beginning to destination (skip first to avoid duplicate)
-            ];
+        if (startIndex !== -1 && endIndex !== -1) {
+          // Check for direct route (forward direction)
+          if (startIndex < endIndex) {
+            foundRoute = stops.slice(startIndex, endIndex + 1);
             routeInfo = route; // Store route info
             // Only show route number for admin users
             if (userRole === "admin") {
               console.log(
-                `Circular route found: ${foundRoute
+                `Direct route found: ${foundRoute
                   .map((s) => s.name)
                   .join(" → ")} (Route: ${route.routeNumber || "N/A"})`
               );
             } else {
               console.log(
-                `Circular route found: ${foundRoute
+                `Direct route found: ${foundRoute
                   .map((s) => s.name)
                   .join(" → ")}`
               );
             }
             break;
           }
+          // Check for circular route (wrap around)
+          else if (startIndex > endIndex) {
+            // For circular routes, check if the route loops back to the starting point
+            const firstStop = stops[0];
+            const lastStop = stops[stops.length - 1];
+
+            // Check if it's a circular route (first and last stops are the same or very close)
+            const isCircular =
+              firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
+              (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+                Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+
+            if (isCircular) {
+              // Create circular route: from start to end of array, then from beginning to end index
+              foundRoute = [
+                ...stops.slice(startIndex), // From start to end of route
+                ...stops.slice(1, endIndex + 1), // From beginning to destination (skip first to avoid duplicate)
+              ];
+              routeInfo = route; // Store route info
+              // Only show route number for admin users
+              if (userRole === "admin") {
+                console.log(
+                  `Circular route found: ${foundRoute
+                    .map((s) => s.name)
+                    .join(" → ")} (Route: ${route.routeNumber || "N/A"})`
+                );
+              } else {
+                console.log(
+                  `Circular route found: ${foundRoute
+                    .map((s) => s.name)
+                    .join(" → ")}`
+                );
+              }
+              break;
+            }
+          }
         }
       }
-    }
 
-    // If no direct route found, try to find route with transfers
-    if (!foundRoute) {
-      foundRoute = findRouteWithTransfers(trimmedStart, trimmedEnd);
+      // If no direct route found, try to find route with transfers
+      if (!foundRoute) {
+        foundRoute = findRouteWithTransfers(trimmedStart, trimmedEnd);
+      }
     }
 
     // Last resort: create simple route if both stops exist
@@ -338,81 +349,166 @@ export default function ClientMenuItems({
     return d;
   };
 
-  // Function to find nearest bus stop that has route to destination
-  const findNearestBusStop = (userLat, userLon, destinationName = null) => {
-    let nearest = null;
-    let minDistance = Infinity;
-
-    // Filter stops that have routes to the destination (if destination is provided)
-    // If no destination, use all stops
-    const candidateStops = destinationName
-      ? allStops.filter((stop) => {
-          // Exclude the destination stop itself
-          if (stop.name.toLowerCase() === destinationName.toLowerCase()) {
-            return false;
-          }
-          // Check if there's a route from this stop to the destination
-          return routesData.some((route) => {
-            const stops = route.stops;
-            const startIndex = stops.findIndex(
-              (s) => s.name.toLowerCase() === stop.name.toLowerCase()
-            );
-            const endIndex = stops.findIndex(
-              (s) => s.name.toLowerCase() === destinationName.toLowerCase()
-            );
-
-            if (startIndex !== -1 && endIndex !== -1) {
-              // Check forward direction
-              if (startIndex < endIndex) {
-                return true;
-              }
-              // Check circular route
-              else if (startIndex > endIndex) {
-                const firstStop = stops[0];
-                const lastStop = stops[stops.length - 1];
-                const isCircular =
-                  firstStop.name.toLowerCase() ===
-                    lastStop.name.toLowerCase() ||
-                  (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
-                    Math.abs(firstStop.lon - lastStop.lon) < 0.001);
-                return isCircular;
-              }
-            }
-            return false;
-          });
-        })
-      : allStops; // Use all stops if no destination specified
-
-    // Debug logging
-    console.log(
-      `Finding nearest stop for destination: ${destinationName || "any"}`
-    );
-    console.log(`User location: ${userLat}, ${userLon}`);
-    console.log(`Candidate stops count: ${candidateStops.length}`);
-    if (destinationName) {
-      console.log(`Destination "${destinationName}" excluded from candidates`);
+  // Enhanced function to find optimal nearest bus stop considering destination
+  const findOptimalNearestBusStop = (
+    userLat,
+    userLon,
+    destinationName = null
+  ) => {
+    if (!destinationName) {
+      // If no destination, fall back to regular nearest stop
+      return findNearestBusStop(userLat, userLon, destinationName);
     }
 
-    candidateStops.forEach((stop) => {
-      const distance = calculateDistance(userLat, userLon, stop.lat, stop.lon);
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = stop;
+    console.log(
+      `Finding optimal nearest stop for destination: ${destinationName}`
+    );
+    console.log(`User location: ${userLat}, ${userLon}`);
+
+    // Find all stops that have routes to the destination
+    const candidateStops = allStops.filter((stop) => {
+      // Exclude the destination stop itself
+      if (stop.name.toLowerCase() === destinationName.toLowerCase()) {
+        return false;
       }
-      // Debug: Log distances for key stops
-      if (
-        stop.name.toLowerCase().includes("ratna") ||
-        stop.name.toLowerCase().includes("balkhu") ||
-        stop.name.toLowerCase().includes("new")
-      ) {
-        console.log(`${stop.name}: distance = ${distance.toFixed(4)}km`);
-      }
+
+      // Check if there's any route from this stop to the destination
+      return routesData.some((route) => {
+        const stops = route.stops;
+        const startIndex = stops.findIndex(
+          (s) => s.name.toLowerCase() === stop.name.toLowerCase()
+        );
+        const endIndex = stops.findIndex(
+          (s) => s.name.toLowerCase() === destinationName.toLowerCase()
+        );
+
+        if (startIndex !== -1 && endIndex !== -1) {
+          // Check forward direction
+          if (startIndex < endIndex) return true;
+
+          // Check circular route
+          if (startIndex > endIndex) {
+            const firstStop = stops[0];
+            const lastStop = stops[stops.length - 1];
+            return (
+              firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
+              (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+                Math.abs(firstStop.lon - lastStop.lon) < 0.001)
+            );
+          }
+        }
+        return false;
+      });
     });
 
     console.log(
-      `Nearest stop found: ${nearest?.name} at ${minDistance.toFixed(4)}km`
+      `Found ${candidateStops.length} candidate stops with routes to destination`
     );
-    return nearest;
+
+    // Evaluate each candidate stop and calculate optimal score
+    const stopEvaluations = candidateStops.map((stop) => {
+      const distanceToStop = calculateDistance(
+        userLat,
+        userLon,
+        stop.lat,
+        stop.lon
+      );
+
+      // Find the best route from this stop to destination using our optimal algorithm
+      const routeFromStop = findOptimalRoute(stop.name, destinationName);
+
+      let routeDistance = 0;
+      let routeTime = 0;
+      let transfers = 0;
+
+      if (routeFromStop && routeFromStop.length > 1) {
+        routeDistance = calculateRouteDistance(routeFromStop);
+
+        // Determine if this route has transfers by checking if it uses transfer points
+        const hasTransfer = transferData.some((transfer) =>
+          routeFromStop.some(
+            (stop) =>
+              stop.name.toLowerCase() === transfer.transfer1.toLowerCase() ||
+              stop.name.toLowerCase() === transfer.transfer2.toLowerCase()
+          )
+        );
+
+        routeTime = calculateRouteTime(routeFromStop, hasTransfer);
+        transfers = hasTransfer ? 1 : 0;
+      } else {
+        // Fallback: direct distance if no route found
+        routeDistance = calculateDistance(
+          stop.lat,
+          stop.lon,
+          allStops.find(
+            (s) => s.name.toLowerCase() === destinationName.toLowerCase()
+          )?.lat || 0,
+          allStops.find(
+            (s) => s.name.toLowerCase() === destinationName.toLowerCase()
+          )?.lon || 0
+        );
+        routeTime = (routeDistance / 20) * 60; // Basic time estimation
+        transfers = 0;
+      }
+
+      // Calculate optimization score (lower is better)
+      // Factors: walking distance (40%), route time (40%), transfers (20%)
+      const walkingTime = (distanceToStop / 5) * 60; // 5 km/h walking speed
+      const totalTime = walkingTime + routeTime;
+      const transferPenalty = transfers * 15; // 15 minutes penalty per transfer
+
+      const optimizationScore =
+        distanceToStop * 0.4 + totalTime * 0.004 + transferPenalty * 0.2;
+
+      return {
+        stop,
+        distanceToStop,
+        routeDistance,
+        totalTime,
+        transfers,
+        optimizationScore,
+        walkingTime,
+      };
+    });
+
+    // Sort by optimization score (lower is better)
+    stopEvaluations.sort((a, b) => a.optimizationScore - b.optimizationScore);
+
+    // Log detailed analysis for admin users
+    if (userRole === "admin" && stopEvaluations.length > 0) {
+      console.log("=== OPTIMAL NEAREST STOP ANALYSIS ===");
+      console.log(
+        `Evaluating ${stopEvaluations.length} stops with routes to ${destinationName}:`
+      );
+      stopEvaluations.slice(0, 5).forEach((evaluation, index) => {
+        console.log(`${index + 1}. ${evaluation.stop.name}:
+          Walking: ${evaluation.walkingTime.toFixed(
+            1
+          )}min (${evaluation.distanceToStop.toFixed(3)}km)
+          Route: ${evaluation.totalTime.toFixed(1)}min total
+          Transfers: ${evaluation.transfers}
+          Score: ${evaluation.optimizationScore.toFixed(3)}`);
+      });
+      console.log(`Selected optimal stop: ${stopEvaluations[0].stop.name}`);
+    }
+
+    // Show optimization info to user
+    if (stopEvaluations.length > 1) {
+      const optimal = stopEvaluations[0];
+      toast({
+        title: "Optimal Start Location Found",
+        description: `Selected ${
+          optimal.stop.name
+        } (${optimal.walkingTime.toFixed(
+          1
+        )}min walk, ${optimal.totalTime.toFixed(1)}min total trip, ${
+          optimal.transfers
+        } transfers)`,
+        variant: "default",
+      });
+    }
+
+    return stopEvaluations.length > 0 ? stopEvaluations[0].stop : null;
   };
 
   // Function to get user location and find nearest stop
@@ -427,13 +523,12 @@ export default function ClientMenuItems({
       const processCustomLocation = (latitude, longitude) => {
         setUserLocation({ lat: latitude, lon: longitude });
 
-        // Pass destination to filter nearest stops
+        // Pass destination to find optimal nearest stop when toggle is on
         const destinationName = end.trim();
-        const nearest = findNearestBusStop(
-          latitude,
-          longitude,
-          destinationName || null
-        );
+        const nearest =
+          isToggleOn && destinationName
+            ? findOptimalNearestBusStop(latitude, longitude, destinationName)
+            : findNearestBusStop(latitude, longitude, destinationName || null);
 
         if (nearest) {
           setNearestStop(nearest);
@@ -474,13 +569,12 @@ export default function ClientMenuItems({
     const processLocation = (latitude, longitude, isFromGPS = true) => {
       setUserLocation({ lat: latitude, lon: longitude });
 
-      // Pass destination to filter nearest stops
+      // Pass destination to find optimal nearest stop when toggle is on
       const destinationName = end.trim();
-      const nearest = findNearestBusStop(
-        latitude,
-        longitude,
-        destinationName || null
-      );
+      const nearest =
+        isToggleOn && destinationName
+          ? findOptimalNearestBusStop(latitude, longitude, destinationName)
+          : findNearestBusStop(latitude, longitude, destinationName || null);
 
       if (nearest) {
         setNearestStop(nearest);
@@ -583,12 +677,296 @@ export default function ClientMenuItems({
     }
   }, [end, isToggleOn, customUserLocation]); // Add customUserLocation as dependency
 
+  // Function to calculate route distance (total distance of all stops in route)
+  const calculateRouteDistance = (route) => {
+    if (!route || route.length < 2) return 0;
+
+    let totalDistance = 0;
+    for (let i = 0; i < route.length - 1; i++) {
+      totalDistance += calculateDistance(
+        route[i].lat,
+        route[i].lon,
+        route[i + 1].lat,
+        route[i + 1].lon
+      );
+    }
+    return totalDistance;
+  };
+
+  // Function to calculate total travel time estimation
+  const calculateRouteTime = (route, hasTransfer = false) => {
+    if (!route || route.length < 2) return 0;
+
+    const distance = calculateRouteDistance(route);
+    const avgSpeed = 20; // km/h average bus speed
+    const baseTime = (distance / avgSpeed) * 60; // Convert to minutes
+
+    // Add waiting time for each stop (average 2 minutes per stop)
+    const stopWaitTime = (route.length - 1) * 2;
+
+    // Add transfer penalty if applicable (10 minutes for transfer)
+    const transferPenalty = hasTransfer ? 10 : 0;
+
+    return baseTime + stopWaitTime + transferPenalty;
+  };
+
+  // Enhanced optimal route finding function
+  const findOptimalRoute = (startName, endName) => {
+    const routes = [];
+
+    // 1. Find all possible direct routes
+    routesData.forEach((route) => {
+      const directRoute = findDirectRouteFromData(startName, endName, route);
+      if (directRoute) {
+        routes.push({
+          route: directRoute,
+          type: "direct",
+          distance: calculateRouteDistance(directRoute),
+          estimatedTime: calculateRouteTime(directRoute, false),
+          transfers: 0,
+          routeNumbers: [route.routeNumber || "N/A"],
+        });
+      }
+    });
+
+    // 2. Find all possible circular routes
+    routesData.forEach((route) => {
+      const circularRoute = findCircularRouteFromData(
+        startName,
+        endName,
+        route
+      );
+      if (circularRoute) {
+        routes.push({
+          route: circularRoute,
+          type: "circular",
+          distance: calculateRouteDistance(circularRoute),
+          estimatedTime: calculateRouteTime(circularRoute, false),
+          transfers: 0,
+          routeNumbers: [route.routeNumber || "N/A"],
+        });
+      }
+    });
+
+    // 3. Find all possible transfer routes
+    transferData.forEach((transfer) => {
+      // Try route1: start → transfer1, transfer2 → end
+      const route1 = findDirectRoute(startName, transfer.transfer1);
+      const route2 = findDirectRoute(transfer.transfer2, endName);
+
+      if (route1 && route2) {
+        const transferConnection =
+          findDirectRoute(transfer.transfer1, transfer.transfer2) ||
+          [getAllStops().find((s) => s.name === transfer.transfer2)].filter(
+            Boolean
+          );
+
+        const combinedRoute = [
+          ...route1,
+          ...transferConnection.slice(1),
+          ...route2.slice(1),
+        ].filter(Boolean);
+
+        routes.push({
+          route: combinedRoute,
+          type: "transfer",
+          distance: calculateRouteDistance(combinedRoute),
+          estimatedTime: calculateRouteTime(combinedRoute, true),
+          transfers: 1,
+          transferPoints: [transfer.transfer1, transfer.transfer2],
+          routeNumbers: ["Mixed Routes"],
+        });
+      }
+
+      // Try reverse: start → transfer2, transfer1 → end
+      const route3 = findDirectRoute(startName, transfer.transfer2);
+      const route4 = findDirectRoute(transfer.transfer1, endName);
+
+      if (route3 && route4) {
+        const transferConnection =
+          findDirectRoute(transfer.transfer2, transfer.transfer1) ||
+          [getAllStops().find((s) => s.name === transfer.transfer1)].filter(
+            Boolean
+          );
+
+        const combinedRoute = [
+          ...route3,
+          ...transferConnection.slice(1),
+          ...route4.slice(1),
+        ].filter(Boolean);
+
+        routes.push({
+          route: combinedRoute,
+          type: "transfer",
+          distance: calculateRouteDistance(combinedRoute),
+          estimatedTime: calculateRouteTime(combinedRoute, true),
+          transfers: 1,
+          transferPoints: [transfer.transfer2, transfer.transfer1],
+          routeNumbers: ["Mixed Routes"],
+        });
+      }
+    });
+
+    // 4. Sort routes by optimization criteria when toggle is ON
+    if (isToggleOn && routes.length > 1) {
+      // Optimal sorting: prioritize by transfers (fewer better), then by time, then by distance
+      routes.sort((a, b) => {
+        // First priority: fewer transfers
+        if (a.transfers !== b.transfers) {
+          return a.transfers - b.transfers;
+        }
+        // Second priority: shorter time
+        if (Math.abs(a.estimatedTime - b.estimatedTime) > 2) {
+          // 2 minute tolerance
+          return a.estimatedTime - b.estimatedTime;
+        }
+        // Third priority: shorter distance
+        return a.distance - b.distance;
+      });
+
+      // Log optimal route selection for admin users
+      if (userRole === "admin") {
+        console.log("=== OPTIMAL ROUTE ANALYSIS ===");
+        console.log(`Found ${routes.length} possible routes:`);
+        routes.forEach((r, index) => {
+          console.log(`Route ${index + 1} (${r.type}): 
+            Distance: ${r.distance.toFixed(2)}km, 
+            Time: ${r.estimatedTime.toFixed(1)}min, 
+            Transfers: ${r.transfers},
+            Route Numbers: ${r.routeNumbers.join(", ")}`);
+        });
+        console.log(
+          `Selected optimal route: ${routes[0].type} with ${routes[0].transfers} transfers`
+        );
+      }
+
+      // Show optimization info to user
+      if (routes.length > 1) {
+        const optimalRoute = routes[0];
+        toast({
+          title: "Optimal Route Selected",
+          description: `Found ${routes.length} routes. Selected ${
+            optimalRoute.type
+          } route (${optimalRoute.estimatedTime.toFixed(
+            1
+          )}min, ${optimalRoute.distance.toFixed(1)}km, ${
+            optimalRoute.transfers
+          } transfers)`,
+          variant: "default",
+        });
+      }
+    }
+
+    return routes.length > 0 ? routes[0].route : null;
+  };
+
+  // Helper function to find direct route from specific route data
+  const findDirectRouteFromData = (startName, endName, routeData) => {
+    const stops = routeData.stops;
+    const startIndex = stops.findIndex(
+      (stop) => stop.name.toLowerCase() === startName.toLowerCase()
+    );
+    const endIndex = stops.findIndex(
+      (stop) => stop.name.toLowerCase() === endName.toLowerCase()
+    );
+
+    if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+      return stops.slice(startIndex, endIndex + 1);
+    }
+    return null;
+  };
+
+  // Helper function to find circular route from specific route data
+  const findCircularRouteFromData = (startName, endName, routeData) => {
+    const stops = routeData.stops;
+    const startIndex = stops.findIndex(
+      (stop) => stop.name.toLowerCase() === startName.toLowerCase()
+    );
+    const endIndex = stops.findIndex(
+      (stop) => stop.name.toLowerCase() === endName.toLowerCase()
+    );
+
+    if (startIndex !== -1 && endIndex !== -1 && startIndex > endIndex) {
+      const firstStop = stops[0];
+      const lastStop = stops[stops.length - 1];
+
+      const isCircular =
+        firstStop.name.toLowerCase() === lastStop.name.toLowerCase() ||
+        (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+          Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+
+      if (isCircular) {
+        return [...stops.slice(startIndex), ...stops.slice(1, endIndex + 1)];
+      }
+    }
+    return null;
+  };
+
+  // Original function for backward compatibility
+  const findNearestBusStop = (userLat, userLon, destinationName = null) => {
+    let nearest = null;
+    let minDistance = Infinity;
+
+    // Filter stops that have routes to the destination (if destination is provided)
+    // If no destination, use all stops
+    const candidateStops = destinationName
+      ? allStops.filter((stop) => {
+          // Exclude the destination stop itself
+          if (stop.name.toLowerCase() === destinationName.toLowerCase()) {
+            return false;
+          }
+          // Check if there's a route from this stop to the destination
+          return routesData.some((route) => {
+            const stops = route.stops;
+            const startIndex = stops.findIndex(
+              (s) => s.name.toLowerCase() === stop.name.toLowerCase()
+            );
+            const endIndex = stops.findIndex(
+              (s) => s.name.toLowerCase() === destinationName.toLowerCase()
+            );
+
+            if (startIndex !== -1 && endIndex !== -1) {
+              // Check forward direction
+              if (startIndex < endIndex) {
+                return true;
+              }
+              // Check circular route
+              else if (startIndex > endIndex) {
+                const firstStop = stops[0];
+                const lastStop = stops[stops.length - 1];
+                const isCircular =
+                  firstStop.name.toLowerCase() ===
+                    lastStop.name.toLowerCase() ||
+                  (Math.abs(firstStop.lat - lastStop.lat) < 0.001 &&
+                    Math.abs(firstStop.lon - lastStop.lon) < 0.001);
+                return isCircular;
+              }
+            }
+            return false;
+          });
+        })
+      : allStops; // Use all stops if no destination specified
+
+    candidateStops.forEach((stop) => {
+      const distance = calculateDistance(userLat, userLon, stop.lat, stop.lon);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = stop;
+      }
+    });
+
+    return nearest;
+  };
+
   return (
     <nav className="flex-col flex gap-4">
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         {/* Toggle Button */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Route Search</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">On For Nearest BusStop</span>
+            
+          </div>
           <button
             type="button"
             onClick={handleToggleChange}
@@ -712,7 +1090,7 @@ export default function ClientMenuItems({
         </Button>
       </form>
       {history.length > 0 && (
-        <div className="mt-4">
+        <div className="">
           <div className="font-bold mb-2 flex items-center justify-between">
             <span>History</span>
             <Button

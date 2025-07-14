@@ -240,3 +240,58 @@ export const deleteBusStopFromAllRoutes = async (stopData) => {
     throw error;
   }
 };
+
+// Bulk update route numbers (admin only)
+export const bulkUpdateRouteNumbers = async (routeUpdates) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/bus/routes/bulk-update-numbers`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include cookies for authentication
+        body: JSON.stringify({ updates: routeUpdates }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || "Failed to bulk update route numbers"
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error bulk updating route numbers:", error);
+    throw error;
+  }
+};
+
+// Reorder routes with automatic route number assignment (admin only)
+export const reorderRoutes = async (routeIds) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bus/routes/reorder`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Include cookies for authentication
+      body: JSON.stringify({ routeIds }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to reorder routes");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error reordering routes:", error);
+    throw error;
+  }
+};
