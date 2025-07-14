@@ -58,7 +58,7 @@ router.post("/estimate-fare", async (req, res) => {
       return res.status(404).json({
         error: "Start or end stop not found.",
         availableStops: allStops.map((s) => s.name),
-      });
+      }); 
     }
 
     let totalDistance;

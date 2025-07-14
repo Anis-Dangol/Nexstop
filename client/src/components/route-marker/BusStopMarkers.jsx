@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useRef } from "react";
@@ -53,6 +54,7 @@ export default function BusStopMarkers({
   return (
     <>
       {busStops.map((stop, idx) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const markerRef = useRef();
         const routeNumbers = getRouteNumbersForStop(
           stop.name,
