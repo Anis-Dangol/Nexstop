@@ -4,13 +4,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth/authRoutes.js";
 import routeSuggestion from "./routes/bus/routeSuggestion.js";
-import fareEstimator from "./routes/bus/fareEstimator.js";
+import fareEstimator from "./controllers/fare/fareEstimator.js";
 import favouriteRoutes from "./routes/auth/favouriteRoutes.js";
 import busRoutes from "./routes/bus/busRoutes.js";
 import transferRoutes from "./routes/transfer/transferRoutes.js";
 import busnameRoutes from "./routes/busname/busnameRoutes.js";
 import fareRoutes from "./routes/fare/fareRoutes.js";
 import statisticsRoutes from "./routes/statistics/statisticsRoutes.js";
+import distanceRoutes from "./routes/distance/distanceRoutes.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -53,6 +54,7 @@ app.use("/api/transfer", transferRoutes);
 app.use("/api/busname", busnameRoutes);
 app.use("/api/fare", fareRoutes);
 app.use("/api/statistics", statisticsRoutes);
+app.use("/api/distance", distanceRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -7,8 +7,14 @@ import {
   importBusRoutes,
   bulkUpdateRouteNumbers,
   reorderRoutes,
-} from "../../services/busRoutes";
+} from "../../services/bus-route/busRoutes";
 import { useSelector } from "react-redux";
+import RouteHeader from "../../components/admin-view/admin-bus-route/RouteHeader";
+import RouteFilters from "../../components/admin-view/admin-bus-route/RouteFilters";
+import RouteList from "../../components/admin-view/admin-bus-route/RouteList";
+import AddRouteModal from "../../components/admin-view/admin-bus-route/AddRouteModal";
+import EditRouteModal from "../../components/admin-view/admin-bus-route/EditRouteModal";
+import ImportRouteModal from "../../components/admin-view/admin-bus-route/ImportRouteModal";
 
 function AdminBusRoutes() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -986,943 +992,108 @@ function AdminBusRoutes() {
     <div className="w-full bg-gray-50 min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Bus Routes
-              </h1>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
-              <button
-                onClick={() => {
-                  setShowAddModal(true);
-                  setDraggedIndex(null);
-                  setDragOverIndex(null);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                + Add New Route
-              </button>
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                📥 Import Routes
-              </button>
-              <button
-                onClick={exportRoutesToJSON}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                title="Export routes to JSON file"
-              >
-                📤 Export Routes
-              </button>
-              {selectedRoutes.length > 0 && (
-                <button
-                  onClick={handleBulkDelete}
-                  disabled={bulkDeleteLoading}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                  title={`Delete ${selectedRoutes.length} selected route${
-                    selectedRoutes.length > 1 ? "s" : ""
-                  }`}
-                >
-                  {bulkDeleteLoading
-                    ? "Deleting..."
-                    : `🗑️ Delete ${selectedRoutes.length}`}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <RouteHeader
+          onAddRoute={() => {
+            setShowAddModal(true);
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+          }}
+          onImportRoute={() => setShowImportModal(true)}
+          onExportRoute={exportRoutesToJSON}
+          selectedRoutes={selectedRoutes}
+          onBulkDelete={handleBulkDelete}
+          bulkDeleteLoading={bulkDeleteLoading}
+        />
 
         {/* Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by route name or number..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <svg
-                  className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              >
-                <option value="none">No Sort</option>
-                <option value="asc">A-Z</option>
-                <option value="desc">Z-A</option>
-              </select>
-            </div>
-            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 whitespace-nowrap">
-              Showing {sortedRoutes.length} of {busRoutes.length} routes
-            </div>
-            <div>
-              {selectedRoutes.length > 0 && (
-                <div className="text-sm text-orange-700 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200 whitespace-nowrap">
-                  {selectedRoutes.length} route
-                  {selectedRoutes.length > 1 ? "s" : ""} selected
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <RouteFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+          totalRoutes={busRoutes.length}
+          filteredRoutes={sortedRoutes.length}
+          selectedRoutes={selectedRoutes}
+        />
 
-        {/* Routes Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {/* Drag and Drop Instructions */}
-          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="text-blue-600">
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5 2a1 1 0 000 2h1v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2V4h1a1 1 0 100-2H5zM8 4v3h4V4H8z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-blue-700">
-                    <span className="font-medium">💡 Tip:</span> Drag and drop
-                    routes using the drag handle (☰) to reorder them. Route
-                    numbers will be automatically updated based on the new
-                    order.
-                    {sortOrder !== "none" && (
-                      <span className="block mt-1 text-orange-600">
-                        ⚠️ Note: Disable sorting to use drag and drop
-                        functionality.
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              {dragUpdateLoading && (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-blue-600 font-medium">
-                    Updating database...
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-500">Loading routes...</div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="py-3 px-6 text-sm font-medium text-gray-900">
-                      <input
-                        type="checkbox"
-                        checked={selectAll}
-                        onChange={handleSelectAll}
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      S.N.
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Route Name
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Total Stops
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {sortedRoutes.map((route, index) => (
-                    <tr
-                      key={route._id}
-                      className={`routes-drag-container hover:bg-gray-50 transition-all duration-200 ${
-                        sortOrder === "none" ? "cursor-move" : "cursor-default"
-                      } ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} ${
-                        dragOverIndex === index && sortOrder === "none"
-                          ? "border-t-4 border-blue-500 shadow-lg transform scale-[1.02]"
-                          : ""
-                      } ${
-                        draggedIndex === index && sortOrder === "none"
-                          ? "opacity-50 transform rotate-1 shadow-2xl"
-                          : ""
-                      }`}
-                      draggable={sortOrder === "none"}
-                      onDragStart={
-                        sortOrder === "none"
-                          ? (e) => handleRoutesDragStart(e, index)
-                          : undefined
-                      }
-                      onDragOver={
-                        sortOrder === "none" ? handleRoutesDragOver : undefined
-                      }
-                      onDragEnter={
-                        sortOrder === "none"
-                          ? (e) => handleRoutesDragEnter(e, index)
-                          : undefined
-                      }
-                      onDragLeave={
-                        sortOrder === "none" ? handleRoutesDragLeave : undefined
-                      }
-                      onDrop={
-                        sortOrder === "none"
-                          ? (e) => handleRoutesDrop(e, index)
-                          : undefined
-                      }
-                      onDragEnd={
-                        sortOrder === "none" ? handleRoutesDragEnd : undefined
-                      }
-                      style={{
-                        transition: "all 0.2s ease",
-                        ...(draggedIndex === index &&
-                          sortOrder === "none" && {
-                            transform: "rotate(2deg) scale(1.05)",
-                            zIndex: 1000,
-                            boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-                          }),
-                        ...(dragOverIndex === index &&
-                          sortOrder === "none" && {
-                            borderTopColor: "#3b82f6",
-                            borderTopWidth: "4px",
-                          }),
-                      }}
-                    >
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`drag-handle group p-1 rounded transition-colors ${
-                              sortOrder === "none"
-                                ? "cursor-grab active:cursor-grabbing hover:bg-gray-200"
-                                : "cursor-not-allowed opacity-50"
-                            }`}
-                          >
-                            <svg
-                              className={`w-4 h-4 ${
-                                sortOrder === "none"
-                                  ? "text-gray-400 group-hover:text-gray-600"
-                                  : "text-gray-300"
-                              }`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M6 2a1 1 0 000 2h8a1 1 0 100-2H6zM6 7a1 1 0 000 2h8a1 1 0 100-2H6zM6 12a1 1 0 000 2h8a1 1 0 100-2H6zM6 17a1 1 0 000 2h8a1 1 0 100-2H6z" />
-                            </svg>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={selectedRoutes.includes(route._id)}
-                            onChange={() => handleSelectRoute(route._id)}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        <span className="font-bold text-blue-600">
-                          {route.routeNumber}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-900">
-                        {route.name}
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-700">
-                        {route.totalStops}
-                      </td>
-                      <td
-                        className="py-4 px-6 text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditRoute(route)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRoute(route)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {!loading && sortedRoutes.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500">
-                {searchTerm
-                  ? `No routes found matching "${searchTerm}"`
-                  : "No routes available"}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Routes List */}
+        <RouteList
+          routes={sortedRoutes}
+          loading={loading}
+          searchTerm={searchTerm}
+          sortOrder={sortOrder}
+          selectedRoutes={selectedRoutes}
+          selectAll={selectAll}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          dragUpdateLoading={dragUpdateLoading}
+          onSelectAll={handleSelectAll}
+          onSelectRoute={handleSelectRoute}
+          onEditRoute={handleEditRoute}
+          onDeleteRoute={handleDeleteRoute}
+          onRoutesDragStart={handleRoutesDragStart}
+          onRoutesDragOver={handleRoutesDragOver}
+          onRoutesDragEnter={handleRoutesDragEnter}
+          onRoutesDragLeave={handleRoutesDragLeave}
+          onRoutesDrop={handleRoutesDrop}
+          onRoutesDragEnd={handleRoutesDragEnd}
+        />
 
         {/* Add Route Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-blue-600">
-                    Add new Route
-                  </h2>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit}>
-                  {/* Route Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Number:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={newRoute.routeNumber}
-                          onChange={(e) =>
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              routeNumber: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="1"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAutoRouteNumber}
-                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
-                          title="Auto-generate next available route number"
-                        >
-                          Auto
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Name:
-                      </label>
-                      <input
-                        type="text"
-                        value={newRoute.name}
-                        onChange={(e) =>
-                          setNewRoute((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ratnapark and Kirtipur"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Bus Stops Section */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-blue-600">
-                        Bus Stops
-                      </h3>
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        💡 Drag the ⋮⋮ button to reorder stops
-                      </div>
-                    </div>
-                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      {newRoute.stops.map((stop, index) => (
-                        <div key={index}>
-                          {/* Drop zone before each item */}
-                          <div
-                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                              draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index
-                                ? "bg-green-300 rounded-full opacity-100"
-                                : "opacity-0"
-                            }`}
-                            onDragOver={handleDragOver}
-                            onDragEnter={(e) => handleDragEnter(e, index)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, index, "new")}
-                          >
-                            {draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index && (
-                                <span className="text-xs text-green-700 font-medium">
-                                  Drop here
-                                </span>
-                              )}
-                          </div>
-
-                          <div
-                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
-                              draggedIndex === index
-                                ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
-                            }`}
-                          >
-                            {/* Stop Number */}
-                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
-                              {index + 1}
-                            </div>
-
-                            {/* Add and Drag Controls */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => addStopAfter(index, "new")}
-                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
-                                title="Add new stop after this one"
-                              >
-                                +
-                              </button>
-                              <div
-                                draggable="true"
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragEnd={handleDragEnd}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm cursor-grab active:cursor-grabbing transition-all duration-200 select-none ${
-                                  draggedIndex === index
-                                    ? "bg-blue-500 text-white shadow-lg transform scale-110"
-                                    : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
-                                }`}
-                                title="Drag to reorder stops"
-                              >
-                                <span className="text-sm font-bold">⋮⋮</span>
-                              </div>
-                            </div>
-
-                            {/* Stop Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Bus Stop Name (Stop #{index + 1})
-                                </label>
-                                <input
-                                  type="text"
-                                  value={stop.name}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "name",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "Ratnapark"
-                                      : "Enter Busstop Name"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Latitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lat}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lat",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "27.7025617421252824"
-                                      : "Enter Latitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Longitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lon}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lon",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "85.31361099960553"
-                                      : "Enter Longitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {/* Remove Button */}
-                            {newRoute.stops.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeStop(index, "new")}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Drop zone after the last item */}
-                          {index === newRoute.stops.length - 1 && (
-                            <div
-                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                                draggedIndex !== null &&
-                                dragOverIndex === newRoute.stops.length
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={handleDragOver}
-                              onDragEnter={(e) =>
-                                handleDragEnter(e, newRoute.stops.length)
-                              }
-                              onDragLeave={handleDragLeave}
-                              onDrop={(e) =>
-                                handleDrop(e, newRoute.stops.length, "new")
-                              }
-                            >
-                              {draggedIndex !== null &&
-                                dragOverIndex === newRoute.stops.length && (
-                                  <span className="text-xs text-green-700 font-medium">
-                                    Drop here
-                                  </span>
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-                    >
-                      {submitLoading ? "Adding Route..." : "Add Route"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <AddRouteModal
+          isOpen={showAddModal}
+          onClose={closeModal}
+          newRoute={newRoute}
+          setNewRoute={setNewRoute}
+          submitLoading={submitLoading}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          onSubmit={handleSubmit}
+          onAutoRouteNumber={handleAutoRouteNumber}
+          onAddStopAfter={addStopAfter}
+          onRemoveStop={removeStop}
+          onUpdateStop={updateStop}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
 
         {/* Edit Route Modal */}
-        {showEditModal && editingRoute && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-blue-600">
-                    Edit Route
-                  </h2>
-                  <button
-                    onClick={closeEditModal}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={handleUpdateRoute}>
-                  {/* Route Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Number:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={editRoute.routeNumber}
-                          onChange={(e) =>
-                            setEditRoute((prev) => ({
-                              ...prev,
-                              routeNumber: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="1"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAutoRouteNumberEdit}
-                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
-                          title="Auto-generate next available route number"
-                        >
-                          Auto
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Name:
-                      </label>
-                      <input
-                        type="text"
-                        value={editRoute.name}
-                        onChange={(e) =>
-                          setEditRoute((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ratnapark and Kirtipur"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Bus Stops Section */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-blue-600">
-                        Bus Stops
-                      </h3>
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        💡 Drag the ⋮⋮ button to reorder stops
-                      </div>
-                    </div>
-                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      {editRoute.stops.map((stop, index) => (
-                        <div key={index}>
-                          {/* Drop zone before each item */}
-                          <div
-                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                              draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index
-                                ? "bg-green-300 rounded-full opacity-100"
-                                : "opacity-0"
-                            }`}
-                            onDragOver={handleDragOver}
-                            onDragEnter={(e) => handleDragEnter(e, index)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, index, "edit")}
-                          >
-                            {draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index && (
-                                <span className="text-xs text-green-700 font-medium">
-                                  Drop here
-                                </span>
-                              )}
-                          </div>
-
-                          <div
-                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
-                              draggedIndex === index
-                                ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
-                            }`}
-                          >
-                            {/* Stop Number */}
-                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
-                              {index + 1}
-                            </div>
-
-                            {/* Add and Drag Controls */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => addStopAfter(index, "edit")}
-                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
-                                title="Add new stop after this one"
-                              >
-                                +
-                              </button>
-                              <div
-                                draggable="true"
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragEnd={handleDragEnd}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm cursor-grab active:cursor-grabbing transition-all duration-200 select-none ${
-                                  draggedIndex === index
-                                    ? "bg-blue-500 text-white shadow-lg transform scale-110"
-                                    : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
-                                }`}
-                                title="Drag to reorder stops"
-                              >
-                                <span className="text-sm font-bold">⋮⋮</span>
-                              </div>
-                            </div>
-
-                            {/* Stop Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Bus Stop Name (Stop #{index + 1})
-                                </label>
-                                <input
-                                  type="text"
-                                  value={stop.name}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "name",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "Ratnapark"
-                                      : "Enter Busstop Name"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Latitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lat}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lat",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "27.7025617421252824"
-                                      : "Enter Latitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Longitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lon}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lon",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "85.31361099960553"
-                                      : "Enter Longitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {/* Remove Button */}
-                            {editRoute.stops.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeStop(index, "edit")}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Drop zone after the last item */}
-                          {index === editRoute.stops.length - 1 && (
-                            <div
-                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                                draggedIndex !== null &&
-                                dragOverIndex === editRoute.stops.length
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={handleDragOver}
-                              onDragEnter={(e) =>
-                                handleDragEnter(e, editRoute.stops.length)
-                              }
-                              onDragLeave={handleDragLeave}
-                              onDrop={(e) =>
-                                handleDrop(e, editRoute.stops.length, "edit")
-                              }
-                            >
-                              {draggedIndex !== null &&
-                                dragOverIndex === editRoute.stops.length && (
-                                  <span className="text-xs text-green-700 font-medium">
-                                    Drop here
-                                  </span>
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={closeEditModal}
-                      className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-                    >
-                      {submitLoading ? "Updating Route..." : "Update Route"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditRouteModal
+          isOpen={showEditModal && editingRoute}
+          onClose={closeEditModal}
+          editRoute={editRoute}
+          setEditRoute={setEditRoute}
+          submitLoading={submitLoading}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          onSubmit={handleUpdateRoute}
+          onAutoRouteNumber={handleAutoRouteNumberEdit}
+          onAddStopAfter={addStopAfter}
+          onRemoveStop={removeStop}
+          onUpdateStop={updateStop}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
 
         {/* Import Routes Modal */}
-        {showImportModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-blue-600">
-                  Import Bus Routes
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Import bus routes from a JSON file. Ensure the file is in the
-                  correct format.
-                </p>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select JSON File:
-                </label>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileSelect}
-                  className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={replaceExisting}
-                    onChange={(e) => setReplaceExisting(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Replace existing routes with the same number
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={closeImportModal}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleImportRoutes}
-                  disabled={importLoading}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
-                >
-                  {importLoading ? "Importing..." : "Import Routes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ImportRouteModal
+          isOpen={showImportModal}
+          onClose={closeImportModal}
+          selectedFile={selectedFile}
+          replaceExisting={replaceExisting}
+          setReplaceExisting={setReplaceExisting}
+          importLoading={importLoading}
+          onFileSelect={handleFileSelect}
+          onImportRoutes={handleImportRoutes}
+        />
       </div>
 
       {/* Toast Notification */}

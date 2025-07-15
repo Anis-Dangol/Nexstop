@@ -1,4 +1,4 @@
-import { fetchBusNames } from "../services/busNames";
+import { fetchBusNames } from "../services/bus-name/busNames";
 
 // Cache for bus names data
 let busNamesCache = null;

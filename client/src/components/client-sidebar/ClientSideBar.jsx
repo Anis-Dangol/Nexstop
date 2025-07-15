@@ -2,10 +2,10 @@ import { useState, useEffect, Fragment } from "react";
 import { useSelector } from "react-redux";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Bookmark, ChartNoAxesCombined, Search } from "lucide-react";
-import { fetchBusRoutes } from "../../services/busRoutes";
+import { fetchBusRoutes } from "../../services/bus-route/busRoutes";
 import ClientMenuItems from "./ClientMenuItems";
 import FavouriteMenu from "./FavouriteMenu";
-import favouriteRoutesService from "../../services/favouriteRoutes";
+import favouriteRoutesService from "../../services/favourite-route/favouriteRoutes";
 
 export default function ClientSideBar({
   open,

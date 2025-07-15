@@ -1,8 +1,8 @@
 import { Marker, Popup } from "react-leaflet";
 import { useState, useEffect } from "react";
 import L from "leaflet";
-import { fetchTransfers } from "../../services/transfers";
-import { getRouteNumberForSegment } from "../../utils/mapUtils";
+import { fetchTransfers } from "../../services/transfer/transfers";
+import { getRouteNumberForSegment } from "../../map/mapSlice";
 
 export default function RouteMarkers({
   routeProp,

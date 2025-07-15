@@ -1,6 +1,6 @@
-import CommonForm from "@/components/common/CommonForm";
+import CommonForm from "@/components/auth/CommonForm";
 import { useToast } from "@/components/ui/use-toast";
-import { registerFormControls } from "@/config";
+import { registerFormControls } from "@/services";
 import { registerUser } from "@/map/auth-slice/AuthSlice";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
