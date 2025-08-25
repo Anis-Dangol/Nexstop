@@ -1,4 +1,4 @@
-import { fetchTransfers } from "@/services/transfers";
+import { fetchTransfers } from "@/services/transfer/transfers";
 
 // Cache for transfer data to avoid multiple API calls
 let transferDataCache = null;

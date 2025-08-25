@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "host": "vite --host"
+    "host": "vite --host",
+    "init-fares": "node scripts/initializeFareConfigs.js"
   },
   "keywords": [],
   "author": "",

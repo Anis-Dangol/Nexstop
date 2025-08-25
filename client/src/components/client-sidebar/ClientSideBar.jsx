@@ -2,10 +2,10 @@ import { useState, useEffect, Fragment } from "react";
 import { useSelector } from "react-redux";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Bookmark, ChartNoAxesCombined, Search } from "lucide-react";
-import { fetchBusRoutes } from "../../services/busRoutes";
+import { fetchBusRoutes } from "../../services/bus-route/busRoutes";
 import ClientMenuItems from "./ClientMenuItems";
 import FavouriteMenu from "./FavouriteMenu";
-import favouriteRoutesService from "../../services/favouriteRoutes";
+import favouriteRoutesService from "../../services/favourite-route/favouriteRoutes";
 
 export default function ClientSideBar({
   open,
@@ -16,6 +16,7 @@ export default function ClientSideBar({
   end,
   setEnd,
   setRoute,
+  customUserLocation, // Add custom user location prop
 }) {
   const [tab, setTab] = useState("search");
   const [routesData, setRoutesData] = useState([]);
@@ -23,6 +24,11 @@ export default function ClientSideBar({
   const [history, setHistory] = useState([]);
   const [favourites, setFavourites] = useState([]);
   const [isLoadingFavourites, setIsLoadingFavourites] = useState(false);
+  const [isToggleOn, setIsToggleOn] = useState(() => {
+    // Initialize from localStorage if available
+    const savedToggle = localStorage.getItem("routeSearchToggle");
+    return savedToggle ? JSON.parse(savedToggle) : false;
+  });
 
   // Get user from Redux store
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -83,6 +89,11 @@ export default function ClientSideBar({
   useEffect(() => {
     localStorage.setItem("routeHistory", JSON.stringify(history));
   }, [history]);
+
+  useEffect(() => {
+    // Save toggle state to localStorage
+    localStorage.setItem("routeSearchToggle", JSON.stringify(isToggleOn));
+  }, [isToggleOn]);
 
   useEffect(() => {
     // Only save to localStorage if user is not authenticated
@@ -267,6 +278,10 @@ export default function ClientSideBar({
                 addToFavourites={addToFavourites}
                 routesData={routesData}
                 routesLoading={routesLoading}
+                isToggleOn={isToggleOn}
+                setIsToggleOn={setIsToggleOn}
+                customUserLocation={customUserLocation} // Pass custom user location
+                userRole={user?.role} // Pass user role
               />
             ) : (
               <FavouriteMenu

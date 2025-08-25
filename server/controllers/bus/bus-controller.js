@@ -98,7 +98,7 @@ export const createBusRoute = async (req, res) => {
         .json({ success: false, message: "Forbidden: Admins only" });
     }
 
-    const { routeNumber, name, color, stops } = req.body;
+    const { routeNumber, name, stops } = req.body;
 
     // Check if route number already exists
     const existingRoute = await BusRoute.findOne({ routeNumber });
@@ -130,7 +130,6 @@ export const createBusRoute = async (req, res) => {
     const newRoute = new BusRoute({
       routeNumber,
       name,
-      color,
       stops,
     });
 
@@ -160,7 +159,7 @@ export const updateBusRoute = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { routeNumber, name, color, stops } = req.body;
+    const { routeNumber, name, stops } = req.body;
 
     // Check if route exists
     const existingRoute = await BusRoute.findById(id);
@@ -203,7 +202,7 @@ export const updateBusRoute = async (req, res) => {
 
     const updatedRoute = await BusRoute.findByIdAndUpdate(
       id,
-      { routeNumber, name, color, stops },
+      { routeNumber, name, stops },
       { new: true, runValidators: true }
     );
 
@@ -362,7 +361,6 @@ export const importBusRoutes = async (req, res) => {
           // Update existing route
           await BusRoute.findByIdAndUpdate(existingRoute._id, {
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           updatedCount++;
@@ -371,7 +369,6 @@ export const importBusRoutes = async (req, res) => {
           const newRoute = new BusRoute({
             routeNumber: routeData.routeNumber,
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           await newRoute.save();
@@ -381,7 +378,6 @@ export const importBusRoutes = async (req, res) => {
           const newRoute = new BusRoute({
             routeNumber: routeData.routeNumber,
             name: routeData.name,
-            color: routeData.color || "#FF0000",
             stops: routeData.stops,
           });
           await newRoute.save();
@@ -410,6 +406,320 @@ export const importBusRoutes = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to import bus routes",
+    });
+  }
+};
+
+// Delete bus stop by ID
+export const deleteBusStop = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { id } = req.params;
+
+    // Find the route containing this stop
+    const route = await BusRoute.findOne({ "stops._id": id });
+
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        message: "Bus stop not found",
+      });
+    }
+
+    // Remove the stop from the route
+    route.stops = route.stops.filter((stop) => stop._id.toString() !== id);
+    await route.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Bus stop deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting bus stop:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete bus stop",
+    });
+  }
+};
+
+// Update bus stop by ID
+export const updateBusStop = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { id } = req.params;
+    const { name, lat, lon } = req.body;
+
+    // Validate required fields
+    if (!name || lat === undefined || lon === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, latitude, and longitude are required",
+      });
+    }
+
+    // Find the route containing this stop
+    const route = await BusRoute.findOne({ "stops._id": id });
+
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        message: "Bus stop not found",
+      });
+    }
+
+    // Update the stop
+    const stopIndex = route.stops.findIndex(
+      (stop) => stop._id.toString() === id
+    );
+    if (stopIndex !== -1) {
+      route.stops[stopIndex].name = name;
+      route.stops[stopIndex].lat = parseFloat(lat);
+      route.stops[stopIndex].lon = parseFloat(lon);
+      await route.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Bus stop updated successfully",
+      data: route.stops[stopIndex],
+    });
+  } catch (error) {
+    console.error("Error updating bus stop:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update bus stop",
+    });
+  }
+};
+
+// Delete bus stop from all routes by name and coordinates
+export const deleteBusStopFromAllRoutes = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { name, lat, lon } = req.body;
+
+    // Validate required fields
+    if (!name || lat === undefined || lon === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, latitude, and longitude are required",
+      });
+    }
+
+    // Find all routes that contain this bus stop
+    const routes = await BusRoute.find({
+      "stops.name": name,
+      "stops.lat": lat,
+      "stops.lon": lon,
+    });
+
+    if (routes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No routes found containing this bus stop",
+      });
+    }
+
+    let totalStopsRemoved = 0;
+    let routesModified = 0;
+
+    // Remove the stop from all routes
+    for (const route of routes) {
+      const originalStopsCount = route.stops.length;
+      route.stops = route.stops.filter(
+        (stop) => !(stop.name === name && stop.lat === lat && stop.lon === lon)
+      );
+
+      const stopsRemoved = originalStopsCount - route.stops.length;
+      if (stopsRemoved > 0) {
+        totalStopsRemoved += stopsRemoved;
+        routesModified++;
+        await route.save();
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Bus stop "${name}" deleted from all routes successfully`,
+      data: {
+        routesModified,
+        totalStopsRemoved,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting bus stop from all routes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete bus stop from all routes",
+    });
+  }
+};
+
+// Bulk update route numbers (admin only)
+export const bulkUpdateRouteNumbers = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { updates } = req.body;
+
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Updates array is required",
+      });
+    }
+
+    // Validate update format
+    for (const update of updates) {
+      if (!update.id || !update.routeNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "Each update must have id and routeNumber",
+        });
+      }
+    }
+
+    // Check for duplicate route numbers in the updates
+    const newRouteNumbers = updates.map((u) => u.routeNumber);
+    const uniqueNumbers = new Set(newRouteNumbers);
+    if (newRouteNumbers.length !== uniqueNumbers.size) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate route numbers in updates",
+      });
+    }
+
+    // Check if any of the new route numbers already exist (excluding the routes being updated)
+    const updateIds = updates.map((u) => u.id);
+    const existingRoutesWithNumbers = await BusRoute.find({
+      routeNumber: { $in: newRouteNumbers },
+      _id: { $nin: updateIds },
+    });
+
+    if (existingRoutesWithNumbers.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Route numbers already exist: ${existingRoutesWithNumbers
+          .map((r) => r.routeNumber)
+          .join(", ")}`,
+      });
+    }
+
+    // Perform bulk update using bulkWrite for efficiency
+    const bulkOperations = updates.map((update) => ({
+      updateOne: {
+        filter: { _id: update.id },
+        update: { $set: { routeNumber: update.routeNumber } },
+      },
+    }));
+
+    const result = await BusRoute.bulkWrite(bulkOperations);
+
+    console.log(
+      `Bulk update completed: ${result.modifiedCount} routes updated`
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} route numbers`,
+      data: {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        upsertedCount: result.upsertedCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error bulk updating route numbers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to bulk update route numbers",
+      error: error.message,
+    });
+  }
+};
+
+// Reorder routes with automatic route number assignment (admin only)
+export const reorderRoutes = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { routeIds } = req.body;
+
+    if (!routeIds || !Array.isArray(routeIds) || routeIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Route IDs array is required",
+      });
+    }
+
+    // Validate that all route IDs exist
+    const existingRoutes = await BusRoute.find({ _id: { $in: routeIds } });
+    if (existingRoutes.length !== routeIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some route IDs not found",
+      });
+    }
+
+    // Create bulk operations to update route numbers based on array order
+    const bulkOperations = routeIds.map((routeId, index) => ({
+      updateOne: {
+        filter: { _id: routeId },
+        update: { $set: { routeNumber: index + 1 } },
+      },
+    }));
+
+    // Execute the bulk update
+    const result = await BusRoute.bulkWrite(bulkOperations);
+
+    console.log(
+      `Route reordering completed: ${result.modifiedCount} routes updated`
+    );
+
+    // Get the updated routes to return them
+    const updatedRoutes = await BusRoute.find({ _id: { $in: routeIds } }).sort({
+      routeNumber: 1,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully reordered ${result.modifiedCount} routes`,
+      data: {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        routes: updatedRoutes,
+      },
+    });
+  } catch (error) {
+    console.error("Error reordering routes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reorder routes",
+      error: error.message,
     });
   }
 };

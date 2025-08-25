@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { fetchRouteFromAPI, fetchUserToStart } from "../map/MapAPISlice";
-import { fetchBusRoutes } from "../services/busRoutes";
-import { GetTransferMessage } from "@/lib/GetTransferMessage";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { fetchRouteFromAPI, fetchUserToStart } from "./MapAPISlice";
+import { fetchBusRoutes } from "../services/bus-route/busRoutes";
+import { GetTransferMessage } from "@/services/transfer/GetTransferMessage";
 
-export const useMapData = (routeProp) => {
+export const useMapData = (routeProp, customUserLocation = null) => {
   const [userLocation, setUserLocation] = useState(null);
   const [fareData, setFareData] = useState(null);
   const [allStops, setAllStops] = useState([]);
@@ -16,7 +16,7 @@ export const useMapData = (routeProp) => {
   const [nearestStopMarker, setNearestStopMarker] = useState(null);
   const [routesData, setRoutesData] = useState([]);
 
-  const center = [27.686262, 85.303635];
+  const center = customUserLocation || userLocation || [27.686262, 85.303635];
 
   // Load routes data from MongoDB
   useEffect(() => {
@@ -63,11 +63,24 @@ export const useMapData = (routeProp) => {
     setAllStops(allStopsArr);
   }, [routesData]); // Add routesData as dependency
 
+  // Create a route hash to force re-evaluation
+  const routeHash = useMemo(() => {
+    if (!routeProp || routeProp.length === 0) return "";
+    return routeProp
+      .map((stop) => `${stop.name}_${stop.lat}_${stop.lon}`)
+      .join("|");
+  }, [routeProp]);
+
   // Effect: Fetch fare data when route changes
   useEffect(() => {
+    console.log("useMapData: Route changed, routeProp:", routeProp);
+    console.log("useMapData: Route hash:", routeHash);
     if (routeProp && routeProp.length > 1) {
       const start = routeProp[0].name;
       const end = routeProp[routeProp.length - 1].name;
+      console.log("useMapData: Fetching fare data for:", start, "→", end);
+      console.log("useMapData: Route data:", routeProp);
+
       fetch("http://localhost:5000/api/bus/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,12 +91,21 @@ export const useMapData = (routeProp) => {
         }),
       })
         .then((res) => res.json())
-        .then((data) => setFareData(data))
-        .catch(() => setFareData(null));
+        .then((data) => {
+          console.log("useMapData: Fare data received:", data);
+          setFareData(data);
+        })
+        .catch((error) => {
+          console.error("useMapData: Error fetching fare data:", error);
+          setFareData(null);
+        });
     } else {
+      console.log(
+        "useMapData: No route or route too short, clearing fare data"
+      );
       setFareData(null);
     }
-  }, [routeProp]);
+  }, [routeHash]); // Use route hash for more reliable change detection
 
   // Effect: Fetch API route when routeProp changes
   useEffect(() => {
@@ -101,15 +123,20 @@ export const useMapData = (routeProp) => {
   // Effect: Fetch OSM route from user location to start bus stop
   useEffect(() => {
     async function fetchUserToStartCoords() {
-      if (userLocation && selectedStops.length > 0) {
-        const coords = await fetchUserToStart(userLocation, selectedStops);
+      // Use custom user location if available, otherwise use GPS location
+      const effectiveUserLocation = customUserLocation || userLocation;
+      if (effectiveUserLocation && selectedStops.length > 0) {
+        const coords = await fetchUserToStart(
+          effectiveUserLocation,
+          selectedStops
+        );
         setUserToStartCoords(coords);
       } else {
         setUserToStartCoords([]);
       }
     }
     fetchUserToStartCoords();
-  }, [userLocation, selectedStops]);
+  }, [userLocation, selectedStops, customUserLocation]);
 
   // Effect: Check for transfer popup when route changes
   useEffect(() => {
@@ -183,8 +210,44 @@ export const useMapData = (routeProp) => {
     };
   }, []);
 
+  // Function to force refresh fare data
+  const refreshFareData = useCallback(() => {
+    console.log("useMapData: Force refreshing fare data");
+    if (routeProp && routeProp.length > 1) {
+      const start = routeProp[0].name;
+      const end = routeProp[routeProp.length - 1].name;
+      console.log("useMapData: Force fetching fare data for:", start, "→", end);
+
+      fetch("http://localhost:5000/api/bus/estimate-fare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start,
+          end,
+          route: routeProp,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("useMapData: Force refresh - Fare data received:", data);
+          setFareData(data);
+        })
+        .catch((error) => {
+          console.error(
+            "useMapData: Force refresh - Error fetching fare data:",
+            error
+          );
+          setFareData(null);
+        });
+    }
+  }, [routeProp]);
+
+  // Calculate the effective user location
+  const effectiveUserLocation = customUserLocation || userLocation;
+
   return {
     userLocation,
+    effectiveUserLocation,
     fareData,
     allStops,
     selectedStops,
@@ -196,5 +259,6 @@ export const useMapData = (routeProp) => {
     nearestStopMarker,
     center,
     setSelectedStops,
+    refreshFareData, // Add the refresh function
   };
 };

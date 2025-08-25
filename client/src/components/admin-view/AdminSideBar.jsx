@@ -5,6 +5,7 @@ import {
   Route,
   ArrowLeftRight,
   Bus,
+  Banknote,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -27,21 +28,16 @@ function AdminSideBar({ collapsed, setCollapsed }) {
     { label: "Bus Routes", icon: Route, path: "/admin/bus-routes" },
     { label: "Transfers", icon: ArrowLeftRight, path: "/admin/transfers" },
     { label: "Bus Names", icon: Bus, path: "/admin/bus-names" },
+    { label: "Fare Estimatation", icon: Banknote, path: "/admin/fare-config" },
   ];
 
   const handleLogout = () => {
     dispatch(logoutUser());
   };
 
-  // Show "User View" if admin and not already in /map
-  const showUserView =
-    location.pathname &&
-    !location.pathname.startsWith("/map") &&
-    (JSON.parse(localStorage.getItem("persist:root") || "{}")?.auth
-      ? JSON.parse(
-          JSON.parse(localStorage.getItem("persist:root")).auth
-        )?.user?.role === "admin"
-      : true);
+  const handleSwitchToClient = () => {
+    navigate("/map/home");
+  };
 
   return (
     <div
@@ -93,21 +89,20 @@ function AdminSideBar({ collapsed, setCollapsed }) {
         </nav>
       </div>
 
-      {/* User View Button & Logout */}
-      <div className="mb-4 flex flex-col items-center gap-2">
-        {showUserView && (
-          <button
-            onClick={() => navigate("/map/home")}
-            className={clsx(
-              "flex items-center rounded-md px-4 py-2 text-sm font-medium shadow bg-blue-600 text-white hover:bg-blue-700 transition",
-              collapsed ? "justify-center px-2" : "gap-2"
-            )}
-            title="Switch to User View"
-          >
-            <Map />
-            {!collapsed && <span>User View</span>}
-          </button>
-        )}
+      {/* Bottom Part */}
+      <div className="mb-4 space-y-2">
+        {/* Switch to Client View */}
+        <button
+          onClick={handleSwitchToClient}
+          className={`flex items-center w-full text-left py-2 hover:bg-blue-600 bg-blue-500 transition-colors ${
+            collapsed ? "justify-center px-2" : "gap-3 px-4"
+          }`}
+        >
+          <Map size={20} />
+          {!collapsed && <span>Switch to Client</span>}
+        </button>
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
           className={`flex items-center text-left py-2 hover:bg-[#1f1f1f] transition-colors ${

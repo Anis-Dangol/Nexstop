@@ -5,8 +5,16 @@ import {
   updateBusRoute,
   deleteBusRoute,
   importBusRoutes,
-} from "../../services/busRoutes";
+  bulkUpdateRouteNumbers,
+  reorderRoutes,
+} from "../../services/bus-route/busRoutes";
 import { useSelector } from "react-redux";
+import RouteHeader from "../../components/admin-view/admin-bus-route/RouteHeader";
+import RouteFilters from "../../components/admin-view/admin-bus-route/RouteFilters";
+import RouteList from "../../components/admin-view/admin-bus-route/RouteList";
+import AddRouteModal from "../../components/admin-view/admin-bus-route/AddRouteModal";
+import EditRouteModal from "../../components/admin-view/admin-bus-route/EditRouteModal";
+import ImportRouteModal from "../../components/admin-view/admin-bus-route/ImportRouteModal";
 
 function AdminBusRoutes() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +25,7 @@ function AdminBusRoutes() {
   const [editingRoute, setEditingRoute] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragUpdateLoading, setDragUpdateLoading] = useState(false);
   const [busRoutes, setBusRoutes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -26,18 +35,30 @@ function AdminBusRoutes() {
   const [newRoute, setNewRoute] = useState({
     routeNumber: "",
     name: "",
-    color: "#FF0000",
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
   const [editRoute, setEditRoute] = useState({
     routeNumber: "",
     name: "",
-    color: "#FF0000",
     stops: [{ name: "", lat: "", lon: "" }],
   });
 
+  // Bulk selection states
+  const [selectedRoutes, setSelectedRoutes] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+
   const { user } = useSelector((state) => state.auth);
+
+  // Toast notification function
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Fetch bus routes on component mount
   useEffect(() => {
@@ -49,6 +70,9 @@ function AdminBusRoutes() {
       setLoading(true);
       const routes = await fetchBusRoutes();
       setBusRoutes(routes);
+      // Reset bulk selection when routes are reloaded
+      setSelectedRoutes([]);
+      setSelectAll(false);
     } catch (error) {
       console.error("Failed to load bus routes:", error);
       // You might want to show a toast notification here
@@ -62,7 +86,6 @@ function AdminBusRoutes() {
     const exportData = busRoutes.map((route) => ({
       routeNumber: route.routeNumber,
       name: route.name,
-      color: route.color,
       stops: route.stops.map((stop) => ({
         name: stop.name,
         lat: stop.lat,
@@ -96,24 +119,45 @@ function AdminBusRoutes() {
     return 0;
   });
 
-  // Helper function to get next available route number
-  const getNextAvailableRouteNumber = () => {
-    if (busRoutes.length === 0) return 1;
+  // Clean up selections when filtered routes change
+  useEffect(() => {
+    const visibleRouteIds = sortedRoutes.map((route) => route._id);
+    setSelectedRoutes((prev) =>
+      prev.filter((id) => visibleRouteIds.includes(id))
+    );
+    setSelectAll(false);
+  }, [searchTerm, sortOrder]);
 
-    const existingNumbers = busRoutes
-      .map((route) => route.routeNumber)
-      .sort((a, b) => a - b);
-
-    // Find the first gap in the sequence
-    for (let i = 1; i <= existingNumbers.length + 1; i++) {
-      if (!existingNumbers.includes(i)) {
-        return i;
+  // Keyboard shortcuts for bulk actions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+A to select all
+      if (
+        e.ctrlKey &&
+        e.key === "a" &&
+        !showAddModal &&
+        !showEditModal &&
+        !showImportModal
+      ) {
+        e.preventDefault();
+        handleSelectAll();
       }
-    }
+      // Delete key to delete selected routes
+      if (
+        e.key === "Delete" &&
+        selectedRoutes.length > 0 &&
+        !showAddModal &&
+        !showEditModal &&
+        !showImportModal
+      ) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+    };
 
-    // If no gaps, return the next number after the highest
-    return Math.max(...existingNumbers) + 1;
-  };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedRoutes, showAddModal, showEditModal, showImportModal]);
 
   // Helper functions for modal
   const addNewStop = (afterIndex = null, formType = "new") => {
@@ -334,7 +378,6 @@ function AdminBusRoutes() {
       const routeData = {
         routeNumber: parseInt(newRoute.routeNumber),
         name: newRoute.name,
-        color: newRoute.color,
         stops: newRoute.stops.map((stop) => ({
           name: stop.name,
           lat: parseFloat(stop.lat),
@@ -349,17 +392,6 @@ function AdminBusRoutes() {
         routeData.stops.length === 0
       ) {
         alert("Please fill in all required fields");
-        return;
-      }
-
-      // Check for duplicate route number
-      const isDuplicate = busRoutes.some(
-        (route) => route.routeNumber === routeData.routeNumber
-      );
-      if (isDuplicate) {
-        alert(
-          `Route number ${routeData.routeNumber} is already in use. Please choose a different number.`
-        );
         return;
       }
 
@@ -380,7 +412,6 @@ function AdminBusRoutes() {
         setNewRoute({
           routeNumber: "",
           name: "",
-          color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
         setDraggedIndex(null);
@@ -401,7 +432,6 @@ function AdminBusRoutes() {
     setEditRoute({
       routeNumber: route.routeNumber,
       name: route.name,
-      color: route.color,
       stops: route.stops.map((stop) => ({
         name: stop.name,
         lat: stop.lat.toString(),
@@ -425,7 +455,6 @@ function AdminBusRoutes() {
       const routeData = {
         routeNumber: parseInt(editRoute.routeNumber),
         name: editRoute.name,
-        color: editRoute.color,
         stops: editRoute.stops.map((stop) => ({
           name: stop.name,
           lat: parseFloat(stop.lat),
@@ -461,7 +490,6 @@ function AdminBusRoutes() {
         setEditRoute({
           routeNumber: "",
           name: "",
-          color: "#FF0000",
           stops: [{ name: "", lat: "", lon: "" }],
         });
         setDraggedIndex(null);
@@ -592,7 +620,6 @@ function AdminBusRoutes() {
     setEditRoute({
       routeNumber: "",
       name: "",
-      color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
     setDraggedIndex(null);
@@ -604,9 +631,359 @@ function AdminBusRoutes() {
     setNewRoute({
       routeNumber: "",
       name: "",
-      color: "#FF0000",
       stops: [{ name: "", lat: "", lon: "" }],
     });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Function to get the next available route number
+  const getNextAvailableRouteNumber = () => {
+    if (busRoutes.length === 0) return 1;
+
+    // Get all existing route numbers and sort them
+    const existingNumbers = busRoutes
+      .map((route) => parseInt(route.routeNumber))
+      .filter((num) => !isNaN(num))
+      .sort((a, b) => a - b);
+
+    // Find the first gap in the sequence
+    for (let i = 0; i < existingNumbers.length; i++) {
+      const expectedNumber = i + 1;
+      if (existingNumbers[i] !== expectedNumber) {
+        return expectedNumber;
+      }
+    }
+
+    // If no gaps found, return the next number after the highest
+    return existingNumbers.length > 0
+      ? existingNumbers[existingNumbers.length - 1] + 1
+      : 1;
+  };
+
+  // Function to auto-fill route number
+  const handleAutoRouteNumber = () => {
+    const nextNumber = getNextAvailableRouteNumber();
+    setNewRoute((prev) => ({
+      ...prev,
+      routeNumber: nextNumber.toString(),
+    }));
+  };
+
+  // Function to auto-fill route number for edit form
+  const handleAutoRouteNumberEdit = () => {
+    const nextNumber = getNextAvailableRouteNumber();
+    setEditRoute((prev) => ({
+      ...prev,
+      routeNumber: nextNumber.toString(),
+    }));
+  };
+
+  // Bulk selection functions
+  const handleSelectRoute = (routeId) => {
+    setSelectedRoutes((prev) => {
+      if (prev.includes(routeId)) {
+        // Remove from selection
+        const newSelection = prev.filter((id) => id !== routeId);
+        setSelectAll(
+          newSelection.length === sortedRoutes.length && sortedRoutes.length > 0
+        );
+        return newSelection;
+      } else {
+        // Add to selection
+        const newSelection = [...prev, routeId];
+        setSelectAll(newSelection.length === sortedRoutes.length);
+        return newSelection;
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // Deselect all
+      setSelectedRoutes([]);
+      setSelectAll(false);
+    } else {
+      // Select all visible routes
+      const allRouteIds = sortedRoutes.map((route) => route._id);
+      setSelectedRoutes(allRouteIds);
+      setSelectAll(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedRoutes.length === 0) {
+      alert("Please select routes to delete.");
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${
+      selectedRoutes.length
+    } route${
+      selectedRoutes.length > 1 ? "s" : ""
+    }? This action cannot be undone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        setBulkDeleteLoading(true);
+
+        // Delete routes one by one
+        const deletionPromises = selectedRoutes.map((routeId) =>
+          deleteBusRoute(routeId)
+        );
+        await Promise.all(deletionPromises);
+
+        // Reload routes and reset selection
+        await loadBusRoutes();
+        alert(
+          `Successfully deleted ${selectedRoutes.length} route${
+            selectedRoutes.length > 1 ? "s" : ""
+          }!`
+        );
+      } catch (error) {
+        console.error("Error deleting routes:", error);
+        alert("Failed to delete some routes. Please try again.");
+      } finally {
+        setBulkDeleteLoading(false);
+      }
+    }
+  };
+
+  // Drag and drop functions for route reordering
+  const handleRoutesDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+
+    // Create a custom drag image
+    const dragElement = e.target.closest(".routes-drag-container");
+    if (dragElement) {
+      e.dataTransfer.setDragImage(dragElement, 0, 0);
+    }
+  };
+
+  const handleRoutesDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleRoutesDragEnter = (e, index) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleRoutesDragLeave = (e) => {
+    e.preventDefault();
+    // Check if we're leaving the container entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleRoutesDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setDragUpdateLoading(true);
+
+      // Create a copy of the current sorted routes
+      const reorderedRoutes = [...sortedRoutes];
+      const draggedRoute = reorderedRoutes[draggedIndex];
+
+      // Remove the dragged item from its current position
+      reorderedRoutes.splice(draggedIndex, 1);
+
+      // Calculate the correct drop position
+      let finalDropIndex;
+      if (dropIndex >= reorderedRoutes.length) {
+        finalDropIndex = reorderedRoutes.length;
+      } else if (dropIndex > draggedIndex) {
+        finalDropIndex = dropIndex - 1;
+      } else {
+        finalDropIndex = dropIndex;
+      }
+
+      // Insert at new position
+      reorderedRoutes.splice(finalDropIndex, 0, draggedRoute);
+
+      // Extract route IDs in the new order for the reorder API
+      const reorderedRouteIds = reorderedRoutes.map((route) => route._id);
+
+      console.log(`Reordering ${reorderedRoutes.length} routes in database...`);
+
+      try {
+        // Use the dedicated reorder endpoint (most reliable)
+        const reorderResult = await reorderRoutes(reorderedRouteIds);
+        console.log("Reorder successful:", reorderResult);
+
+        if (reorderResult.success) {
+          console.log(
+            `✅ Successfully reordered ${reorderResult.data.modifiedCount} routes in database`
+          );
+        } else {
+          throw new Error("Reorder operation failed");
+        }
+      } catch (reorderError) {
+        console.warn(
+          "Reorder endpoint failed, falling back to bulk update:",
+          reorderError.message
+        );
+
+        // Fallback to bulk update approach
+        const routeUpdates = reorderedRoutes
+          .map((route, index) => ({
+            id: route._id,
+            routeNumber: index + 1, // Start from 1
+          }))
+          .filter((update, index) => {
+            // Only include routes whose numbers actually changed
+            return reorderedRoutes[index].routeNumber !== update.routeNumber;
+          });
+
+        if (routeUpdates.length > 0) {
+          try {
+            // Try bulk update
+            const bulkResult = await bulkUpdateRouteNumbers(routeUpdates);
+            console.log("Bulk update successful:", bulkResult);
+
+            if (
+              bulkResult.success &&
+              bulkResult.data.modifiedCount === routeUpdates.length
+            ) {
+              console.log(
+                `✅ Successfully updated ${bulkResult.data.modifiedCount} routes via bulk update`
+              );
+            } else {
+              throw new Error(
+                `Bulk update partially failed. Expected ${routeUpdates.length}, got ${bulkResult.data.modifiedCount}`
+              );
+            }
+          } catch (bulkError) {
+            console.warn(
+              "Bulk update failed, using sequential update strategy:",
+              bulkError.message
+            );
+
+            // Sequential update strategy to avoid route number conflicts
+            // Step 1: Assign temporary route numbers to all routes being updated
+            const tempRouteNumbers = routeUpdates.map(
+              (_, index) => 9000 + index
+            ); // Use high numbers as temp
+
+            console.log("Step 1: Assigning temporary route numbers...");
+            for (let i = 0; i < routeUpdates.length; i++) {
+              const update = routeUpdates[i];
+              const route = reorderedRoutes.find((r) => r._id === update.id);
+              try {
+                await updateBusRoute(update.id, {
+                  ...route,
+                  routeNumber: tempRouteNumbers[i],
+                });
+                console.log(
+                  `🔄 Temp number ${tempRouteNumbers[i]} assigned to route ${route.name}`
+                );
+              } catch (error) {
+                console.error(
+                  `❌ Failed to assign temp number to route ${route.name}:`,
+                  error
+                );
+                throw new Error(
+                  `Failed to assign temporary route number to ${route.name}`
+                );
+              }
+            }
+
+            // Step 2: Assign final route numbers
+            console.log("Step 2: Assigning final route numbers...");
+            for (const update of routeUpdates) {
+              const route = reorderedRoutes.find((r) => r._id === update.id);
+              try {
+                await updateBusRoute(update.id, {
+                  ...route,
+                  routeNumber: update.routeNumber,
+                });
+                console.log(
+                  `✅ Final number ${update.routeNumber} assigned to route ${route.name}`
+                );
+              } catch (error) {
+                console.error(
+                  `❌ Failed to assign final number to route ${route.name}:`,
+                  error
+                );
+                throw new Error(
+                  `Failed to assign final route number to ${route.name}`
+                );
+              }
+            }
+
+            console.log(
+              `✅ Sequential updates completed: ${routeUpdates.length} routes updated`
+            );
+          }
+        }
+      }
+
+      // Reload routes from database to ensure consistency
+      console.log("Reloading routes from database to verify changes...");
+      await loadBusRoutes();
+
+      // Show success message
+      console.log(`✅ Route reordering completed successfully!`);
+
+      // Show toast notification
+      showToast(
+        `Successfully reordered routes and updated route numbers in database.`,
+        "success"
+      );
+    } catch (error) {
+      console.error("❌ Error reordering routes:", error);
+
+      // Show specific error message based on error type
+      let errorMessage = "Failed to reorder routes. Please try again.";
+
+      if (error.message?.includes("Route number already exists")) {
+        errorMessage = "Cannot reorder: Route number conflict detected.";
+      } else if (
+        error.message?.includes("network") ||
+        error.message?.includes("fetch")
+      ) {
+        errorMessage =
+          "Network error: Please check your connection and try again.";
+      } else if (
+        error.message?.includes("Forbidden") ||
+        error.message?.includes("403")
+      ) {
+        errorMessage = "Permission denied: Admin access required.";
+      }
+
+      // Show error message
+      showToast(errorMessage, "error");
+
+      // Reload routes to ensure consistency with database
+      console.log("Reloading routes from database after error...");
+      await loadBusRoutes();
+    } finally {
+      setLoading(false);
+      setDragUpdateLoading(false);
+    }
+
+    setDraggedIndex(null);
+  };
+
+  const handleRoutesDragEnd = () => {
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
@@ -615,905 +992,151 @@ function AdminBusRoutes() {
     <div className="w-full bg-gray-50 min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Bus Routes
-              </h1>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
-              <button
-                onClick={() => {
-                  const nextRouteNumber = getNextAvailableRouteNumber();
-                  setNewRoute({
-                    routeNumber: nextRouteNumber.toString(),
-                    name: "",
-                    color: "#FF0000",
-                    stops: [{ name: "", lat: "", lon: "" }],
-                  });
-                  setShowAddModal(true);
-                  setDraggedIndex(null);
-                  setDragOverIndex(null);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                + Add New Route
-              </button>
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                📥 Import Routes
-              </button>
-              <button
-                onClick={exportRoutesToJSON}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                title="Export routes to JSON file"
-              >
-                📤 Export Routes
-              </button>
-            </div>
-          </div>
-        </div>
+        <RouteHeader
+          onAddRoute={() => {
+            setShowAddModal(true);
+            setDraggedIndex(null);
+            setDragOverIndex(null);
+          }}
+          onImportRoute={() => setShowImportModal(true)}
+          onExportRoute={exportRoutesToJSON}
+          selectedRoutes={selectedRoutes}
+          onBulkDelete={handleBulkDelete}
+          bulkDeleteLoading={bulkDeleteLoading}
+        />
 
         {/* Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Routes
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by route name or number..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <svg
-                  className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort by Name
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              >
-                <option value="none">No Sort</option>
-                <option value="asc">A-Z</option>
-                <option value="desc">Z-A</option>
-              </select>
-            </div>
-            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
-              Showing {sortedRoutes.length} of {busRoutes.length} routes
-            </div>
-          </div>
-        </div>
+        <RouteFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+          totalRoutes={busRoutes.length}
+          filteredRoutes={sortedRoutes.length}
+          selectedRoutes={selectedRoutes}
+        />
 
-        {/* Routes Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-500">Loading routes...</div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      S.N.
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Route Name
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Color
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Total Stops
-                    </th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {sortedRoutes.map((route, index) => (
-                    <tr
-                      key={route._id}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                      }`}
-                    >
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        {route.routeNumber}
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-900">
-                        {route.name}
-                      </td>
-                      <td className="py-4 px-6 text-sm">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded-full border-2 border-white shadow-sm`}
-                            style={{ backgroundColor: route.color }}
-                          ></div>
-                          <span className="text-gray-700 capitalize">
-                            {route.color}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-700">
-                        {route.totalStops}
-                      </td>
-                      <td className="py-4 px-6 text-sm">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditRoute(route)}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRoute(route)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {!loading && sortedRoutes.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500">
-                {searchTerm
-                  ? `No routes found matching "${searchTerm}"`
-                  : "No routes available"}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Routes List */}
+        <RouteList
+          routes={sortedRoutes}
+          loading={loading}
+          searchTerm={searchTerm}
+          sortOrder={sortOrder}
+          selectedRoutes={selectedRoutes}
+          selectAll={selectAll}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          dragUpdateLoading={dragUpdateLoading}
+          onSelectAll={handleSelectAll}
+          onSelectRoute={handleSelectRoute}
+          onEditRoute={handleEditRoute}
+          onDeleteRoute={handleDeleteRoute}
+          onRoutesDragStart={handleRoutesDragStart}
+          onRoutesDragOver={handleRoutesDragOver}
+          onRoutesDragEnter={handleRoutesDragEnter}
+          onRoutesDragLeave={handleRoutesDragLeave}
+          onRoutesDrop={handleRoutesDrop}
+          onRoutesDragEnd={handleRoutesDragEnd}
+        />
 
         {/* Add Route Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-blue-600">
-                    Add new Route
-                  </h2>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit}>
-                  {/* Route Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Number:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={newRoute.routeNumber}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            const routeNumber = parseInt(value);
-                            const isDuplicate = busRoutes.some(
-                              (route) => route.routeNumber === routeNumber
-                            );
-
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              routeNumber: value,
-                            }));
-                          }}
-                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:border-blue-500 ${
-                            busRoutes.some(
-                              (route) =>
-                                route.routeNumber ===
-                                parseInt(newRoute.routeNumber)
-                            )
-                              ? "border-red-300 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-blue-500"
-                          }`}
-                          placeholder={`Suggested: ${getNextAvailableRouteNumber()}`}
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              routeNumber:
-                                getNextAvailableRouteNumber().toString(),
-                            }));
-                          }}
-                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
-                          title="Use next available route number"
-                        >
-                          Auto
-                        </button>
-                      </div>
-                      {busRoutes.some(
-                        (route) =>
-                          route.routeNumber === parseInt(newRoute.routeNumber)
-                      ) && (
-                        <p className="text-red-500 text-xs mt-1">
-                          ⚠️ Route number {newRoute.routeNumber} is already in
-                          use
-                        </p>
-                      )}
-                      <p className="text-gray-500 text-xs mt-1">
-                        💡 Next available: {getNextAvailableRouteNumber()}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Name:
-                      </label>
-                      <input
-                        type="text"
-                        value={newRoute.name}
-                        onChange={(e) =>
-                          setNewRoute((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ratnapark and Kirtipur"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Color:
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={newRoute.color}
-                          onChange={(e) =>
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
-                          title="Select route color"
-                        />
-                        <input
-                          type="text"
-                          value={newRoute.color}
-                          onChange={(e) =>
-                            setNewRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="#FF0000"
-                          pattern="^#[0-9A-Fa-f]{6}$"
-                          title="Enter hex color code (e.g., #FF0000)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bus Stops Section */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-blue-600">
-                        Bus Stops
-                      </h3>
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        💡 Drag the ⋮⋮ button to reorder stops
-                      </div>
-                    </div>
-                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      {newRoute.stops.map((stop, index) => (
-                        <div key={index}>
-                          {/* Drop zone before each item */}
-                          <div
-                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                              draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index
-                                ? "bg-green-300 rounded-full opacity-100"
-                                : "opacity-0"
-                            }`}
-                            onDragOver={handleDragOver}
-                            onDragEnter={(e) => handleDragEnter(e, index)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, index, "new")}
-                          >
-                            {draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index && (
-                                <span className="text-xs text-green-700 font-medium">
-                                  Drop here
-                                </span>
-                              )}
-                          </div>
-
-                          <div
-                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
-                              draggedIndex === index
-                                ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
-                            }`}
-                          >
-                            {/* Stop Number */}
-                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
-                              {index + 1}
-                            </div>
-
-                            {/* Add and Drag Controls */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => addStopAfter(index, "new")}
-                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
-                                title="Add new stop after this one"
-                              >
-                                +
-                              </button>
-                              <div
-                                draggable="true"
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragEnd={handleDragEnd}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm cursor-grab active:cursor-grabbing transition-all duration-200 select-none ${
-                                  draggedIndex === index
-                                    ? "bg-blue-500 text-white shadow-lg transform scale-110"
-                                    : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
-                                }`}
-                                title="Drag to reorder stops"
-                              >
-                                <span className="text-sm font-bold">⋮⋮</span>
-                              </div>
-                            </div>
-
-                            {/* Stop Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Bus Stop Name (Stop #{index + 1})
-                                </label>
-                                <input
-                                  type="text"
-                                  value={stop.name}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "name",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "Ratnapark"
-                                      : "Enter Busstop Name"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Latitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lat}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lat",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "27.7025617421252824"
-                                      : "Enter Latitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Longitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lon}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lon",
-                                      e.target.value,
-                                      "new"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "85.31361099960553"
-                                      : "Enter Longitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {/* Remove Button */}
-                            {newRoute.stops.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeStop(index, "new")}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Drop zone after the last item */}
-                          {index === newRoute.stops.length - 1 && (
-                            <div
-                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                                draggedIndex !== null &&
-                                dragOverIndex === newRoute.stops.length
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={handleDragOver}
-                              onDragEnter={(e) =>
-                                handleDragEnter(e, newRoute.stops.length)
-                              }
-                              onDragLeave={handleDragLeave}
-                              onDrop={(e) =>
-                                handleDrop(e, newRoute.stops.length, "new")
-                              }
-                            >
-                              {draggedIndex !== null &&
-                                dragOverIndex === newRoute.stops.length && (
-                                  <span className="text-xs text-green-700 font-medium">
-                                    Drop here
-                                  </span>
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-                    >
-                      {submitLoading ? "Adding Route..." : "Add Route"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <AddRouteModal
+          isOpen={showAddModal}
+          onClose={closeModal}
+          newRoute={newRoute}
+          setNewRoute={setNewRoute}
+          submitLoading={submitLoading}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          onSubmit={handleSubmit}
+          onAutoRouteNumber={handleAutoRouteNumber}
+          onAddStopAfter={addStopAfter}
+          onRemoveStop={removeStop}
+          onUpdateStop={updateStop}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
 
         {/* Edit Route Modal */}
-        {showEditModal && editingRoute && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-blue-600">
-                    Edit Route
-                  </h2>
-                  <button
-                    onClick={closeEditModal}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={handleUpdateRoute}>
-                  {/* Route Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Number:
-                      </label>
-                      <input
-                        type="number"
-                        value={editRoute.routeNumber}
-                        onChange={(e) =>
-                          setEditRoute((prev) => ({
-                            ...prev,
-                            routeNumber: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Name:
-                      </label>
-                      <input
-                        type="text"
-                        value={editRoute.name}
-                        onChange={(e) =>
-                          setEditRoute((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Ratnapark and Kirtipur"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Route Color:
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={editRoute.color}
-                          onChange={(e) =>
-                            setEditRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
-                          title="Select route color"
-                        />
-                        <input
-                          type="text"
-                          value={editRoute.color}
-                          onChange={(e) =>
-                            setEditRoute((prev) => ({
-                              ...prev,
-                              color: e.target.value,
-                            }))
-                          }
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="#FF0000"
-                          pattern="^#[0-9A-Fa-f]{6}$"
-                          title="Enter hex color code (e.g., #FF0000)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bus Stops Section */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-blue-600">
-                        Bus Stops
-                      </h3>
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        💡 Drag the ⋮⋮ button to reorder stops
-                      </div>
-                    </div>
-                    <div className="space-y-2 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      {editRoute.stops.map((stop, index) => (
-                        <div key={index}>
-                          {/* Drop zone before each item */}
-                          <div
-                            className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                              draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index
-                                ? "bg-green-300 rounded-full opacity-100"
-                                : "opacity-0"
-                            }`}
-                            onDragOver={handleDragOver}
-                            onDragEnter={(e) => handleDragEnter(e, index)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, index, "edit")}
-                          >
-                            {draggedIndex !== null &&
-                              draggedIndex !== index &&
-                              dragOverIndex === index && (
-                                <span className="text-xs text-green-700 font-medium">
-                                  Drop here
-                                </span>
-                              )}
-                          </div>
-
-                          <div
-                            className={`drag-container flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
-                              draggedIndex === index
-                                ? "bg-blue-100 opacity-60 transform scale-95 border-2 border-blue-400 shadow-lg"
-                                : "bg-white border-2 border-transparent hover:bg-gray-50 shadow-sm"
-                            }`}
-                          >
-                            {/* Stop Number */}
-                            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full text-lg font-bold">
-                              {index + 1}
-                            </div>
-
-                            {/* Add and Drag Controls */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => addStopAfter(index, "edit")}
-                                className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-green-600 transition-colors"
-                                title="Add new stop after this one"
-                              >
-                                +
-                              </button>
-                              <div
-                                draggable="true"
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragEnd={handleDragEnd}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm cursor-grab active:cursor-grabbing transition-all duration-200 select-none ${
-                                  draggedIndex === index
-                                    ? "bg-blue-500 text-white shadow-lg transform scale-110"
-                                    : "bg-gray-300 text-gray-600 hover:bg-gray-400 hover:text-gray-700 hover:scale-105"
-                                }`}
-                                title="Drag to reorder stops"
-                              >
-                                <span className="text-sm font-bold">⋮⋮</span>
-                              </div>
-                            </div>
-
-                            {/* Stop Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Bus Stop Name (Stop #{index + 1})
-                                </label>
-                                <input
-                                  type="text"
-                                  value={stop.name}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "name",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "Ratnapark"
-                                      : "Enter Busstop Name"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Latitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lat}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lat",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "27.7025617421252824"
-                                      : "Enter Latitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Longitude
-                                </label>
-                                <input
-                                  type="text"
-                                  step="any"
-                                  value={stop.lon}
-                                  onChange={(e) =>
-                                    updateStop(
-                                      index,
-                                      "lon",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder={
-                                    index === 0
-                                      ? "85.31361099960553"
-                                      : "Enter Longitude"
-                                  }
-                                  required
-                                />
-                              </div>
-                            </div>
-
-                            {/* Remove Button */}
-                            {editRoute.stops.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => removeStop(index, "edit")}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-3 rounded text-sm font-medium transition-colors"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Drop zone after the last item */}
-                          {index === editRoute.stops.length - 1 && (
-                            <div
-                              className={`h-3 transition-all duration-200 flex items-center justify-center ${
-                                draggedIndex !== null &&
-                                dragOverIndex === editRoute.stops.length
-                                  ? "bg-green-300 rounded-full opacity-100"
-                                  : "opacity-0"
-                              }`}
-                              onDragOver={handleDragOver}
-                              onDragEnter={(e) =>
-                                handleDragEnter(e, editRoute.stops.length)
-                              }
-                              onDragLeave={handleDragLeave}
-                              onDrop={(e) =>
-                                handleDrop(e, editRoute.stops.length, "edit")
-                              }
-                            >
-                              {draggedIndex !== null &&
-                                dragOverIndex === editRoute.stops.length && (
-                                  <span className="text-xs text-green-700 font-medium">
-                                    Drop here
-                                  </span>
-                                )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Modal Actions */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={closeEditModal}
-                      className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-                    >
-                      {submitLoading ? "Updating Route..." : "Update Route"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditRouteModal
+          isOpen={showEditModal && editingRoute}
+          onClose={closeEditModal}
+          editRoute={editRoute}
+          setEditRoute={setEditRoute}
+          submitLoading={submitLoading}
+          draggedIndex={draggedIndex}
+          dragOverIndex={dragOverIndex}
+          onSubmit={handleUpdateRoute}
+          onAutoRouteNumber={handleAutoRouteNumberEdit}
+          onAddStopAfter={addStopAfter}
+          onRemoveStop={removeStop}
+          onUpdateStop={updateStop}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
 
         {/* Import Routes Modal */}
-        {showImportModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-blue-600">
-                  Import Bus Routes
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Import bus routes from a JSON file. Ensure the file is in the
-                  correct format.
-                </p>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select JSON File:
-                </label>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileSelect}
-                  className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={replaceExisting}
-                    onChange={(e) => setReplaceExisting(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Replace existing routes with the same number
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={closeImportModal}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleImportRoutes}
-                  disabled={importLoading}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
-                >
-                  {importLoading ? "Importing..." : "Import Routes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ImportRouteModal
+          isOpen={showImportModal}
+          onClose={closeImportModal}
+          selectedFile={selectedFile}
+          replaceExisting={replaceExisting}
+          setReplaceExisting={setReplaceExisting}
+          importLoading={importLoading}
+          onFileSelect={handleFileSelect}
+          onImportRoutes={handleImportRoutes}
+        />
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border-l-4 transition-all duration-500 ${
+            toast.type === "success"
+              ? "bg-green-50 border-green-400 text-green-700"
+              : "bg-red-50 border-red-400 text-red-700"
+          }`}
+        >
+          <div className="flex items-center">
+            <div className="mr-3">
+              {toast.type === "success" ? (
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
+            <p className="text-sm font-medium">{toast.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

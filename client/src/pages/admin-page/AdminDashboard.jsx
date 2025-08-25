@@ -1,28 +1,71 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserCount,
   fetchBusStatistics,
   fetchUserRegistrationStats,
+  fetchDashboardStats,
+  fetchBusRouteStats,
+  fetchBusStopStats,
+  fetchTransferStats,
+  fetchBusNameStats,
+  fetchFareConfigStats,
 } from "../../map/admin-slice/AdminSlice";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
+import DashboardHeader from "../../components/admin-view/admin-dashboard/DashboardHeader";
+import DashboardStats from "../../components/admin-view/admin-dashboard/DashboardStats";
+import ChartToggleControls from "../../components/admin-view/admin-dashboard/ChartToggleControls";
+import StatisticsChart from "../../components/admin-view/admin-dashboard/StatisticsChart";
 
 function AdminDashboard() {
   const dispatch = useDispatch();
-  const { userCount, busStatistics, userRegistrationStats, isLoading } =
-    useSelector((state) => state.admin);
+  const {
+    userCount,
+    busStatistics,
+    userRegistrationStats,
+    busRouteStats,
+    busStopStats,
+    transferStats,
+    busNameStats,
+    fareConfigStats,
+    dashboardStats,
+    isLoading,
+  } = useSelector((state) => state.admin);
 
-  // State for year and month selection
-  const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
-  );
-  const [selectedMonth, setSelectedMonth] = useState("all");
+  // State for year and month selection - separate for each chart
+  const [userFilters, setUserFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+  const [busRouteFilters, setBusRouteFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+  const [busStopFilters, setBusStopFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+  const [transferFilters, setTransferFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+  const [busNameFilters, setBusNameFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+  const [fareConfigFilters, setFareConfigFilters] = useState({
+    year: new Date().getFullYear().toString(),
+    month: "all",
+  });
+
+  // Toggle state for each chart visibility
+  const [chartVisibility, setChartVisibility] = useState({
+    userRegistration: true,
+    busRoutes: false,
+    busStops: false,
+    transfers: false,
+    busNames: false,
+    fareConfig: false,
+  });
 
   // Generate year options (current year and previous 4 years)
   const currentYear = new Date().getFullYear();
@@ -51,221 +94,188 @@ function AdminDashboard() {
   useEffect(() => {
     dispatch(fetchUserCount());
     dispatch(fetchBusStatistics());
-    // Fetch registration stats with year and month parameters
-    const params = { year: selectedYear };
-    if (selectedMonth !== "all") {
-      params.month = selectedMonth;
+    dispatch(fetchDashboardStats());
+  }, [dispatch]);
+
+  // Separate useEffect for each chart's data fetching
+  useEffect(() => {
+    const params = { year: userFilters.year };
+    if (userFilters.month !== "all") {
+      params.month = userFilters.month;
     }
     dispatch(fetchUserRegistrationStats(params));
-  }, [dispatch, selectedYear, selectedMonth]);
+  }, [dispatch, userFilters.year, userFilters.month]);
 
-  // Handle year change
-  const handleYearChange = (year) => {
-    setSelectedYear(year);
-  };
+  useEffect(() => {
+    const params = { year: busRouteFilters.year };
+    if (busRouteFilters.month !== "all") {
+      params.month = busRouteFilters.month;
+    }
+    dispatch(fetchBusRouteStats(params));
+  }, [dispatch, busRouteFilters.year, busRouteFilters.month]);
 
-  // Handle month change
-  const handleMonthChange = (month) => {
-    setSelectedMonth(month);
+  useEffect(() => {
+    const params = { year: busStopFilters.year };
+    if (busStopFilters.month !== "all") {
+      params.month = busStopFilters.month;
+    }
+    dispatch(fetchBusStopStats(params));
+  }, [dispatch, busStopFilters.year, busStopFilters.month]);
+
+  useEffect(() => {
+    const params = { year: transferFilters.year };
+    if (transferFilters.month !== "all") {
+      params.month = transferFilters.month;
+    }
+    dispatch(fetchTransferStats(params));
+  }, [dispatch, transferFilters.year, transferFilters.month]);
+
+  useEffect(() => {
+    const params = { year: busNameFilters.year };
+    if (busNameFilters.month !== "all") {
+      params.month = busNameFilters.month;
+    }
+    dispatch(fetchBusNameStats(params));
+  }, [dispatch, busNameFilters.year, busNameFilters.month]);
+
+  useEffect(() => {
+    const params = { year: fareConfigFilters.year };
+    if (fareConfigFilters.month !== "all") {
+      params.month = fareConfigFilters.month;
+    }
+    dispatch(fetchFareConfigStats(params));
+  }, [dispatch, fareConfigFilters.year, fareConfigFilters.month]);
+
+  // Toggle chart visibility
+  const toggleChart = (chartName) => {
+    setChartVisibility((prev) => ({
+      ...prev,
+      [chartName]: !prev[chartName],
+    }));
   };
 
   // Dynamic summary data
   const stats = [
-    { label: "Total Users", value: isLoading ? "Loading..." : userCount },
+    {
+      label: "Total Users",
+      value: isLoading ? "Loading..." : dashboardStats.users || userCount,
+    },
     {
       label: "Total Bus Stops",
-      value: isLoading ? "Loading..." : busStatistics.totalBusStops,
+      value: isLoading
+        ? "Loading..."
+        : dashboardStats.busStops || busStatistics.totalBusStops,
     },
     {
       label: "Total Bus Routes",
-      value: isLoading ? "Loading..." : busStatistics.totalRoutes,
+      value: isLoading
+        ? "Loading..."
+        : dashboardStats.busRoutes || busStatistics.totalRoutes,
+    },
+    {
+      label: "Total Transfers",
+      value: isLoading ? "Loading..." : dashboardStats.transfers,
+    },
+    {
+      label: "Total Bus Names",
+      value: isLoading ? "Loading..." : dashboardStats.busNames,
+    },
+    {
+      label: "Fare Configs",
+      value: isLoading ? "Loading..." : dashboardStats.fareConfigs,
     },
   ];
-
-  // Use real user registration data or fallback to empty array
-  const userGraphData =
-    userRegistrationStats.length > 0 ? userRegistrationStats : [];
-
-  // Add debug logging to see what data we're getting
-  console.log("userRegistrationStats:", userRegistrationStats);
-  console.log("selectedMonth:", selectedMonth);
-  console.log("userGraphData:", userGraphData);
 
   return (
     <div className="w-full bg-gray-50 min-h-screen p-3 pb-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2">
-          <h1 className="text-3xl font-bold text-gray-800 mb-1">Dashboard</h1>
-          <p className="text-gray-600">Welcome to the admin dashboard</p>
-        </div>
+        <DashboardHeader />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-2">
-          {stats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-gray-600 mb-1">
-                    {stat.label}
-                  </p>
-                  <div
-                    className={`text-3xl font-bold ${
-                      index === 0
-                        ? "text-blue-600"
-                        : index === 1
-                        ? "text-green-600"
-                        : "text-purple-600"
-                    }`}
-                  >
-                    {stat.value}
-                  </div>
-                </div>
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    index === 0
-                      ? "bg-blue-100"
-                      : index === 1
-                      ? "bg-green-100"
-                      : "bg-purple-100"
-                  }`}
-                >
-                  <span className="text-xl">
-                    {index === 0 ? "👥" : index === 1 ? "🚏" : "🚌"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DashboardStats stats={stats} isLoading={isLoading} />
 
-        {/* User Registration Chart */}
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                User Registration Statistics
-              </h3>
-              <p className="text-gray-600">
-                Track user registrations over time
-              </p>
-            </div>
-            {/* Filter Controls */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
-              <div className="flex flex-col">
-                <label className="text-sm font-semibold text-gray-700 mb-1">
-                  Year
-                </label>
-                <Select value={selectedYear} onValueChange={handleYearChange}>
-                  <SelectTrigger className="w-32 bg-white border-gray-300">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {yearOptions.map((year) => (
-                      <SelectItem key={year} value={year}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col">
-                <label className="text-sm font-semibold text-gray-700 mb-1">
-                  Month
-                </label>
-                <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                  <SelectTrigger className="w-40 bg-white border-gray-300">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map((month) => (
-                      <SelectItem key={month.value} value={month.value}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+        <ChartToggleControls
+          chartVisibility={chartVisibility}
+          setChartVisibility={setChartVisibility}
+          toggleChart={toggleChart}
+        />
 
-          {/* Chart Content */}
-          <div className="bg-gray-50 rounded-lg p-6 min-h-[400px]">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-gray-500">Loading chart data...</div>
-              </div>
-            ) : userGraphData.length > 0 ? (
-              <>
-                <div className="overflow-x-auto pb-8">
-                  <div
-                    className="flex items-end h-64 space-x-2 mb-8"
-                    style={{
-                      minWidth:
-                        selectedMonth === "all"
-                          ? userGraphData.length > 12
-                            ? `${userGraphData.length * 60}px`
-                            : "100%"
-                          : userGraphData.length > 20
-                          ? `${userGraphData.length * 40}px`
-                          : "100%",
-                    }}
-                  >
-                    {userGraphData.map((data, index) => {
-                      const maxUsers = Math.max(
-                        ...userGraphData.map((d) => d.users)
-                      );
-                      const heightRatio =
-                        maxUsers > 0 ? (data.users / maxUsers) * 200 : 0;
-                      return (
-                        <div
-                          key={`${data.month || data.day || data.date}`}
-                          className="flex flex-col items-center flex-shrink-0"
-                          style={{
-                            minWidth: selectedMonth === "all" ? "60px" : "40px",
-                          }}
-                        >
-                          <div className="text-xs text-gray-600 mb-1 font-medium">
-                            {data.users}
-                          </div>
-                          <div
-                            className="bg-blue-500 w-8 rounded-t min-h-[8px] hover:bg-blue-600 transition-colors"
-                            style={{ height: `${Math.max(heightRatio, 8)}px` }}
-                            title={`${data.users} users`}
-                          ></div>
-                          <span className="mt-3 text-xs text-gray-600 font-medium whitespace-nowrap">
-                            {selectedMonth === "all"
-                              ? data.month ||
-                                data.monthName ||
-                                `Month ${
-                                  data.monthNumber || data.date?.split("-")[1]
-                                }`
-                              : data.day ||
-                                data.date?.split("-")[2] ||
-                                `Day ${data.dayNumber || index + 1}`}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-gray-500">
-                  No registration data available for {selectedYear}
-                  {selectedMonth !== "all" &&
-                    ` - ${
-                      monthOptions.find((m) => m.value === selectedMonth)?.label
-                    }`}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        {chartVisibility.userRegistration && (
+          <StatisticsChart
+            title="User Registration Statistics"
+            data={userRegistrationStats}
+            color="bg-blue-500"
+            icon="👥"
+            entityName="users"
+            filters={userFilters}
+            setFilters={setUserFilters}
+            isLoading={isLoading}
+          />
+        )}
+
+        {chartVisibility.busRoutes && (
+          <StatisticsChart
+            title="Bus Routes Statistics"
+            data={busRouteStats}
+            color="bg-purple-500"
+            icon="🚌"
+            entityName="bus routes"
+            filters={busRouteFilters}
+            setFilters={setBusRouteFilters}
+            isLoading={isLoading}
+          />
+        )}
+
+        {chartVisibility.busStops && (
+          <StatisticsChart
+            title="Bus Stops Statistics"
+            data={busStopStats}
+            color="bg-green-500"
+            icon="🚏"
+            entityName="bus stops"
+            filters={busStopFilters}
+            setFilters={setBusStopFilters}
+            isLoading={isLoading}
+          />
+        )}
+
+        {chartVisibility.transfers && (
+          <StatisticsChart
+            title="Transfer Statistics"
+            data={transferStats}
+            color="bg-orange-500"
+            icon="🔄"
+            entityName="transfers"
+            filters={transferFilters}
+            setFilters={setTransferFilters}
+            isLoading={isLoading}
+          />
+        )}
+
+        {chartVisibility.busNames && (
+          <StatisticsChart
+            title="Bus Names Statistics"
+            data={busNameStats}
+            color="bg-red-500"
+            icon="🏷️"
+            entityName="bus names"
+            filters={busNameFilters}
+            setFilters={setBusNameFilters}
+            isLoading={isLoading}
+          />
+        )}
+
+        {chartVisibility.fareConfig && (
+          <StatisticsChart
+            title="Fare Configuration Statistics"
+            data={fareConfigStats}
+            color="bg-teal-500"
+            icon="💰"
+            entityName="fare configurations"
+            filters={fareConfigFilters}
+            setFilters={setFareConfigFilters}
+            isLoading={isLoading}
+          />
+        )}
       </div>
     </div>
   );
