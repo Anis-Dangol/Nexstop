@@ -12,9 +12,10 @@ router.post("/route", async (req, res) => {
 
     console.log(`Looking for route from "${start}" to "${end}"`);
 
-    let foundRoute = null;
+    let directRoute = null;
+    let transferRoute = null;
 
-    // Search through all routes for a path from start to end (including circular routes)
+    // Search for direct routes
     for (const route of routes) {
       const stops = route.stops;
       const startIndex = stops.findIndex(
@@ -27,9 +28,9 @@ router.post("/route", async (req, res) => {
       if (startIndex !== -1 && endIndex !== -1) {
         if (startIndex <= endIndex) {
           // Normal forward route
-          foundRoute = stops.slice(startIndex, endIndex + 1);
+          directRoute = stops.slice(startIndex, endIndex + 1);
           console.log(
-            `Forward route found: ${foundRoute.map((s) => s.name).join(" → ")}`
+            `Direct route found: ${directRoute.map((s) => s.name).join(" → ")}`
           );
           break;
         } else {
@@ -40,13 +41,12 @@ router.post("/route", async (req, res) => {
             firstStop.name.toLowerCase() === lastStop.name.toLowerCase();
 
           if (isCircular) {
-            // Create circular route: from start to end of array + from beginning to end
-            foundRoute = [
+            directRoute = [
               ...stops.slice(startIndex),
               ...stops.slice(0, endIndex + 1),
             ];
             console.log(
-              `Circular route found: ${foundRoute
+              `Circular route found: ${directRoute
                 .map((s) => s.name)
                 .join(" → ")}`
             );
@@ -56,8 +56,60 @@ router.post("/route", async (req, res) => {
       }
     }
 
-    if (foundRoute) {
-      res.json({ status: "success", route: foundRoute });
+    // If no direct route is found, search for transfer routes
+    if (!directRoute) {
+      for (const route1 of routes) {
+        const stops1 = route1.stops;
+        const startIndex = stops1.findIndex(
+          (stop) => stop.name.toLowerCase() === start.toLowerCase()
+        );
+
+        if (startIndex !== -1) {
+          for (const route2 of routes) {
+            if (route1 === route2) continue; // Skip the same route
+
+            const stops2 = route2.stops;
+            const endIndex = stops2.findIndex(
+              (stop) => stop.name.toLowerCase() === end.toLowerCase()
+            );
+
+            if (endIndex !== -1) {
+              // Find a common transfer point between route1 and route2
+              const transferPoint = stops1.find((stop1) =>
+                stops2.some(
+                  (stop2) => stop1.name.toLowerCase() === stop2.name.toLowerCase()
+                )
+              );
+
+              if (transferPoint) {
+                transferRoute = {
+                  route1: stops1.slice(startIndex, stops1.indexOf(transferPoint) + 1),
+                  transferPoint: transferPoint.name,
+                  route2: stops2.slice(
+                    stops2.indexOf(transferPoint),
+                    endIndex + 1
+                  ),
+                };
+                console.log(
+                  `Transfer route found: ${transferRoute.route1
+                    .map((s) => s.name)
+                    .join(" → ")} → ${transferRoute.transferPoint} → ${transferRoute.route2
+                    .map((s) => s.name)
+                    .join(" → ")}`
+                );
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Respond with the appropriate route
+    if (directRoute) {
+      res.json({ status: "success", route: directRoute });
+    } else if (transferRoute) {
+      res.json({ status: "success", transferRoute });
     } else {
       console.log("No route found");
       res.status(404).json({ status: "fail", message: "Route not found" });
