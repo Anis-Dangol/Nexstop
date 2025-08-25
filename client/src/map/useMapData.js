@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { fetchRouteFromAPI, fetchUserToStart } from "../map/MapAPISlice";
-import { fetchBusRoutes } from "../services/busRoutes";
-import { GetTransferMessage } from "@/lib/GetTransferMessage";
+import { fetchRouteFromAPI, fetchUserToStart } from "./MapAPISlice";
+import { fetchBusRoutes } from "../services/bus-route/busRoutes";
+import { GetTransferMessage } from "@/services/transfer/GetTransferMessage";
 
 export const useMapData = (routeProp, customUserLocation = null) => {
   const [userLocation, setUserLocation] = useState(null);

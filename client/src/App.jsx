@@ -12,11 +12,11 @@ import AdminBusStops from "./pages/admin-page/AdminBusStops";
 import AdminBusRoutes from "./pages/admin-page/AdminBusRoutes";
 import AdminTransfers from "./pages/admin-page/AdminTransfers";
 import AdminBusNames from "./pages/admin-page/AdminBusNames";
-import FareConfigPage from "./pages/admin-page/FareConfigPage";
+import FareConfigPage from "./pages/admin-page/AdminFare";
 
 import NotFound from "./pages/not-found/NotFound";
 import MappingHome from "./pages/map-home/MappingHome";
-import CheckAuth from "./components/common/CheckAuth";
+import CheckAuth from "./components/auth/CheckAuth";
 import UnauthPage from "./pages/unauth-page/UnauthPage";
 
 import { useDispatch, useSelector } from "react-redux";

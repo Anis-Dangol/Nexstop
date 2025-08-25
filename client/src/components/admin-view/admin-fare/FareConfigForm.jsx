@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { Textarea } from "../../ui/textarea";
 import {
   useCreateFareConfigMutation,
   useUpdateFareConfigMutation,
-} from "../../map/admin-slice/fareSlice";
-import { useToast } from "../ui/use-toast";
+} from "../../../map/admin-slice/fareSlice";
+import { useToast } from "../../ui/use-toast";
 
 const FareConfigForm = ({ fareConfig, onSuccess }) => {
   const [formData, setFormData] = useState({

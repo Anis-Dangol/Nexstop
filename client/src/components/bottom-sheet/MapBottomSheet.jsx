@@ -1,7 +1,7 @@
 import { HandCoins, BusFront, ArrowLeftRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import { fetchTransfers } from "../../services/transfers";
-import { getBusNamesForStop } from "../../utils/mapUtils";
+import { fetchTransfers } from "../../services/transfer/transfers";
+import { getBusNamesForStop } from "../../map/mapSlice";
 
 export default function MapBottomSheet({
   activeTab,

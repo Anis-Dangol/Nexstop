@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchTransfers } from "../../services/transfers";
+import { fetchTransfers } from "../../services/transfer/transfers";
 
 export default function FavouriteMenu({
   favourites,

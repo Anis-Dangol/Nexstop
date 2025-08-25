@@ -1,21 +1,9 @@
 import express from "express";
 import BusRoute from "../../models/BusRoute.js";
-import { getFareForDistance } from "../../controllers/fare/fare-controller.js";
+import { getFareForDistance } from "./fare-controller.js";
+import { calculateDistance } from "../distance/distanceUtils.js";
 
 const router = express.Router();
-
-// Helper to calculate distance
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const toRad = (angle) => (angle * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 router.post("/estimate-fare", async (req, res) => {
   try {
@@ -76,7 +64,7 @@ router.post("/estimate-fare", async (req, res) => {
           nextStop.lat &&
           nextStop.lon
         ) {
-          const segmentDistance = haversineDistance(
+          const segmentDistance = calculateDistance(
             currentStop.lat,
             currentStop.lon,
             nextStop.lat,
@@ -88,7 +76,7 @@ router.post("/estimate-fare", async (req, res) => {
       console.log("Route-based distance calculated:", totalDistance);
     } else {
       // Fallback: Calculate straight-line (haversine) distance
-      totalDistance = haversineDistance(
+      totalDistance = calculateDistance(
         startStop.lat,
         startStop.lon,
         endStop.lat,

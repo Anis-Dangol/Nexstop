@@ -18,8 +18,8 @@ import RoutePopup from "./RoutePopup";
 import TransferInfoButton from "../transfer/TransferInfoButton";
 import TransferPopup from "../transfer/TransferPopup";
 import MapClickHandler from "./MapClickHandler";
-import { useMapData } from "../../hooks/useMapData";
-import { useBottomSheet } from "../../hooks/useBottomSheet";
+import { useMapData } from "../../map/useMapData";
+import { useBottomSheet } from "../../services/useBottomSheet";
 import { MapPin } from "lucide-react";
 
 export default function MapContainerWrapper({

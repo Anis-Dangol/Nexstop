@@ -4,8 +4,12 @@ import {
   deleteBusStop,
   deleteBusStopFromAllRoutes,
   updateBusStop,
-} from "../../services/busRoutes";
+} from "../../services/bus-route/busRoutes";
 import { useToast } from "../../components/ui/use-toast";
+import BusStopHeader from "../../components/admin-view/admin-bus-stop/BusStopHeader";
+import BusStopFilters from "../../components/admin-view/admin-bus-stop/BusStopFilters";
+import BusStopTable from "../../components/admin-view/admin-bus-stop/BusStopTable";
+import BusStopPagination from "../../components/admin-view/admin-bus-stop/BusStopPagination";
 
 function AdminBusStops() {
   const [busStops, setBusStops] = useState([]);
@@ -318,232 +322,37 @@ function AdminBusStops() {
   return (
     <div className="w-full bg-gray-50 min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Bus Stops
-              </h1>
-            </div>
-          </div>
-        </div>
+        <BusStopHeader />
 
-        {/* Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm p-2 mb-2 border border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search bus stops..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <svg
-                  className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              >
-                <option value="none">No Sort</option>
-                <option value="asc">A-Z</option>
-                <option value="desc">Z-A</option>
-              </select>
-            </div>
-            <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 whitespace-nowrap">
-              {searchTerm.trim() ? (
-                <>
-                  Showing {sortedAndFilteredBusStops.length} of{" "}
-                  {busStops.length} stops
-                </>
-              ) : (
-                <>Total Stops: {busStops.length}</>
-              )}
-            </div>
-          </div>
-        </div>
+        <BusStopFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
+          filteredCount={sortedAndFilteredBusStops.length}
+          totalCount={busStops.length}
+        />
 
-        {/* Bus Stops Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left">
-              <thead className="sticky top-0 bg-gray-50 z-50 border-b border-gray-200">
-                <tr>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    ID
-                  </th>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    Bus Stop Name
-                  </th>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    Latitude
-                  </th>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    Longitude
-                  </th>
-                  <th className="py-3 px-6 font-semibold text-gray-700 bg-gray-50">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {currentBusStops.map((stop, index) => (
-                  <tr
-                    key={stop.id}
-                    className={`hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                    }`}
-                  >
-                    <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                      {stop.id}
-                    </td>
-                    <td className="py-4 px-6 text-sm">
-                      {editingStop === stop.id ? (
-                        <input
-                          type="text"
-                          value={editForm.name}
-                          onChange={(e) =>
-                            handleInputChange("name", e.target.value)
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Bus stop name"
-                        />
-                      ) : (
-                        <span className="font-medium text-gray-900">
-                          {stop.name}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-sm text-gray-700 font-mono">
-                      {editingStop === stop.id ? (
-                        <input
-                          type="number"
-                          step="0.000001"
-                          value={editForm.latitude}
-                          onChange={(e) =>
-                            handleInputChange("latitude", e.target.value)
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="Latitude"
-                        />
-                      ) : (
-                        formatCoordinate(stop.latitude)
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-sm text-gray-700 font-mono">
-                      {editingStop === stop.id ? (
-                        <input
-                          type="number"
-                          step="0.000001"
-                          value={editForm.longitude}
-                          onChange={(e) =>
-                            handleInputChange("longitude", e.target.value)
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="Longitude"
-                        />
-                      ) : (
-                        formatCoordinate(stop.longitude)
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      {editingStop === stop.id ? (
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={handleSaveEdit}
-                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(stop)}
-                            disabled={editingStop !== null}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              editingStop !== null
-                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                            }`}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBusStop(stop.id)}
-                            disabled={editingStop !== null}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              editingStop !== null
-                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                : "bg-red-500 hover:bg-red-600 text-white"
-                            }`}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <BusStopTable
+          busStops={currentBusStops}
+          searchTerm={searchTerm}
+          editingStop={editingStop}
+          editForm={editForm}
+          onEdit={handleEdit}
+          onSave={handleSaveEdit}
+          onCancel={handleCancelEdit}
+          onDelete={handleDeleteBusStop}
+          onInputChange={handleInputChange}
+          formatCoordinate={formatCoordinate}
+        />
 
-            {sortedAndFilteredBusStops.length === 0 && busStops.length > 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No bus stops found matching "{searchTerm}".
-              </div>
-            )}
-
-            {busStops.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No bus stops found in the routes data.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Pagination Controls */}
-        {sortedAndFilteredBusStops.length > itemsPerPage && (
-          <div className="flex justify-between items-center mt-6 px-6 py-4 bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="text-sm text-gray-700">
-              Showing{" "}
-              {Math.min(
-                (currentPage - 1) * itemsPerPage + 1,
-                sortedAndFilteredBusStops.length
-              )}{" "}
-              to{" "}
-              {Math.min(
-                currentPage * itemsPerPage,
-                sortedAndFilteredBusStops.length
-              )}{" "}
-              of {sortedAndFilteredBusStops.length} results
-            </div>
-            <div className="flex space-x-1">{renderPagination()}</div>
-          </div>
-        )}
+        <BusStopPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={sortedAndFilteredBusStops.length}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

@@ -570,3 +570,156 @@ export const deleteBusStopFromAllRoutes = async (req, res) => {
     });
   }
 };
+
+// Bulk update route numbers (admin only)
+export const bulkUpdateRouteNumbers = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { updates } = req.body;
+
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Updates array is required",
+      });
+    }
+
+    // Validate update format
+    for (const update of updates) {
+      if (!update.id || !update.routeNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "Each update must have id and routeNumber",
+        });
+      }
+    }
+
+    // Check for duplicate route numbers in the updates
+    const newRouteNumbers = updates.map((u) => u.routeNumber);
+    const uniqueNumbers = new Set(newRouteNumbers);
+    if (newRouteNumbers.length !== uniqueNumbers.size) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate route numbers in updates",
+      });
+    }
+
+    // Check if any of the new route numbers already exist (excluding the routes being updated)
+    const updateIds = updates.map((u) => u.id);
+    const existingRoutesWithNumbers = await BusRoute.find({
+      routeNumber: { $in: newRouteNumbers },
+      _id: { $nin: updateIds },
+    });
+
+    if (existingRoutesWithNumbers.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Route numbers already exist: ${existingRoutesWithNumbers
+          .map((r) => r.routeNumber)
+          .join(", ")}`,
+      });
+    }
+
+    // Perform bulk update using bulkWrite for efficiency
+    const bulkOperations = updates.map((update) => ({
+      updateOne: {
+        filter: { _id: update.id },
+        update: { $set: { routeNumber: update.routeNumber } },
+      },
+    }));
+
+    const result = await BusRoute.bulkWrite(bulkOperations);
+
+    console.log(
+      `Bulk update completed: ${result.modifiedCount} routes updated`
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} route numbers`,
+      data: {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        upsertedCount: result.upsertedCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error bulk updating route numbers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to bulk update route numbers",
+      error: error.message,
+    });
+  }
+};
+
+// Reorder routes with automatic route number assignment (admin only)
+export const reorderRoutes = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Forbidden: Admins only" });
+    }
+
+    const { routeIds } = req.body;
+
+    if (!routeIds || !Array.isArray(routeIds) || routeIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Route IDs array is required",
+      });
+    }
+
+    // Validate that all route IDs exist
+    const existingRoutes = await BusRoute.find({ _id: { $in: routeIds } });
+    if (existingRoutes.length !== routeIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some route IDs not found",
+      });
+    }
+
+    // Create bulk operations to update route numbers based on array order
+    const bulkOperations = routeIds.map((routeId, index) => ({
+      updateOne: {
+        filter: { _id: routeId },
+        update: { $set: { routeNumber: index + 1 } },
+      },
+    }));
+
+    // Execute the bulk update
+    const result = await BusRoute.bulkWrite(bulkOperations);
+
+    console.log(
+      `Route reordering completed: ${result.modifiedCount} routes updated`
+    );
+
+    // Get the updated routes to return them
+    const updatedRoutes = await BusRoute.find({ _id: { $in: routeIds } }).sort({
+      routeNumber: 1,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully reordered ${result.modifiedCount} routes`,
+      data: {
+        matchedCount: result.matchedCount,
+        modifiedCount: result.modifiedCount,
+        routes: updatedRoutes,
+      },
+    });
+  } catch (error) {
+    console.error("Error reordering routes:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reorder routes",
+      error: error.message,
+    });
+  }
+};
