@@ -248,7 +248,7 @@ export default function MapBottomSheet({
                           key={groupIdx}
                           className={`p-3 rounded-lg border ${
                             isBestCoverage
-                              ? "bg-green-50 border-green-300 ring-2 ring-green-200"
+                              ? "bg-gray-50 border-gray-200"
                               : "bg-gray-50 border-gray-200"
                           }`}
                         >
@@ -257,17 +257,17 @@ export default function MapBottomSheet({
                               <div
                                 className={`font-bold text-base ${
                                   isBestCoverage
-                                    ? "text-green-800"
+                                    ? "text-gray-800"
                                     : "text-gray-800"
                                 }`}
                               >
                                 {group.busName}
                               </div>
-                              {isBestCoverage && (
+                              {/* {isBestCoverage && (
                                 <span className="ml-2 px-2 py-1 bg-green-200 text-green-800 text-xs font-bold rounded-full">
                                   BEST ROUTE
                                 </span>
-                              )}
+                              )} */}
                             </div>
                             <div className="flex items-center">
                               <div
@@ -297,7 +297,7 @@ export default function MapBottomSheet({
                                   key={stopIdx}
                                   className={
                                     isOverlapping
-                                      ? "bg-yellow-200 text-yellow-800 px-1 rounded font-semibold"
+                                      ? "text-gray-800 px-1 rounded font-semibold"
                                       : "text-gray-600"
                                   }
                                 >
@@ -307,11 +307,11 @@ export default function MapBottomSheet({
                               );
                             })}
                           </div>
-                          {isBestCoverage && (
+                          {/* {isBestCoverage && (
                             <div className="mt-2 text-xs text-green-700 font-medium">
                               🎯 This bus covers the most stops on your route
                             </div>
-                          )}
+                          )} */}
                         </div>
                       );
                     });

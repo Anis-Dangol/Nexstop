@@ -193,6 +193,7 @@ export default function ClientMenuItems({
       if (startStop && endStop) foundRoute = [startStop, endStop];
     }
 
+    // Validate route before setting it
     if (!foundRoute) {
       toast({
         title: "No route found",
@@ -204,6 +205,49 @@ export default function ClientMenuItems({
       if (typeof setRoute === "function") setRoute([]);
       if (window.clearMapSelectedStops) window.clearMapSelectedStops();
       // Clear nearest stop marker when route is cleared
+      if (window.removeNearestStopMarker) {
+        window.removeNearestStopMarker();
+      }
+      return;
+    }
+
+    // Check if all stops in the route exist in the database
+    const invalidStops = foundRoute.filter(
+      (stop) =>
+        !allStops.some(
+          (dbStop) => dbStop.name.toLowerCase() === stop.name.toLowerCase()
+        )
+    );
+
+    if (invalidStops.length > 0) {
+      toast({
+        title: "Invalid route",
+        description: `Route contains stops not found in database: ${invalidStops
+          .map((s) => s.name)
+          .join(", ")}. Please try different stops.`,
+        variant: "destructive",
+      });
+      setStart("");
+      setEnd("");
+      if (typeof setRoute === "function") setRoute([]);
+      if (window.clearMapSelectedStops) window.clearMapSelectedStops();
+      if (window.removeNearestStopMarker) {
+        window.removeNearestStopMarker();
+      }
+      return;
+    }
+
+    // Check if route has 2 or fewer stops
+    if (foundRoute.length <= 2) {
+      toast({
+        title: "Route not Found",
+        description: `Please try again with new Routes.`,
+        variant: "destructive",
+      });
+      setStart("");
+      setEnd("");
+      if (typeof setRoute === "function") setRoute([]);
+      if (window.clearMapSelectedStops) window.clearMapSelectedStops();
       if (window.removeNearestStopMarker) {
         window.removeNearestStopMarker();
       }

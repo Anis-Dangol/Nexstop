@@ -3,12 +3,10 @@ import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth/authRoutes.js";
-import routeSuggestion from "./routes/bus/routeSuggestion.js";
-import fareEstimator from "./controllers/fare/fareEstimator.js";
 import favouriteRoutes from "./routes/auth/favouriteRoutes.js";
 import busRoutes from "./routes/bus/busRoutes.js";
 import transferRoutes from "./routes/transfer/transferRoutes.js";
-import busnameRoutes from "./routes/busname/busnameRoutes.js";
+import busnameRoutes from "./routes/bus/busnameRoutes.js";
 import fareRoutes from "./routes/fare/fareRoutes.js";
 import statisticsRoutes from "./routes/statistics/statisticsRoutes.js";
 import distanceRoutes from "./routes/distance/distanceRoutes.js";
@@ -46,8 +44,6 @@ app.use(cookieParser());
 
 // ✅ now use routes after 'app' is declared
 app.use("/api/auth", authRouter);
-app.use("/api", routeSuggestion);
-app.use("/api/bus", fareEstimator);
 app.use("/api/auth", favouriteRoutes);
 app.use("/api/bus", busRoutes);
 app.use("/api/transfer", transferRoutes);
