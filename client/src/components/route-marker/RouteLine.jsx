@@ -1,7 +1,8 @@
 import { Polyline, Popup } from "react-leaflet";
 
 export default function RouteLine({ route, userLocation }) {
-  if (!route || route.length < 1) return null;
+  // Don't render if route is invalid or has 2 or fewer stops
+  if (!route || route.length <= 2) return null;
 
   const positions = [];
 
