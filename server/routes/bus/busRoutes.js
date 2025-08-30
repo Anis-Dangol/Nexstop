@@ -13,6 +13,7 @@ import {
   importBusRoutes,
   bulkUpdateRouteNumbers,
   reorderRoutes,
+  getBusRoute,
 } from "../../controllers/bus/bus-controller.js";
 import { authMiddleware } from "../../controllers/auth/auth-controller.js";
 
@@ -20,6 +21,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/routes", getAllBusRoutes);
+router.post("/route", getBusRoute);
 router.get("/routes/:id", getBusRouteById);
 router.get("/stops", getAllBusStops);
 

@@ -81,7 +81,7 @@ export const useMapData = (routeProp, customUserLocation = null) => {
       console.log("useMapData: Fetching fare data for:", start, "→", end);
       console.log("useMapData: Route data:", routeProp);
 
-      fetch("http://localhost:5000/api/bus/estimate-fare", {
+      fetch("http://localhost:5000/api/fare/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -218,7 +218,7 @@ export const useMapData = (routeProp, customUserLocation = null) => {
       const end = routeProp[routeProp.length - 1].name;
       console.log("useMapData: Force fetching fare data for:", start, "→", end);
 
-      fetch("http://localhost:5000/api/bus/estimate-fare", {
+      fetch("http://localhost:5000/api/fare/estimate-fare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

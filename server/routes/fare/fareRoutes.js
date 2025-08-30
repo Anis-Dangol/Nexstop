@@ -4,6 +4,7 @@ import {
   createFareConfig,
   updateFareConfig,
   deleteFareConfig,
+  estimateFare,
 } from "../../controllers/fare/fare-controller.js";
 
 const router = express.Router();
@@ -19,5 +20,7 @@ router.put("/:id", updateFareConfig);
 
 // Delete Fare Estimation
 router.delete("/:id", deleteFareConfig);
+
+router.post("/estimate-fare", estimateFare);
 
 export default router;

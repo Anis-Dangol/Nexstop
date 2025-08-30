@@ -5,7 +5,7 @@ import {
   updateBusName,
   deleteBusName,
   importBusNames,
-} from "../../controllers/busname/busname-controller.js";
+} from "../../controllers/bus/busname-controller.js";
 
 const router = express.Router();
 

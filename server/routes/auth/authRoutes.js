@@ -12,7 +12,7 @@ import {
   deleteUser,
   getUserCount,
   getUserRegistrationStats,
-} from "../../controllers/auth/user-controller.js";
+} from "../../controllers/auth/a-user-controller.js";
 
 const router = express.Router();
 router.get("/user-count", authMiddleware, getUserCount);
@@ -25,6 +25,7 @@ router.get("/all-users", authMiddleware, getAllUsers);
 router.post("/create-user", authMiddleware, createUser);
 router.put("/update-user/:id", authMiddleware, updateUser);
 router.delete("/delete-user/:id", authMiddleware, deleteUser);
+
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
